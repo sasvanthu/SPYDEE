@@ -1,0 +1,122 @@
+[
+  {
+    "record_id": "CDR-Q-8039",
+    "caller_id": "+919155466185",
+    "callee_id": "+917471298719",
+    "start_time": "2026-08-03T01:00:00",
+    "duration_seconds": 86,
+    "direction": "outgoing",
+    "caller_device_id": "DEV-7805A147",
+    "caller_tower_id": "9b0ef173-2820-4f6a-be21-8a4e8087c4a0"
+  },
+  {
+    "record_id": "CDR-Q-8961",
+    "caller_id": "+918670091632",
+    "callee_id": "+917668047760",
+    "start_time": "2026-08-11T00:00:00",
+    "duration_seconds": 20,
+    "direction": "outgoing",
+    "caller_device_id": "DEV-B79CBD26",
+    "caller_tower_id": "a024a17d-0b10-49e2-ae30-dc89c75816f6"
+  },
+  {
+    "record_id": "CDR-Q-9376",
+    "caller_id": "+918670091632",
+    "callee_id": "+917471298719",
+    "start_time": "2026-08-20T19:00:00",
+    "duration_seconds": 33,
+    "direction": "outgoing",
+    "caller_device_id": "DEV-95FD52B6",
+    "caller_tower_id": "64ce0812-92b0-42c3-a7ac-fedbea3589a8"
+  },
+  {
+    "record_id": "CDR-Q-8031",
+    "caller_id": "+917564434600",
+    "callee_id": "+918670091632",
+    "start_time": "2026-08-09T22:00:00",
+    "duration_seconds": 35,
+    "direction": "outgoing",
+    "caller_device_id": "DEV-12CDC0AC",
+    "caller_tower_id": "356bd415-cd2e-4520-b809-b041b2dee509"
+  },
+  {
+    "record_id": "CDR-Q-4091",
+    "caller_id": "+917564434600",
+    "callee_id": "+918670091632",
+    "start_time": "2026-08-17T20:00:00",
+    "duration_seconds": 119,
+    "direction": "outgoing",
+    "caller_device_id": "DEV-660F45DA",
+    "caller_tower_id": "6d69413c-38b6-4532-a998-6067224bc531"
+  },
+  {
+    "record_id": "CDR-Q-1628",
+    "caller_id": "+917471298719",
+    "callee_id": "+918670091632",
+    "start_time": "2026-08-06T03:00:00",
+    "duration_seconds": 45,
+    "direction": "outgoing",
+    "caller_device_id": "DEV-F9D06579",
+    "caller_tower_id": "64ce0812-92b0-42c3-a7ac-fedbea3589a8"
+  },
+  {
+    "record_id": "CDR-Q-2489",
+    "caller_id": "+917463339291",
+    "callee_id": "+917541696649",
+    "start_time": "2026-08-01T21:00:00",
+    "duration_seconds": 120,
+    "direction": "outgoing",
+    "caller_device_id": "DEV-789E4AB3",
+    "caller_tower_id": "9b0ef173-2820-4f6a-be21-8a4e8087c4a0"
+  },
+  {
+    "record_id": "CDR-Q-4791",
+    "caller_id": "+917090848040",
+    "callee_id": "+917541696649",
+    "start_time": "2026-08-18T00:00:00",
+    "duration_seconds": 38,
+    "direction": "outgoing",
+    "caller_device_id": "DEV-2753E7DD",
+    "caller_tower_id": "4997b6e7-5ad5-4f0d-8527-4a00a5582a23"
+  },
+  {
+    "record_id": "CDR-Q-9353",
+    "caller_id": "+917090848040",
+    "callee_id": "+917541696649",
+    "start_time": "2026-08-16T16:00:00",
+    "duration_seconds": 64,
+    "direction": "outgoing",
+    "caller_device_id": "DEV-90547480",
+    "caller_tower_id": "9b0ef173-2820-4f6a-be21-8a4e8087c4a0"
+  },
+  {
+    "record_id": "CDR-Q-5596",
+    "caller_id": "+917541696649",
+    "callee_id": "+918670091632",
+    "start_time": "2026-08-10T02:00:00",
+    "duration_seconds": 54,
+    "direction": "outgoing",
+    "caller_device_id": "DEV-B6367CF8",
+    "caller_tower_id": "a024a17d-0b10-49e2-ae30-dc89c75816f6"
+  },
+  {
+    "record_id": "CDR-Q-3977",
+    "caller_id": "+917541696649",
+    "callee_id": "+917471298719",
+    "start_time": "2026-08-11T16:00:00",
+    "duration_seconds": 15,
+    "direction": "outgoing",
+    "caller_device_id": "DEV-79ACF2F5",
+    "caller_tower_id": "9b0ef173-2820-4f6a-be21-8a4e8087c4a0"
+  },
+  {
+    "record_id": "CDR-Q-8734",
+    "caller_id": "+917668047760",
+    "callee_id": "+917090848040",
+    "start_time": "2026-08-08T00:00:00",
+    "duration_seconds": 45,
+    "direction": "outgoing",
+    "caller_device_id": "DEV-729EC81A",
+    "caller_tower_id": "5a5428f7-195b-4dc9-a87c-476a8fe9a98d"
+  }
+]
