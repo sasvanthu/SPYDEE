@@ -16,7 +16,7 @@ from sqlalchemy import select, text
 from app.config import get_settings
 from app.models.models import (
     Entity, Identifier, EntityIdentifierLink, Relationship, Hypothesis, Signal,
-    SourceRecord, Event, DocumentChunk, EntityType,
+    SourceRecord, Event, DocumentChunk, EntityType, EventParticipant,
     HypothesisRecommendation,
 )
 
@@ -90,8 +90,8 @@ async def _tool_entity_dossier(db, case_id, entity) -> dict:
         str(s.entity_pair.get("target")) == str(entity.id)
     )]
 
-    events = (await db.execute(
-        select(Event).where(Event.case_id == case_id)
+    event_ids = (await db.execute(
+        select(EventParticipant.event_id).where(EventParticipant.entity_id == entity.id)
     )).scalars().all()
 
     identifiers = (await db.execute(
@@ -129,9 +129,7 @@ async def _tool_entity_dossier(db, case_id, entity) -> dict:
         "top_signals": sorted(set(
             (s.family, s.numeric_value) for s in sigs
         ), key=lambda x: x[1], reverse=True)[:6],
-        "num_events": len([e for e in events if e.details and (
-            str(entity.id) in json.dumps(e.details, default=str)
-        )]),
+        "num_events": len(event_ids),
         "identifiers": list(linked),
         "related_entity_ids": related_ids[:10],
     }
@@ -144,21 +142,19 @@ async def _tool_path(db, case_id, a, b) -> dict:
 
 
 async def _tool_timeline(db, case_id, entity) -> list:
-    events = (await db.execute(
-        select(Event).where(Event.case_id == case_id).order_by(Event.start_time)
+    event_ids = (await db.execute(
+        select(EventParticipant.event_id).where(EventParticipant.entity_id == entity.id)
     )).scalars().all()
-    matches = []
-    for e in events:
-        blob = json.dumps(e.details or {}, default=str).lower()
-        label = str(entity.label or "").lower()
-        if label and label in blob or (entity.id and str(entity.id) in blob):
-            details = (e.details or {}) if isinstance(e.details, str) else (e.details or {})
-            matches.append({
-                "event_type": e.event_type,
-                "start_time": e.start_time.isoformat() if e.start_time else None,
-                "details": details,
-            })
-    return matches[:15]
+    if not event_ids:
+        return []
+    events = (await db.execute(
+        select(Event).where(Event.id.in_(event_ids)).order_by(Event.start_time)
+    )).scalars().all()
+    return [{
+        "event_type": e.event_type,
+        "start_time": e.start_time.isoformat() if e.start_time else None,
+        "details": (e.details or {}) if isinstance(e.details, dict) else {},
+    } for e in events[:15]]
 
 
 async def _tool_contradictions(db, case_id) -> list:
@@ -262,6 +258,7 @@ TOOL_REGISTRY = {
     "rag_search": _tool_rag,
     "sql_query": _tool_sql,
     "run_analysis": _tool_run_analysis,
+    "entity_frequency": None,
 }
 
 
@@ -273,6 +270,23 @@ async def _exec_tool(name, db, case_id, args):
     if name == "run_analysis":
         rows = (await db.execute(select(SourceRecord).where(SourceRecord.case_id == case_id))).scalars().all()
         return {"records": len(rows), "demand": True}
+    if name == "entity_frequency":
+        from sqlalchemy import func as sa_func
+        rows = (await db.execute(select(Entity).where(Entity.case_id == case_id))).scalars().all()
+        id_label = {str(e.id): e.label for e in rows}
+        counts = {}
+        for e in rows:
+            ep_ids = (await db.execute(
+                select(EventParticipant.event_id).where(EventParticipant.entity_id == e.id)
+            )).scalars().all()
+            if ep_ids:
+                ev_count = (await db.execute(
+                    select(sa_func.count(Event.id)).where(Event.id.in_(ep_ids), Event.case_id == case_id)
+                )).scalar_one()
+                if ev_count:
+                    counts[str(e.id)] = int(ev_count)
+        ranked = sorted(counts.items(), key=lambda x: x[1], reverse=True)
+        return [{"entity_id": eid, "label": id_label.get(eid, eid), "event_count": c} for eid, c in ranked[:15]]
     if fn is None:
         return {"error": f"Unknown tool {name}"}
     return await fn(db, case_id, *args)
@@ -385,21 +399,32 @@ async def answer_copilot_query(
             draft = "Please name two entities to trace a path (e.g. between Phone A and Person X)."
         follow_ups = ["Show graph view", "Explain each hop"]
 
-    elif len(entity_hits) >= 2 and ("compare" in q or "relation" in q or "link" in q):
+    elif len(entity_hits) >= 2 and ("compare" in q or "relation" in q or "link" in q or "why" in q):
         a, b = entity_hits[0], entity_hits[1]
         result = await _tool_entity_dossier(db, case_id, a)
         result_b = await _tool_entity_dossier(db, case_id, b)
+        shared_rels = [r for r in result['relationships'] if r['other'] == b.label]
+        shared_rels_rev = [r for r in result_b['relationships'] if r['other'] == a.label]
+        all_shared = shared_rels + shared_rels_rev
+        shared_text = ""
+        if all_shared:
+            shared_text = "\n\nWhy linked:\n" + "\n".join(
+                f"- {r['type']} between them ({r['evidence_count']} evidence items)"
+                for r in all_shared
+            )
         draft = (
             f"Comparison: {a.label} vs {b.label}\n"
             f"{a.label}: {result['num_signals']} signals, {result['num_events']} events, "
             f"{len(result['relationships'])} relationships.\n"
             f"{b.label}: {result_b['num_signals']} signals, {result_b['num_events']} events, "
             f"{len(result_b['relationships'])} relationships."
+            f"{shared_text}"
         )
         citations.extend([
             {"type": "entity", "id": str(a.id), "label": a.label},
             {"type": "entity", "id": str(b.id), "label": b.label},
         ])
+        follow_ups = [f"Show timeline for {a.label}", f"Show timeline for {b.label}", "Show graph around both"]
 
     elif entity_hits:
         entity = entity_hits[0]
@@ -440,7 +465,7 @@ async def answer_copilot_query(
         citations.append({"type": "identifier", "value": id_hits[0][1]})
         links.append({"type": "identifier", "value": id_hits[0][1]})
 
-    elif "hypothes" in q or "strength" in q or "score" in q:
+    elif "hypothes" in q or "strength" in q or "score" in q or "strongest" in q or "leads" in q or "lead" in q:
         hyps = (await db.execute(
             select(Hypothesis).where(Hypothesis.case_id == case_id).order_by(Hypothesis.numeric_value.desc())
         )).scalars().all()
@@ -460,6 +485,17 @@ async def answer_copilot_query(
         draft = "Entities: " + ", ".join(f"{e['label']} ({e['type']})" for e in lst[:25]) if lst else "No entities yet."
         citations.extend({"type": "entity", "id": e["id"]} for e in lst[:10])
         follow_ups = ["Pick one to run a dossier"]
+
+    elif "frequent" in q or "most active" in q or "top entities" in q or ("who" in q and ("appear" in q or "frequent" in q or "active" in q)):
+        freq = await _exec_tool("entity_frequency", db, case_id, ())
+        if freq:
+            draft = "Entities ranked by number of timeline events:\n" + "\n".join(
+                f"- {e['label']}: {e['event_count']} events" for e in freq[:10]
+            )
+            citations.extend({"type": "entity", "id": e["entity_id"], "label": e["label"]} for e in freq[:5])
+            follow_ups = [f"Explain {freq[0]['label']}", f"Show timeline for {freq[0]['label']}", "List all entities"]
+        else:
+            draft = "No entity event data available yet."
 
     elif "record" in q or "evidence" in q or "file" in q:
         recs = (await db.execute(

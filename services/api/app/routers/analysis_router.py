@@ -1,14 +1,14 @@
 import uuid
 import hashlib
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, func, case
 from app.database import get_db
 from app.models.models import (
-    AnalysisRun, SourceRecord, User, Job, JobStatus
+    AnalysisRun, SourceRecord, User, Job, JobStatus, Signal, Hypothesis
 )
 from app.auth.auth import get_current_user
-from app.schemas.schemas import AnalysisRunResponse
+from app.schemas.schemas import AnalysisRunResponse, SignalsResponse, SignalLite
 from app.services.case_service import check_case_membership, check_case_write_access, log_audit_event
 from app.services.analysis_service import run_analysis
 
@@ -83,7 +83,116 @@ async def list_runs(
     result = await db.execute(
         select(AnalysisRun).where(AnalysisRun.case_id == case_id).order_by(AnalysisRun.created_at.desc())
     )
-    return [AnalysisRunResponse.model_validate(r) for r in result.scalars().all()]
+    runs = result.scalars().all()
+
+    counts: dict[uuid.UUID, dict] = {}
+    if runs:
+        run_ids = [r.id for r in runs]
+        sig_result = await db.execute(
+            select(
+                Signal.analysis_run_id,
+                func.count(Signal.id),
+                func.sum(case((Signal.contradiction.is_(True), 1), else_=0)),
+                func.sum(case((Signal.family == "engine_error", 1), else_=0)),
+            )
+            .where(Signal.analysis_run_id.in_(run_ids))
+            .group_by(Signal.analysis_run_id)
+        )
+        for rid, total, contrad, engine_err in sig_result.all():
+            counts[rid] = {
+                "signal_count": total,
+                "contradiction_count": contrad,
+                "engine_error_count": engine_err,
+            }
+        hyp_result = await db.execute(
+            select(Hypothesis.analysis_run_id, func.count(Hypothesis.id))
+            .where(Hypothesis.analysis_run_id.in_(run_ids))
+            .group_by(Hypothesis.analysis_run_id)
+        )
+        for rid, total in hyp_result.all():
+            counts.setdefault(rid, {})["hypothesis_count"] = total
+
+    resp = []
+    for r in runs:
+        c = counts.get(r.id, {})
+        resp.append(
+            AnalysisRunResponse(
+                id=r.id,
+                case_id=r.case_id,
+                version=r.version,
+                status=r.status.value if hasattr(r.status, "value") else r.status,
+                started_at=r.started_at,
+                completed_at=r.completed_at,
+                configuration=r.configuration,
+                created_at=r.created_at,
+                signal_count=c.get("signal_count", 0),
+                contradiction_count=c.get("contradiction_count", 0),
+                hypothesis_count=c.get("hypothesis_count", 0),
+                engine_error_count=c.get("engine_error_count", 0),
+            )
+        )
+    return resp
+
+
+@router.get("/{case_id}/signals", response_model=SignalsResponse)
+async def list_signals(
+    case_id: uuid.UUID,
+    family: str = Query(None, description="Filter by signal family"),
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    """Return signals from the latest analysis run for the case."""
+    await check_case_membership(db, user.id, case_id)
+    run_result = await db.execute(
+        select(AnalysisRun).where(AnalysisRun.case_id == case_id).order_by(AnalysisRun.version.desc())
+    )
+    run = run_result.scalars().first()
+    if not run:
+        counts = {}
+        if family:
+            counts[family] = 0
+        return SignalsResponse(
+            run_id=uuid.uuid4(), run_version=0, status="none",
+            counts_by_family=counts, signals=[],
+        )
+
+    query = select(Signal).where(Signal.case_id == case_id, Signal.analysis_run_id == run.id)
+    if family:
+        query = query.where(Signal.family == family)
+    query = query.order_by(Signal.numeric_value.desc(), Signal.created_at.desc())
+    sig_result = await db.execute(query)
+    signals = sig_result.scalars().all()
+
+    count_result = await db.execute(
+        select(Signal.family, func.count(Signal.id))
+        .where(Signal.case_id == case_id, Signal.analysis_run_id == run.id)
+        .group_by(Signal.family)
+    )
+    counts = {f: c for f, c in count_result.all()}
+
+    return SignalsResponse(
+        run_id=run.id,
+        run_version=run.version,
+        status=run.status.value if hasattr(run.status, "value") else run.status,
+        counts_by_family=counts,
+        signals=[
+            SignalLite(
+                id=s.id,
+                engine_name=s.engine_name,
+                engine_version=s.engine_version,
+                family=s.family,
+                entity_pair=s.entity_pair or {},
+                numeric_value=s.numeric_value,
+                quality_factor=s.quality_factor,
+                explanation=s.explanation,
+                contributing_record_count=len(s.contributing_record_ids or []),
+                feature_details=s.feature_details,
+                contradiction=s.contradiction,
+                contradiction_reason=s.contradiction_reason,
+            )
+            for s in signals
+        ],
+    )
 
 
 @router.get("/{case_id}/{run_id}", response_model=AnalysisRunResponse)

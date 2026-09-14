@@ -86,6 +86,10 @@ export const api = {
   runAnalysis: (caseId: string) =>
     request<any>(`/analysis/${caseId}/run`, { method: 'POST' }),
   getAnalysisRuns: (caseId: string) => request<any[]>(`/analysis/${caseId}`),
+  getSignals: (caseId: string, family?: string) => {
+    const params = family ? `?family=${family}` : '';
+    return request<any>(`/analysis/${caseId}/signals${params}`);
+  },
 
   getHypotheses: (caseId: string, state?: string) => {
     const params = state ? `?review_state=${state}` : '';

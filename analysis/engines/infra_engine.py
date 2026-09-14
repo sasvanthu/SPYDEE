@@ -65,7 +65,7 @@ async def analyze_infrastructure(db, case_id, analysis_run_id, records):
         tower_observations[str(tower).strip().upper()].append((ts, eids, str(r.id)))
 
     direct_calls = await _load_direct_call_pairs(db, case_id)
-    seen = set()
+    pair_encounters = defaultdict(list)
     for tower, events in tower_observations.items():
         events.sort(key=lambda x: x[0])
         for i in range(len(events)):
@@ -79,34 +79,55 @@ async def analyze_infrastructure(db, case_id, analysis_run_id, records):
                         if a == b:
                             continue
                         pair = frozenset((a, b))
-                        if pair in direct_calls or pair in seen:
+                        if pair in direct_calls:
                             continue
-                        seen.add(pair)
-                        score = clamp01(0.35 + len(ids1 & ids2) * 0.1)
-                        signals.append(Signal(
-                            case_id=case_id,
-                            analysis_run_id=analysis_run_id,
-                            engine_name="infrastructure",
-                            engine_version="v2.0",
-                            entity_pair=entity_pair_json(a, b),
-                            family="spatial_temporal",
-                            contributing_record_ids=[rid1, rid2],
-                            time_window_start=t1,
-                            time_window_end=t2,
-                            numeric_value=score_round(score),
-                            quality_factor=0.5,
-                            feature_details={
-                                "pattern": "co_location",
-                                "tower": tower,
-                                "minutes_apart": round((t2 - t1).total_seconds() / 60, 1),
-                                "no_direct_calls": True,
-                            },
-                            explanation=(
-                                f"Identities observed at tower {tower} within "
-                                f"{round((t2-t1).total_seconds()/60,1)} min despite "
-                                "no direct call records."
-                            ),
-                        ))
+                        pair_encounters[pair].append({
+                            "time": t2,
+                            "tower": tower,
+                            "minutes_apart": round((t2 - t1).total_seconds() / 60, 1),
+                            "record_b": rid2,
+                            "overlap": len(ids1 & ids2),
+                        })
+
+    for pair, encounters in pair_encounters.items():
+        a, b = tuple(pair)
+        encounters.sort(key=lambda x: x["time"])
+        total_overlap = sum(e["overlap"] for e in encounters)
+        towers = sorted({e["tower"] for e in encounters})
+        span_hours = (encounters[-1]["time"] - encounters[0]["time"]).total_seconds() / 3600.0
+        density = 1.0 - math.exp(-len(encounters) / 80.0)
+        tower_bonus = min(len(towers) - 1, 3) * 0.03
+        overlap_bonus = min(total_overlap, 4) * 0.04
+        score = clamp01(0.32 + 0.6 * density + tower_bonus + overlap_bonus)
+        record_ids = [e["record_b"] for e in encounters]
+        nearest = min(encounters, key=lambda x: x["minutes_apart"])
+        signals.append(Signal(
+            case_id=case_id,
+            analysis_run_id=analysis_run_id,
+            engine_name="infrastructure",
+            engine_version="v2.1",
+            entity_pair=entity_pair_json(a, b),
+            family="spatial_temporal",
+            contributing_record_ids=record_ids[:25],
+            time_window_start=encounters[0]["time"],
+            time_window_end=encounters[-1]["time"],
+            numeric_value=score_round(score),
+            quality_factor=round(clamp01(0.3 + len(encounters) * 0.01 + min(span_hours, 72) * 0.002), 4),
+            feature_details={
+                "pattern": "co_location",
+                "encounter_count": len(encounters),
+                "distinct_towers": len(towers),
+                "towers": towers[:6],
+                "span_hours": round(span_hours, 1),
+                "closest_encounter_min": nearest["minutes_apart"],
+                "no_direct_calls": True,
+            },
+            explanation=(
+                f"Identities observed at {len(encounters)} shared-tower encounter(s) "
+                f"across {len(towers)} tower(s) over ~{round(span_hours,1)}h "
+                f"(closest {nearest['minutes_apart']} min apart) with no direct call records."
+            ),
+        ))
 
     # ── 2. Shared IP / subnet (infrastructure) ──────────────────────────────
     entity_ips = defaultdict(set)

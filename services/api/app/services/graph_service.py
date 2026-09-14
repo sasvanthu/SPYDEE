@@ -41,26 +41,54 @@ async def build_case_graph(
     rel_result = await db.execute(rel_query)
     relationships = rel_result.scalars().all()
 
+    # Aggregate duplicate rows for the same (source, target) pair: multiple
+    # relationship rows can come from distinct evidence records. Sum their
+    # evidence counts instead of letting one row overwrite another.
+    aggregated: dict[tuple[str, str], dict] = {}
+    for r in relationships:
+        src = str(r.source_entity_id)
+        tgt = str(r.target_entity_id)
+        key = (src, tgt)
+        entry = aggregated.get(key)
+        if entry is None:
+            aggregated[key] = {
+                "relationship_type": r.relationship_type,
+                "classification": r.classification,
+                "label": r.relationship_type.replace("_", " ").title(),
+                "valid_from": r.valid_from,
+                "valid_to": r.valid_to,
+                "review_state": r.review_state.value,
+                "evidence_count": (r.evidence_count or 1),
+                "ids": [str(r.id)],
+            }
+        else:
+            entry["evidence_count"] += (r.evidence_count or 1)
+            entry["ids"].append(str(r.id))
+            if r.valid_from and (entry["valid_from"] is None or r.valid_from < entry["valid_from"]):
+                entry["valid_from"] = r.valid_from
+            if r.valid_to and (entry["valid_to"] is None or r.valid_to > entry["valid_to"]):
+                entry["valid_to"] = r.valid_to
+            if r.classification == "inferred":
+                entry["classification"] = "inferred"
+
     G = nx.DiGraph()
     entity_map = {}
     for e in entities:
         G.add_node(str(e.id), label=e.label, entity_type=e.entity_type.value, review_state=e.review_state.value)
         entity_map[str(e.id)] = e
 
-    for r in relationships:
-        src = str(r.source_entity_id)
-        tgt = str(r.target_entity_id)
+    for (src, tgt), entry in aggregated.items():
         if src in G.nodes and tgt in G.nodes:
             G.add_edge(
                 src, tgt,
-                id=str(r.id),
-                relationship_type=r.relationship_type,
-                classification=r.classification,
-                label=r.relationship_type.replace("_", " ").title(),
-                valid_from=r.valid_from.isoformat() if r.valid_from else None,
-                valid_to=r.valid_to.isoformat() if r.valid_to else None,
-                review_state=r.review_state.value,
-                evidence_count=r.evidence_count,
+                id=entry["ids"][0],
+                relationship_type=entry["relationship_type"],
+                classification=entry["classification"],
+                label=entry["label"],
+                valid_from=entry["valid_from"].isoformat() if entry["valid_from"] else None,
+                valid_to=entry["valid_to"].isoformat() if entry["valid_to"] else None,
+                review_state=entry["review_state"],
+                evidence_count=entry["evidence_count"],
             )
 
     truncated = False

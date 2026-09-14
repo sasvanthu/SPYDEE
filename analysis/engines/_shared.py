@@ -13,6 +13,31 @@ from app.services.entity_service import (
     canonical_hash,
 )
 
+# Identifier type synonyms so legacy/demo cases seeded with a different
+# ``Identifier.id_type`` (e.g. ``phone_sim`` instead of ``phone``) still resolve.
+IDENTIFIER_SYNONYMS = {
+    "phone": ("phone", "sim", "msisdn", "phone_sim"),
+    "sim": ("phone", "sim", "msisdn", "phone_sim"),
+    "msisdn": ("phone", "sim", "msisdn", "phone_sim"),
+    "phone_sim": ("phone", "sim", "msisdn", "phone_sim"),
+    "account": ("account", "bank_account", "upi", "credit_card"),
+    "bank_account": ("account", "bank_account", "upi", "credit_card"),
+    "upi": ("account", "bank_account", "upi", "credit_card"),
+    "credit_card": ("account", "bank_account", "upi", "credit_card"),
+    "alias": ("alias", "handle"),
+    "handle": ("alias", "handle"),
+    "tower": ("tower", "cell"),
+    "cell": ("tower", "cell"),
+    "vehicle": ("vehicle", "vehicle_reg"),
+    "vehicle_reg": ("vehicle", "vehicle_reg"),
+    "bank": ("bank", "organization"),
+    "organization": ("bank", "organization"),
+}
+
+
+def identifier_synonym_types(id_type: str) -> tuple:
+    return IDENTIFIER_SYNONYMS.get(str(id_type).lower(), (str(id_type).lower(),))
+
 
 def clamp01(value: float) -> float:
     return max(0.0, min(1.0, float(value)))
@@ -23,17 +48,27 @@ def score_round(value: float, ndigits: int = 4) -> float:
 
 
 async def load_id_entity_map(db: AsyncSession, case_id):
-    """Return ``{(id_type, normalized_value): entity_id}`` for a case."""
+    """Return ``{(id_type, normalized_value): entity_id}`` for a case.
+
+    Every identifier is indexed under each of its synonym id_types using the
+    canonical ``normalize_identifier`` output, so engines that look up
+    ``(phone, ...)`` resolve ``phone_sim`` identifiers and vice versa.
+    """
     rows = await db.execute(
-        select(Identifier.id_type, Identifier.normalized_value,
-               EntityIdentifierLink.entity_id)
+        select(Identifier.id_type, Identifier.id_value,
+               Identifier.normalized_value, EntityIdentifierLink.entity_id)
         .join(EntityIdentifierLink,
               EntityIdentifierLink.identifier_id == Identifier.id)
         .where(Identifier.case_id == case_id)
     )
     mapping = {}
-    for id_type, norm, entity_id in rows.all():
+    for id_type, id_value, norm, entity_id in rows.all():
+        id_value = str(id_value) if id_value is not None else ""
         mapping[(id_type, norm)] = entity_id
+        for syn in identifier_synonym_types(id_type):
+            canonical = normalize_identifier(syn, id_value)
+            if canonical:
+                mapping[(syn, canonical)] = entity_id
     return mapping
 
 

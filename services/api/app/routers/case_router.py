@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
 from app.database import get_db
 from app.models.models import (
-    Case, CaseMembership, User, Entity, Relationship,
+    Case, CaseMembership, User, Entity, Relationship, Event,
     Hypothesis, EvidenceFile, AuditEvent, UserRole, CaseStatus
 )
 from app.auth.auth import get_current_user
@@ -83,11 +83,15 @@ async def list_cases(
         rel_count = await db.execute(
             select(func.count()).where(Relationship.case_id == case.id)
         )
-        resp.event_count = rel_count.scalar()
+        resp.relationship_count = rel_count.scalar()
         ev_count = await db.execute(
+            select(func.count()).where(Event.case_id == case.id)
+        )
+        resp.event_count = ev_count.scalar()
+        ef_count = await db.execute(
             select(func.count()).where(EvidenceFile.case_id == case.id)
         )
-        resp.evidence_count = ev_count.scalar()
+        resp.evidence_count = ef_count.scalar()
         hyp_count = await db.execute(
             select(func.count()).where(Hypothesis.case_id == case.id)
         )
@@ -113,9 +117,11 @@ async def get_case(
     ent_count = await db.execute(select(func.count()).where(Entity.case_id == case.id))
     resp.entity_count = ent_count.scalar()
     rel_count = await db.execute(select(func.count()).where(Relationship.case_id == case.id))
-    resp.event_count = rel_count.scalar()
-    ev_count = await db.execute(select(func.count()).where(EvidenceFile.case_id == case.id))
-    resp.evidence_count = ev_count.scalar()
+    resp.relationship_count = rel_count.scalar()
+    ev_count = await db.execute(select(func.count()).where(Event.case_id == case.id))
+    resp.event_count = ev_count.scalar()
+    ef_count = await db.execute(select(func.count()).where(EvidenceFile.case_id == case.id))
+    resp.evidence_count = ef_count.scalar()
     hyp_count = await db.execute(select(func.count()).where(Hypothesis.case_id == case.id))
     resp.hypothesis_count = hyp_count.scalar()
     return resp

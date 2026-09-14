@@ -29,10 +29,10 @@ export default function Copilot() {
   };
 
   const examples = [
-    'Why are Alias-01 and Alias-04 linked?',
-    'Show the device changes before 18:00',
+    'What are the strongest leads?',
+    'Who appeared most frequently?',
+    'Explain Alias-01',
     'What contradicts this lead?',
-    'Show a path between Device-01 and Account-03',
     'What evidence is missing?',
   ];
 

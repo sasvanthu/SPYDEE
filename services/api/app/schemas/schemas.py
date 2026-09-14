@@ -61,6 +61,7 @@ class CaseResponse(BaseModel):
     event_count: int = 0
     evidence_count: int = 0
     hypothesis_count: int = 0
+    relationship_count: int = 0
 
     class Config:
         from_attributes = True
@@ -245,17 +246,43 @@ class HypothesisReviewRequest(BaseModel):
 class SignalResponse(BaseModel):
     id: UUID
     engine_name: str
+    engine_version: Optional[str] = None
     family: str
     entity_pair: dict
     numeric_value: float
     quality_factor: float
     explanation: Optional[str]
     contributing_record_ids: Optional[List]
+    feature_details: Optional[dict] = None
     contradiction: bool = False
     contradiction_reason: Optional[str] = None
+    created_at: Optional[datetime] = None
 
     class Config:
         from_attributes = True
+
+
+class SignalLite(BaseModel):
+    id: UUID
+    engine_name: str
+    engine_version: Optional[str] = None
+    family: str
+    entity_pair: dict
+    numeric_value: float
+    quality_factor: float
+    explanation: Optional[str]
+    contributing_record_count: int = 0
+    feature_details: Optional[dict] = None
+    contradiction: bool = False
+    contradiction_reason: Optional[str] = None
+
+
+class SignalsResponse(BaseModel):
+    run_id: UUID
+    run_version: int
+    status: str
+    counts_by_family: dict[str, int]
+    signals: List[SignalLite]
 
 
 class AnalysisRunResponse(BaseModel):
@@ -267,6 +294,10 @@ class AnalysisRunResponse(BaseModel):
     completed_at: Optional[datetime]
     configuration: Optional[dict]
     created_at: datetime
+    signal_count: int = 0
+    hypothesis_count: int = 0
+    contradiction_count: int = 0
+    engine_error_count: int = 0
 
     class Config:
         from_attributes = True

@@ -113,8 +113,9 @@ async def analyze_communication(db, case_id, analysis_run_id, records):
     all_times = []
     for s in pair_stats.values():
         all_times.extend(s["times"])
-    horizon = max([t for t in all_times if t is not None] or [])
-    horizon_end = horizon + timedelta(days=14)
+    valid_times = [t for t in all_times if t is not None]
+    horizon = max(valid_times) if valid_times else None
+    horizon_end = horizon + timedelta(days=14) if horizon else None
 
     for (src, tgt), s in pair_stats.items():
         if s["count"] < 2:

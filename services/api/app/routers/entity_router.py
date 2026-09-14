@@ -12,6 +12,21 @@ from app.services.entity_service import get_entity_profile
 router = APIRouter(prefix="/api/v1/entities", tags=["entities"])
 
 
+def _entity_to_response(e: Entity, identifiers=None) -> EntityResponse:
+    """Build EntityResponse without triggering lazy-load of the identifiers relationship."""
+    return EntityResponse.model_construct(
+        id=e.id,
+        case_id=e.case_id,
+        entity_type=e.entity_type.value if hasattr(e.entity_type, "value") else str(e.entity_type),
+        label=e.label,
+        description=e.description,
+        review_state=e.review_state.value if hasattr(e.review_state, "value") else str(e.review_state),
+        created_at=e.created_at,
+        attributes=e.attributes if hasattr(e, "attributes") else None,
+        identifiers=identifiers if identifiers is not None else [],
+    )
+
+
 @router.get("/{case_id}", response_model=list[EntityResponse])
 async def list_entities(
     case_id: uuid.UUID,
@@ -31,7 +46,6 @@ async def list_entities(
 
     responses = []
     for e in entities:
-        resp = EntityResponse.model_validate(e)
         link_result = await db.execute(
             select(EntityIdentifierLink)
             .join(Identifier)
@@ -49,7 +63,7 @@ async def list_entities(
                     normalized_value=ident.normalized_value,
                     review_state=link.review_state.value if link.review_state else "new",
                 ))
-        resp.identifiers = ids
+        resp = _entity_to_response(e, ids)
         responses.append(resp)
     return responses
 
@@ -65,8 +79,19 @@ async def get_entity(
     profile = await get_entity_profile(db, entity_id)
     if not profile:
         raise HTTPException(status_code=404, detail="Entity not found")
+    e = profile["entity"]
+    ids = [
+        IdentifierResponse(
+            id=i["id"],
+            id_type=i["id_type"],
+            id_value=i["id_value"],
+            normalized_value=i["normalized_value"],
+            review_state=i.get("review_state", "new"),
+        )
+        for i in profile["identifiers"]
+    ]
     return {
-        "entity": EntityResponse.model_validate(profile["entity"]),
+        "entity": _entity_to_response(e, ids),
         "identifiers": profile["identifiers"],
     }
 
@@ -89,7 +114,7 @@ async def create_entity(
     await log_audit_event(db, case_id, user.id, "entity_created", "entity", None)
     await db.commit()
     await db.refresh(entity)
-    return EntityResponse.model_validate(entity)
+    return _entity_to_response(entity)
 
 
 @router.post("/{case_id}/{entity_id}/review")

@@ -6,9 +6,12 @@ linkage, and attaches actionable recommendations.
 """
 from typing import List
 
+from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.models import AnalysisRun
+from app.models.models import (
+    AnalysisRun, Hypothesis, HypothesisSignal, HypothesisRecommendation, Signal,
+)
 from analysis.engines.communication_engine import analyze_communication
 from analysis.engines.graph_engine import analyze_graph_structure
 from analysis.engines.device_engine import analyze_device_continuity
@@ -29,12 +32,41 @@ ENGINE_REGISTRY = [
 ]
 
 
+async def _replace_derived_outputs(db: AsyncSession, case_id, keep_run_id) -> None:
+    """Drop signals/hypotheses of previous runs for this case so a new run is
+    the single source of truth (re-runs do not accumulate stale findings)."""
+    from app.models.models import ReviewAction
+    prior_hyp = select(Hypothesis.id).where(
+        Hypothesis.case_id == case_id,
+        Hypothesis.analysis_run_id != keep_run_id,
+    )
+    prior_ids = [row for row in (await db.execute(prior_hyp)).scalars().all()]
+    if prior_ids:
+        await db.execute(delete(ReviewAction).where(ReviewAction.hypothesis_id.in_(prior_ids)))
+        await db.execute(
+            delete(HypothesisRecommendation).where(
+                HypothesisRecommendation.hypothesis_id.in_(prior_ids))
+        )
+        await db.execute(
+            delete(HypothesisSignal).where(HypothesisSignal.hypothesis_id.in_(prior_ids))
+        )
+        await db.execute(delete(Hypothesis).where(Hypothesis.id.in_(prior_ids)))
+    await db.execute(
+        delete(Signal).where(
+            Signal.case_id == case_id,
+            Signal.analysis_run_id != keep_run_id,
+        )
+    )
+    await db.flush()
+
+
 async def run_analysis(db: AsyncSession, run: AnalysisRun, records: List) -> dict:
     """Execute all engines, persist signals, and generate hypotheses.
 
     Deterministic: iteration order is fixed by ENGINE_REGISTRY and engines
     are order-stable given the same input ordering.
     """
+    await _replace_derived_outputs(db, run.case_id, keep_run_id=run.id)
     run.status = "running"
     run.started_at = __import__("datetime").datetime.utcnow()
 
