@@ -105,6 +105,7 @@ def generate_case_a():
 
                     call_time = current_day + timedelta(hours=random.randint(7, 23), minutes=random.randint(0, 59))
                     duration = random.randint(10, 600)
+                    loc = random.choice(LOCATIONS[:4])
 
                     records.append({
                         "record_id": gen_id("CDR"),
@@ -114,22 +115,28 @@ def generate_case_a():
                         "duration_seconds": duration,
                         "direction": random.choice(["outgoing", "incoming"]),
                         "caller_device_id": device,
-                        "caller_tower_id": random.choice(LOCATIONS[:4])["id"],
+                        "caller_tower_id": loc["id"],
+                        "lat": loc["lat"],
+                        "lon": loc["lon"],
                     })
 
                 if random.random() < 0.4:
                     loc = random.choice(LOCATIONS[:4])
                     obs_time = current_day + timedelta(hours=random.randint(7, 22))
                     records.append({
-                        "record_id": gen_id("LOC"),
-                        "entity_or_device_id": device,
-                        "location_id": loc["id"],
-                        "start_time": obs_time.strftime("%Y-%m-%dT%H:%M:%S"),
-                        "end_time": (obs_time + timedelta(minutes=random.randint(5, 60))).strftime("%Y-%m-%dT%H:%M:%S"),
-                        "observation_type": "tower_observation",
+                        "record_id": gen_id("DEV"),
+                        "device_id": device,
+                        "phone_id": phone,
+                        "sim_id": sim,
+                        "event_time": obs_time.strftime("%Y-%m-%dT%H:%M:%S"),
+                        "event_type": random.choice(["sim_insert", "device_boot", "sim_swap"]),
+                        "tower_id": loc["id"],
+                        "lat": loc["lat"],
+                        "lon": loc["lon"],
                     })
 
                 if random.random() < 0.3:
+                    loc = random.choice(LOCATIONS[:4])
                     records.append({
                         "record_id": gen_id("DEV"),
                         "phone_id": phone,
@@ -137,7 +144,9 @@ def generate_case_a():
                         "device_id": device,
                         "event_time": (current_day + timedelta(hours=random.randint(7, 22))).strftime("%Y-%m-%dT%H:%M:%S"),
                         "event_type": random.choice(["sim_insert", "device_boot", "sim_swap"]),
-                        "tower_id": random.choice(LOCATIONS[:4])["id"],
+                        "tower_id": loc["id"],
+                        "lat": loc["lat"],
+                        "lon": loc["lon"],
                     })
 
     messages = [
@@ -229,12 +238,13 @@ def generate_case_a():
             loc = random.choice(LOCATIONS)
             obs_time = base_time + timedelta(days=random.randint(0, 20), hours=random.randint(7, 22))
             records.append({
-                "record_id": gen_id("LOC"),
-                "entity_or_device_id": device,
-                "location_id": loc["id"],
-                "start_time": obs_time.strftime("%Y-%m-%dT%H:%M:%S"),
-                "end_time": (obs_time + timedelta(minutes=random.randint(5, 45))).strftime("%Y-%m-%dT%H:%M:%S"),
-                "observation_type": "tower_observation",
+                "record_id": gen_id("DEV"),
+                "device_id": device,
+                "event_time": obs_time.strftime("%Y-%m-%dT%H:%M:%S"),
+                "event_type": random.choice(["sim_insert", "device_boot", "sim_swap"]),
+                "tower_id": loc["id"],
+                "lat": loc["lat"],
+                "lon": loc["lon"],
             })
 
     for r in records:
@@ -262,6 +272,7 @@ def generate_case_a():
     for _ in range(3):
         target_phone = random.choice(core_phones[3:6])
         t = base_time + timedelta(days=random.randint(15, 20), hours=random.randint(7, 22))
+        loc = random.choice(LOCATIONS[4:8])
         contradiction_records.append({
             "record_id": gen_id("CDR-CONTRA"),
             "caller_id": contradiction_phone,
@@ -270,7 +281,9 @@ def generate_case_a():
             "duration_seconds": random.randint(30, 300),
             "direction": "outgoing",
             "caller_device_id": gen_device(),
-            "caller_tower_id": random.choice(LOCATIONS[4:8])["id"],
+            "caller_tower_id": loc["id"],
+            "lat": loc["lat"],
+            "lon": loc["lon"],
         })
 
     with open(os.path.join(OUTPUT_DIR, "case_a_batch5_contradiction.json"), "w") as f:

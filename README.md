@@ -82,6 +82,10 @@ See [ALGORITHMS.md](docs/ALGORITHMS.md)
 
 See [DEMO.md](docs/DEMO.md)
 
+## Production Deployment
+
+See [DEPLOYMENT.md](docs/DEPLOYMENT.md)
+
 ## Testing
 
 See [TESTING.md](docs/TESTING.md)

@@ -28,6 +28,7 @@ export default function Layout() {
     { label: 'Evidence', path: `/cases/${caseId}/evidence` },
     { label: 'Entities', path: `/cases/${caseId}/entities` },
     { label: 'Graph', path: `/cases/${caseId}/graph` },
+    { label: 'Map', path: `/cases/${caseId}/map` },
     { label: 'Timeline', path: `/cases/${caseId}/timeline` },
     { label: 'Workbench', path: `/cases/${caseId}/workbench` },
     { label: 'Hypotheses', path: `/cases/${caseId}/hypotheses` },

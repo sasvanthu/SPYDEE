@@ -1,1160 +1,1586 @@
 [
   {
     "record_id": "DEV-4598",
+    "device_id": "DEV-E960DD5C",
     "phone_id": "+918193448329",
-    "sim_id": "SIM-3ABDF561C4C3",
-    "device_id": "DEV-29CAC0BD",
-    "event_time": "2026-08-02T01:00:00",
-    "event_type": "sim_insert",
-    "tower_id": "5a5428f7-195b-4dc9-a87c-476a8fe9a98d"
-  },
-  {
-    "record_id": "DEV-4044",
-    "phone_id": "+917438989805",
-    "sim_id": "SIM-2FE66E316A67",
-    "device_id": "DEV-04A49EAF",
-    "event_time": "2026-08-01T17:00:00",
+    "sim_id": "SIM-0C0A75FF180D",
+    "event_time": "2026-08-01T23:00:00",
     "event_type": "sim_swap",
-    "tower_id": "9b0ef173-2820-4f6a-be21-8a4e8087c4a0"
+    "tower_id": "c1da8e5c-c4a2-4475-83cb-730bc86916a3",
+    "lat": 28.69049251244904,
+    "lon": 76.73178267948178
   },
   {
-    "record_id": "LOC-1634",
-    "entity_or_device_id": "DEV-CA07A53E",
-    "location_id": "9b0ef173-2820-4f6a-be21-8a4e8087c4a0",
-    "start_time": "2026-08-02T03:00:00",
-    "end_time": "2026-08-02T03:59:00",
-    "observation_type": "tower_observation"
-  },
-  {
-    "record_id": "LOC-6139",
-    "entity_or_device_id": "DEV-77A60075",
-    "location_id": "64ce0812-92b0-42c3-a7ac-fedbea3589a8",
-    "start_time": "2026-08-03T02:00:00",
-    "end_time": "2026-08-03T02:32:00",
-    "observation_type": "tower_observation"
-  },
-  {
-    "record_id": "LOC-4680",
-    "entity_or_device_id": "DEV-29CAC0BD",
-    "location_id": "5a5428f7-195b-4dc9-a87c-476a8fe9a98d",
-    "start_time": "2026-08-03T00:00:00",
-    "end_time": "2026-08-03T00:56:00",
-    "observation_type": "tower_observation"
-  },
-  {
-    "record_id": "DEV-1400",
-    "phone_id": "+918193448329",
-    "sim_id": "SIM-3ABDF561C4C3",
-    "device_id": "DEV-29CAC0BD",
-    "event_time": "2026-08-02T16:00:00",
-    "event_type": "sim_insert",
-    "tower_id": "64ce0812-92b0-42c3-a7ac-fedbea3589a8"
-  },
-  {
-    "record_id": "LOC-3471",
-    "entity_or_device_id": "DEV-77A60075",
-    "location_id": "9b0ef173-2820-4f6a-be21-8a4e8087c4a0",
-    "start_time": "2026-08-02T19:00:00",
-    "end_time": "2026-08-02T19:19:00",
-    "observation_type": "tower_observation"
-  },
-  {
-    "record_id": "LOC-1475",
-    "entity_or_device_id": "DEV-04A49EAF",
-    "location_id": "64ce0812-92b0-42c3-a7ac-fedbea3589a8",
-    "start_time": "2026-08-03T06:00:00",
-    "end_time": "2026-08-03T06:29:00",
-    "observation_type": "tower_observation"
-  },
-  {
-    "record_id": "DEV-1420",
-    "phone_id": "+918445662585",
-    "sim_id": "SIM-8B18447EEA02",
-    "device_id": "DEV-B8E558E4",
-    "event_time": "2026-08-03T00:00:00",
-    "event_type": "sim_swap",
-    "tower_id": "64ce0812-92b0-42c3-a7ac-fedbea3589a8"
-  },
-  {
-    "record_id": "LOC-6511",
-    "entity_or_device_id": "DEV-04A49EAF",
-    "location_id": "64ce0812-92b0-42c3-a7ac-fedbea3589a8",
-    "start_time": "2026-08-03T03:00:00",
-    "end_time": "2026-08-03T03:06:00",
-    "observation_type": "tower_observation"
-  },
-  {
-    "record_id": "LOC-3564",
-    "entity_or_device_id": "DEV-77A60075",
-    "location_id": "5a5428f7-195b-4dc9-a87c-476a8fe9a98d",
-    "start_time": "2026-08-03T17:00:00",
-    "end_time": "2026-08-03T17:05:00",
-    "observation_type": "tower_observation"
-  },
-  {
-    "record_id": "LOC-7622",
-    "entity_or_device_id": "DEV-77A60075",
-    "location_id": "6d69413c-38b6-4532-a998-6067224bc531",
-    "start_time": "2026-08-03T18:00:00",
-    "end_time": "2026-08-03T19:00:00",
-    "observation_type": "tower_observation"
-  },
-  {
-    "record_id": "DEV-8905",
-    "phone_id": "+918445662585",
-    "sim_id": "SIM-8B18447EEA02",
-    "device_id": "DEV-B8E558E4",
-    "event_time": "2026-08-04T06:00:00",
-    "event_type": "sim_insert",
-    "tower_id": "64ce0812-92b0-42c3-a7ac-fedbea3589a8"
-  },
-  {
-    "record_id": "LOC-7038",
-    "entity_or_device_id": "DEV-77A60075",
-    "location_id": "9b0ef173-2820-4f6a-be21-8a4e8087c4a0",
-    "start_time": "2026-08-05T05:00:00",
-    "end_time": "2026-08-05T05:48:00",
-    "observation_type": "tower_observation"
-  },
-  {
-    "record_id": "LOC-5564",
-    "entity_or_device_id": "DEV-04A49EAF",
-    "location_id": "6d69413c-38b6-4532-a998-6067224bc531",
-    "start_time": "2026-08-04T18:00:00",
-    "end_time": "2026-08-04T18:41:00",
-    "observation_type": "tower_observation"
-  },
-  {
-    "record_id": "DEV-8030",
-    "phone_id": "+917438989805",
-    "sim_id": "SIM-2FE66E316A67",
-    "device_id": "DEV-04A49EAF",
-    "event_time": "2026-08-04T15:00:00",
-    "event_type": "sim_swap",
-    "tower_id": "6d69413c-38b6-4532-a998-6067224bc531"
-  },
-  {
-    "record_id": "LOC-3578",
-    "entity_or_device_id": "DEV-368731AD",
-    "location_id": "64ce0812-92b0-42c3-a7ac-fedbea3589a8",
-    "start_time": "2026-08-05T01:00:00",
-    "end_time": "2026-08-05T01:28:00",
-    "observation_type": "tower_observation"
-  },
-  {
-    "record_id": "LOC-3902",
-    "entity_or_device_id": "DEV-77A60075",
-    "location_id": "5a5428f7-195b-4dc9-a87c-476a8fe9a98d",
-    "start_time": "2026-08-05T17:00:00",
-    "end_time": "2026-08-05T17:54:00",
-    "observation_type": "tower_observation"
-  },
-  {
-    "record_id": "LOC-6517",
-    "entity_or_device_id": "DEV-77A60075",
-    "location_id": "9b0ef173-2820-4f6a-be21-8a4e8087c4a0",
-    "start_time": "2026-08-05T16:00:00",
-    "end_time": "2026-08-05T16:54:00",
-    "observation_type": "tower_observation"
-  },
-  {
-    "record_id": "DEV-8391",
-    "phone_id": "+917924765563",
-    "sim_id": "SIM-2FE66E316A67",
-    "device_id": "DEV-04A49EAF",
-    "event_time": "2026-08-06T02:00:00",
-    "event_type": "sim_insert",
-    "tower_id": "64ce0812-92b0-42c3-a7ac-fedbea3589a8"
-  },
-  {
-    "record_id": "LOC-8685",
-    "entity_or_device_id": "DEV-B8E558E4",
-    "location_id": "64ce0812-92b0-42c3-a7ac-fedbea3589a8",
-    "start_time": "2026-08-05T19:00:00",
-    "end_time": "2026-08-05T19:33:00",
-    "observation_type": "tower_observation"
-  },
-  {
-    "record_id": "LOC-9443",
-    "entity_or_device_id": "DEV-04A49EAF",
-    "location_id": "64ce0812-92b0-42c3-a7ac-fedbea3589a8",
-    "start_time": "2026-08-05T15:00:00",
-    "end_time": "2026-08-05T15:41:00",
-    "observation_type": "tower_observation"
-  },
-  {
-    "record_id": "DEV-3352",
-    "phone_id": "+917438989805",
-    "sim_id": "SIM-2FE66E316A67",
-    "device_id": "DEV-04A49EAF",
-    "event_time": "2026-08-06T00:00:00",
-    "event_type": "device_boot",
-    "tower_id": "9b0ef173-2820-4f6a-be21-8a4e8087c4a0"
-  },
-  {
-    "record_id": "LOC-7655",
-    "entity_or_device_id": "DEV-CA07A53E",
-    "location_id": "9b0ef173-2820-4f6a-be21-8a4e8087c4a0",
-    "start_time": "2026-08-05T17:00:00",
-    "end_time": "2026-08-05T17:28:00",
-    "observation_type": "tower_observation"
-  },
-  {
-    "record_id": "DEV-3762",
-    "phone_id": "+918193448329",
-    "sim_id": "SIM-3ABDF561C4C3",
-    "device_id": "DEV-29CAC0BD",
-    "event_time": "2026-08-06T19:00:00",
-    "event_type": "sim_insert",
-    "tower_id": "6d69413c-38b6-4532-a998-6067224bc531"
-  },
-  {
-    "record_id": "LOC-7606",
-    "entity_or_device_id": "DEV-04A49EAF",
-    "location_id": "6d69413c-38b6-4532-a998-6067224bc531",
-    "start_time": "2026-08-07T02:00:00",
-    "end_time": "2026-08-07T02:28:00",
-    "observation_type": "tower_observation"
-  },
-  {
-    "record_id": "DEV-1838",
-    "phone_id": "+917924765563",
-    "sim_id": "SIM-2FE66E316A67",
-    "device_id": "DEV-04A49EAF",
-    "event_time": "2026-08-06T21:00:00",
-    "event_type": "device_boot",
-    "tower_id": "6d69413c-38b6-4532-a998-6067224bc531"
-  },
-  {
-    "record_id": "DEV-7771",
-    "phone_id": "+918631775357",
-    "sim_id": "SIM-017DD17D964A",
-    "device_id": "DEV-CA07A53E",
-    "event_time": "2026-08-07T01:00:00",
-    "event_type": "sim_swap",
-    "tower_id": "64ce0812-92b0-42c3-a7ac-fedbea3589a8"
-  },
-  {
-    "record_id": "DEV-9233",
+    "record_id": "DEV-6310",
+    "device_id": "DEV-378429A3",
     "phone_id": "+917667779376",
-    "sim_id": "SIM-AA307380F7A0",
-    "device_id": "DEV-77A60075",
-    "event_time": "2026-08-08T00:00:00",
-    "event_type": "sim_swap",
-    "tower_id": "9b0ef173-2820-4f6a-be21-8a4e8087c4a0"
-  },
-  {
-    "record_id": "LOC-9866",
-    "entity_or_device_id": "DEV-04A49EAF",
-    "location_id": "6d69413c-38b6-4532-a998-6067224bc531",
-    "start_time": "2026-08-07T17:00:00",
-    "end_time": "2026-08-07T17:08:00",
-    "observation_type": "tower_observation"
-  },
-  {
-    "record_id": "LOC-4648",
-    "entity_or_device_id": "DEV-B8E558E4",
-    "location_id": "64ce0812-92b0-42c3-a7ac-fedbea3589a8",
-    "start_time": "2026-08-07T19:00:00",
-    "end_time": "2026-08-07T19:58:00",
-    "observation_type": "tower_observation"
-  },
-  {
-    "record_id": "DEV-1372",
-    "phone_id": "+918445662585",
-    "sim_id": "SIM-8B18447EEA02",
-    "device_id": "DEV-B8E558E4",
-    "event_time": "2026-08-08T00:00:00",
+    "sim_id": "SIM-BA20A4391F30",
+    "event_time": "2026-08-01T15:00:00",
     "event_type": "device_boot",
-    "tower_id": "64ce0812-92b0-42c3-a7ac-fedbea3589a8"
+    "tower_id": "7484d28e-a5fd-44d5-92a2-d3518f8829c8",
+    "lat": 28.344891853803478,
+    "lon": 76.83953792852515
   },
   {
-    "record_id": "LOC-1257",
-    "entity_or_device_id": "DEV-CA07A53E",
-    "location_id": "64ce0812-92b0-42c3-a7ac-fedbea3589a8",
-    "start_time": "2026-08-08T06:00:00",
-    "end_time": "2026-08-08T06:05:00",
-    "observation_type": "tower_observation"
-  },
-  {
-    "record_id": "LOC-4394",
-    "entity_or_device_id": "DEV-29CAC0BD",
-    "location_id": "6d69413c-38b6-4532-a998-6067224bc531",
-    "start_time": "2026-08-08T15:00:00",
-    "end_time": "2026-08-08T15:42:00",
-    "observation_type": "tower_observation"
-  },
-  {
-    "record_id": "DEV-7525",
-    "phone_id": "+918193448329",
-    "sim_id": "SIM-3ABDF561C4C3",
-    "device_id": "DEV-29CAC0BD",
-    "event_time": "2026-08-08T17:00:00",
-    "event_type": "device_boot",
-    "tower_id": "5a5428f7-195b-4dc9-a87c-476a8fe9a98d"
-  },
-  {
-    "record_id": "LOC-8286",
-    "entity_or_device_id": "DEV-77A60075",
-    "location_id": "9b0ef173-2820-4f6a-be21-8a4e8087c4a0",
-    "start_time": "2026-08-09T00:00:00",
-    "end_time": "2026-08-09T00:28:00",
-    "observation_type": "tower_observation"
-  },
-  {
-    "record_id": "LOC-4977",
-    "entity_or_device_id": "DEV-04A49EAF",
-    "location_id": "64ce0812-92b0-42c3-a7ac-fedbea3589a8",
-    "start_time": "2026-08-08T17:00:00",
-    "end_time": "2026-08-08T17:41:00",
-    "observation_type": "tower_observation"
-  },
-  {
-    "record_id": "LOC-3321",
-    "entity_or_device_id": "DEV-04A49EAF",
-    "location_id": "9b0ef173-2820-4f6a-be21-8a4e8087c4a0",
-    "start_time": "2026-08-08T18:00:00",
-    "end_time": "2026-08-08T18:27:00",
-    "observation_type": "tower_observation"
-  },
-  {
-    "record_id": "LOC-9796",
-    "entity_or_device_id": "DEV-368731AD",
-    "location_id": "9b0ef173-2820-4f6a-be21-8a4e8087c4a0",
-    "start_time": "2026-08-08T18:00:00",
-    "end_time": "2026-08-08T18:16:00",
-    "observation_type": "tower_observation"
-  },
-  {
-    "record_id": "LOC-7852",
-    "entity_or_device_id": "DEV-CA07A53E",
-    "location_id": "5a5428f7-195b-4dc9-a87c-476a8fe9a98d",
-    "start_time": "2026-08-09T03:00:00",
-    "end_time": "2026-08-09T03:43:00",
-    "observation_type": "tower_observation"
-  },
-  {
-    "record_id": "DEV-7286",
-    "phone_id": "+918631775357",
-    "sim_id": "SIM-017DD17D964A",
-    "device_id": "DEV-CA07A53E",
-    "event_time": "2026-08-09T04:00:00",
+    "record_id": "DEV-6038",
+    "phone_id": "+917667779376",
+    "sim_id": "SIM-BA20A4391F30",
+    "device_id": "DEV-378429A3",
+    "event_time": "2026-08-01T22:00:00",
     "event_type": "sim_insert",
-    "tower_id": "64ce0812-92b0-42c3-a7ac-fedbea3589a8"
+    "tower_id": "3ba3a7ce-b12b-4ef7-9e2e-87feeba0e0d6",
+    "lat": 28.776699487422913,
+    "lon": 77.59217956770485
   },
   {
-    "record_id": "LOC-2923",
-    "entity_or_device_id": "DEV-77A60075",
-    "location_id": "9b0ef173-2820-4f6a-be21-8a4e8087c4a0",
-    "start_time": "2026-08-10T05:00:00",
-    "end_time": "2026-08-10T05:54:00",
-    "observation_type": "tower_observation"
-  },
-  {
-    "record_id": "LOC-2350",
-    "entity_or_device_id": "DEV-77A60075",
-    "location_id": "6d69413c-38b6-4532-a998-6067224bc531",
-    "start_time": "2026-08-09T23:00:00",
-    "end_time": "2026-08-09T23:28:00",
-    "observation_type": "tower_observation"
-  },
-  {
-    "record_id": "LOC-5537",
-    "entity_or_device_id": "DEV-04A49EAF",
-    "location_id": "5a5428f7-195b-4dc9-a87c-476a8fe9a98d",
-    "start_time": "2026-08-09T22:00:00",
-    "end_time": "2026-08-09T22:46:00",
-    "observation_type": "tower_observation"
-  },
-  {
-    "record_id": "DEV-5668",
-    "phone_id": "+917924765563",
-    "sim_id": "SIM-2FE66E316A67",
-    "device_id": "DEV-04A49EAF",
-    "event_time": "2026-08-09T15:00:00",
-    "event_type": "sim_swap",
-    "tower_id": "6d69413c-38b6-4532-a998-6067224bc531"
-  },
-  {
-    "record_id": "DEV-2262",
+    "record_id": "DEV-8454",
+    "device_id": "DEV-D33E8CE6",
     "phone_id": "+917438989805",
-    "sim_id": "SIM-2FE66E316A67",
-    "device_id": "DEV-04A49EAF",
-    "event_time": "2026-08-10T06:00:00",
+    "sim_id": "SIM-323F8A7EF0E3",
+    "event_time": "2026-08-01T23:00:00",
     "event_type": "device_boot",
-    "tower_id": "6d69413c-38b6-4532-a998-6067224bc531"
+    "tower_id": "c1da8e5c-c4a2-4475-83cb-730bc86916a3",
+    "lat": 28.69049251244904,
+    "lon": 76.73178267948178
   },
   {
-    "record_id": "LOC-7044",
-    "entity_or_device_id": "DEV-CA07A53E",
-    "location_id": "64ce0812-92b0-42c3-a7ac-fedbea3589a8",
-    "start_time": "2026-08-09T15:00:00",
-    "end_time": "2026-08-09T15:17:00",
-    "observation_type": "tower_observation"
-  },
-  {
-    "record_id": "DEV-5979",
-    "phone_id": "+918631775357",
-    "sim_id": "SIM-017DD17D964A",
-    "device_id": "DEV-CA07A53E",
-    "event_time": "2026-08-09T22:00:00",
-    "event_type": "device_boot",
-    "tower_id": "6d69413c-38b6-4532-a998-6067224bc531"
-  },
-  {
-    "record_id": "LOC-4246",
-    "entity_or_device_id": "DEV-77A60075",
-    "location_id": "5a5428f7-195b-4dc9-a87c-476a8fe9a98d",
-    "start_time": "2026-08-10T19:00:00",
-    "end_time": "2026-08-10T19:57:00",
-    "observation_type": "tower_observation"
-  },
-  {
-    "record_id": "DEV-8855",
+    "record_id": "DEV-9666",
+    "device_id": "DEV-AAA31E88",
     "phone_id": "+917398340369",
-    "sim_id": "SIM-DDA73E0DDA6B",
-    "device_id": "DEV-368731AD",
-    "event_time": "2026-08-10T22:00:00",
+    "sim_id": "SIM-54BAF2F3802A",
+    "event_time": "2026-08-02T00:00:00",
     "event_type": "sim_insert",
-    "tower_id": "64ce0812-92b0-42c3-a7ac-fedbea3589a8"
+    "tower_id": "c1da8e5c-c4a2-4475-83cb-730bc86916a3",
+    "lat": 28.69049251244904,
+    "lon": 76.73178267948178
   },
   {
-    "record_id": "LOC-9013",
-    "entity_or_device_id": "DEV-77A60075",
-    "location_id": "64ce0812-92b0-42c3-a7ac-fedbea3589a8",
-    "start_time": "2026-08-12T06:00:00",
-    "end_time": "2026-08-12T06:47:00",
-    "observation_type": "tower_observation"
-  },
-  {
-    "record_id": "DEV-9914",
+    "record_id": "DEV-1727",
+    "device_id": "DEV-378429A3",
     "phone_id": "+918461364854",
-    "sim_id": "SIM-AA307380F7A0",
-    "device_id": "DEV-77A60075",
-    "event_time": "2026-08-12T03:00:00",
-    "event_type": "sim_insert",
-    "tower_id": "6d69413c-38b6-4532-a998-6067224bc531"
+    "sim_id": "SIM-BA20A4391F30",
+    "event_time": "2026-08-02T23:00:00",
+    "event_type": "sim_swap",
+    "tower_id": "7484d28e-a5fd-44d5-92a2-d3518f8829c8",
+    "lat": 28.344891853803478,
+    "lon": 76.83953792852515
   },
   {
-    "record_id": "LOC-2929",
-    "entity_or_device_id": "DEV-04A49EAF",
-    "location_id": "6d69413c-38b6-4532-a998-6067224bc531",
-    "start_time": "2026-08-12T05:00:00",
-    "end_time": "2026-08-12T05:35:00",
-    "observation_type": "tower_observation"
+    "record_id": "DEV-8784",
+    "device_id": "DEV-E960DD5C",
+    "phone_id": "+918193448329",
+    "sim_id": "SIM-0C0A75FF180D",
+    "event_time": "2026-08-02T22:00:00",
+    "event_type": "sim_swap",
+    "tower_id": "42c52f1d-993b-4167-8aa9-bc6d941831c9",
+    "lat": 28.739426798457885,
+    "lon": 76.72501075522267
   },
   {
-    "record_id": "DEV-2166",
+    "record_id": "DEV-6421",
+    "phone_id": "+917924765563",
+    "sim_id": "SIM-323F8A7EF0E3",
+    "device_id": "DEV-D33E8CE6",
+    "event_time": "2026-08-03T05:00:00",
+    "event_type": "device_boot",
+    "tower_id": "c1da8e5c-c4a2-4475-83cb-730bc86916a3",
+    "lat": 28.69049251244904,
+    "lon": 76.73178267948178
+  },
+  {
+    "record_id": "DEV-7371",
+    "device_id": "DEV-A63A7776",
+    "phone_id": "+918445662585",
+    "sim_id": "SIM-97256A9D4F68",
+    "event_time": "2026-08-02T15:00:00",
+    "event_type": "device_boot",
+    "tower_id": "c1da8e5c-c4a2-4475-83cb-730bc86916a3",
+    "lat": 28.69049251244904,
+    "lon": 76.73178267948178
+  },
+  {
+    "record_id": "DEV-5941",
+    "device_id": "DEV-D33E8CE6",
     "phone_id": "+917438989805",
-    "sim_id": "SIM-2FE66E316A67",
-    "device_id": "DEV-04A49EAF",
-    "event_time": "2026-08-12T06:00:00",
-    "event_type": "sim_insert",
-    "tower_id": "9b0ef173-2820-4f6a-be21-8a4e8087c4a0"
-  },
-  {
-    "record_id": "DEV-5764",
-    "phone_id": "+917398340369",
-    "sim_id": "SIM-DDA73E0DDA6B",
-    "device_id": "DEV-368731AD",
-    "event_time": "2026-08-12T05:00:00",
+    "sim_id": "SIM-323F8A7EF0E3",
+    "event_time": "2026-08-02T18:00:00",
     "event_type": "sim_swap",
-    "tower_id": "6d69413c-38b6-4532-a998-6067224bc531"
+    "tower_id": "7484d28e-a5fd-44d5-92a2-d3518f8829c8",
+    "lat": 28.344891853803478,
+    "lon": 76.83953792852515
   },
   {
-    "record_id": "DEV-9524",
+    "record_id": "DEV-2976",
+    "device_id": "DEV-4858288D",
     "phone_id": "+918631775357",
-    "sim_id": "SIM-017DD17D964A",
-    "device_id": "DEV-CA07A53E",
-    "event_time": "2026-08-11T23:00:00",
+    "sim_id": "SIM-AC8B3FB7FCFB",
+    "event_time": "2026-08-02T22:00:00",
     "event_type": "sim_swap",
-    "tower_id": "5a5428f7-195b-4dc9-a87c-476a8fe9a98d"
+    "tower_id": "3ba3a7ce-b12b-4ef7-9e2e-87feeba0e0d6",
+    "lat": 28.776699487422913,
+    "lon": 77.59217956770485
+  },
+  {
+    "record_id": "DEV-9779",
+    "phone_id": "+918631775357",
+    "sim_id": "SIM-AC8B3FB7FCFB",
+    "device_id": "DEV-4858288D",
+    "event_time": "2026-08-02T20:00:00",
+    "event_type": "sim_insert",
+    "tower_id": "42c52f1d-993b-4167-8aa9-bc6d941831c9",
+    "lat": 28.739426798457885,
+    "lon": 76.72501075522267
+  },
+  {
+    "record_id": "DEV-8381",
+    "phone_id": "+918193448329",
+    "sim_id": "SIM-0C0A75FF180D",
+    "device_id": "DEV-E960DD5C",
+    "event_time": "2026-08-04T06:00:00",
+    "event_type": "device_boot",
+    "tower_id": "c1da8e5c-c4a2-4475-83cb-730bc86916a3",
+    "lat": 28.69049251244904,
+    "lon": 76.73178267948178
+  },
+  {
+    "record_id": "DEV-6039",
+    "phone_id": "+917667779376",
+    "sim_id": "SIM-BA20A4391F30",
+    "device_id": "DEV-378429A3",
+    "event_time": "2026-08-04T00:00:00",
+    "event_type": "device_boot",
+    "tower_id": "7484d28e-a5fd-44d5-92a2-d3518f8829c8",
+    "lat": 28.344891853803478,
+    "lon": 76.83953792852515
+  },
+  {
+    "record_id": "DEV-1659",
+    "device_id": "DEV-D33E8CE6",
+    "phone_id": "+917924765563",
+    "sim_id": "SIM-323F8A7EF0E3",
+    "event_time": "2026-08-03T23:00:00",
+    "event_type": "sim_insert",
+    "tower_id": "42c52f1d-993b-4167-8aa9-bc6d941831c9",
+    "lat": 28.739426798457885,
+    "lon": 76.72501075522267
+  },
+  {
+    "record_id": "DEV-2924",
+    "device_id": "DEV-A63A7776",
+    "phone_id": "+918445662585",
+    "sim_id": "SIM-97256A9D4F68",
+    "event_time": "2026-08-04T05:00:00",
+    "event_type": "sim_swap",
+    "tower_id": "42c52f1d-993b-4167-8aa9-bc6d941831c9",
+    "lat": 28.739426798457885,
+    "lon": 76.72501075522267
+  },
+  {
+    "record_id": "DEV-7325",
+    "device_id": "DEV-D33E8CE6",
+    "phone_id": "+917438989805",
+    "sim_id": "SIM-323F8A7EF0E3",
+    "event_time": "2026-08-04T03:00:00",
+    "event_type": "sim_swap",
+    "tower_id": "c1da8e5c-c4a2-4475-83cb-730bc86916a3",
+    "lat": 28.69049251244904,
+    "lon": 76.73178267948178
   },
   {
     "record_id": "DEV-8606",
-    "phone_id": "+918461364854",
-    "sim_id": "SIM-AA307380F7A0",
-    "device_id": "DEV-77A60075",
-    "event_time": "2026-08-12T16:00:00",
-    "event_type": "sim_insert",
-    "tower_id": "5a5428f7-195b-4dc9-a87c-476a8fe9a98d"
-  },
-  {
-    "record_id": "LOC-5990",
-    "entity_or_device_id": "DEV-77A60075",
-    "location_id": "9b0ef173-2820-4f6a-be21-8a4e8087c4a0",
-    "start_time": "2026-08-12T17:00:00",
-    "end_time": "2026-08-12T17:37:00",
-    "observation_type": "tower_observation"
-  },
-  {
-    "record_id": "DEV-7347",
-    "phone_id": "+917924765563",
-    "sim_id": "SIM-2FE66E316A67",
-    "device_id": "DEV-04A49EAF",
-    "event_time": "2026-08-13T01:00:00",
+    "phone_id": "+918193448329",
+    "sim_id": "SIM-0C0A75FF180D",
+    "device_id": "DEV-E960DD5C",
+    "event_time": "2026-08-05T00:00:00",
     "event_type": "sim_swap",
-    "tower_id": "64ce0812-92b0-42c3-a7ac-fedbea3589a8"
+    "tower_id": "42c52f1d-993b-4167-8aa9-bc6d941831c9",
+    "lat": 28.739426798457885,
+    "lon": 76.72501075522267
   },
   {
-    "record_id": "LOC-5105",
-    "entity_or_device_id": "DEV-B8E558E4",
-    "location_id": "5a5428f7-195b-4dc9-a87c-476a8fe9a98d",
-    "start_time": "2026-08-13T00:00:00",
-    "end_time": "2026-08-13T00:14:00",
-    "observation_type": "tower_observation"
-  },
-  {
-    "record_id": "LOC-5992",
-    "entity_or_device_id": "DEV-77A60075",
-    "location_id": "64ce0812-92b0-42c3-a7ac-fedbea3589a8",
-    "start_time": "2026-08-13T17:00:00",
-    "end_time": "2026-08-13T17:18:00",
-    "observation_type": "tower_observation"
-  },
-  {
-    "record_id": "LOC-3717",
-    "entity_or_device_id": "DEV-77A60075",
-    "location_id": "9b0ef173-2820-4f6a-be21-8a4e8087c4a0",
-    "start_time": "2026-08-13T22:00:00",
-    "end_time": "2026-08-13T22:53:00",
-    "observation_type": "tower_observation"
-  },
-  {
-    "record_id": "DEV-7649",
-    "phone_id": "+917924765563",
-    "sim_id": "SIM-2FE66E316A67",
-    "device_id": "DEV-04A49EAF",
-    "event_time": "2026-08-14T02:00:00",
-    "event_type": "device_boot",
-    "tower_id": "64ce0812-92b0-42c3-a7ac-fedbea3589a8"
-  },
-  {
-    "record_id": "DEV-9835",
-    "phone_id": "+917438989805",
-    "sim_id": "SIM-2FE66E316A67",
-    "device_id": "DEV-04A49EAF",
-    "event_time": "2026-08-13T15:00:00",
-    "event_type": "sim_swap",
-    "tower_id": "64ce0812-92b0-42c3-a7ac-fedbea3589a8"
-  },
-  {
-    "record_id": "LOC-6024",
-    "entity_or_device_id": "DEV-368731AD",
-    "location_id": "64ce0812-92b0-42c3-a7ac-fedbea3589a8",
-    "start_time": "2026-08-13T23:00:00",
-    "end_time": "2026-08-13T23:41:00",
-    "observation_type": "tower_observation"
-  },
-  {
-    "record_id": "LOC-2285",
-    "entity_or_device_id": "DEV-29CAC0BD",
-    "location_id": "9b0ef173-2820-4f6a-be21-8a4e8087c4a0",
-    "start_time": "2026-08-14T18:00:00",
-    "end_time": "2026-08-14T18:48:00",
-    "observation_type": "tower_observation"
-  },
-  {
-    "record_id": "LOC-9987",
-    "entity_or_device_id": "DEV-77A60075",
-    "location_id": "6d69413c-38b6-4532-a998-6067224bc531",
-    "start_time": "2026-08-14T20:00:00",
-    "end_time": "2026-08-14T20:21:00",
-    "observation_type": "tower_observation"
-  },
-  {
-    "record_id": "DEV-8722",
+    "record_id": "DEV-2501",
+    "device_id": "DEV-378429A3",
     "phone_id": "+917667779376",
-    "sim_id": "SIM-AA307380F7A0",
-    "device_id": "DEV-77A60075",
-    "event_time": "2026-08-15T01:00:00",
-    "event_type": "device_boot",
-    "tower_id": "5a5428f7-195b-4dc9-a87c-476a8fe9a98d"
+    "sim_id": "SIM-BA20A4391F30",
+    "event_time": "2026-08-05T05:00:00",
+    "event_type": "sim_swap",
+    "tower_id": "42c52f1d-993b-4167-8aa9-bc6d941831c9",
+    "lat": 28.739426798457885,
+    "lon": 76.72501075522267
   },
   {
-    "record_id": "LOC-2045",
-    "entity_or_device_id": "DEV-B8E558E4",
-    "location_id": "9b0ef173-2820-4f6a-be21-8a4e8087c4a0",
-    "start_time": "2026-08-14T18:00:00",
-    "end_time": "2026-08-14T18:35:00",
-    "observation_type": "tower_observation"
+    "record_id": "DEV-1828",
+    "phone_id": "+917667779376",
+    "sim_id": "SIM-BA20A4391F30",
+    "device_id": "DEV-378429A3",
+    "event_time": "2026-08-05T01:00:00",
+    "event_type": "sim_insert",
+    "tower_id": "42c52f1d-993b-4167-8aa9-bc6d941831c9",
+    "lat": 28.739426798457885,
+    "lon": 76.72501075522267
   },
   {
-    "record_id": "DEV-1575",
+    "record_id": "DEV-3076",
+    "device_id": "DEV-D33E8CE6",
+    "phone_id": "+917924765563",
+    "sim_id": "SIM-323F8A7EF0E3",
+    "event_time": "2026-08-04T16:00:00",
+    "event_type": "sim_swap",
+    "tower_id": "3ba3a7ce-b12b-4ef7-9e2e-87feeba0e0d6",
+    "lat": 28.776699487422913,
+    "lon": 77.59217956770485
+  },
+  {
+    "record_id": "DEV-8046",
+    "device_id": "DEV-D33E8CE6",
     "phone_id": "+917438989805",
-    "sim_id": "SIM-2FE66E316A67",
-    "device_id": "DEV-04A49EAF",
-    "event_time": "2026-08-15T02:00:00",
+    "sim_id": "SIM-323F8A7EF0E3",
+    "event_time": "2026-08-04T21:00:00",
     "event_type": "device_boot",
-    "tower_id": "64ce0812-92b0-42c3-a7ac-fedbea3589a8"
+    "tower_id": "42c52f1d-993b-4167-8aa9-bc6d941831c9",
+    "lat": 28.739426798457885,
+    "lon": 76.72501075522267
   },
   {
-    "record_id": "DEV-8161",
+    "record_id": "DEV-5564",
+    "device_id": "DEV-AAA31E88",
     "phone_id": "+917398340369",
-    "sim_id": "SIM-DDA73E0DDA6B",
-    "device_id": "DEV-368731AD",
-    "event_time": "2026-08-15T03:00:00",
+    "sim_id": "SIM-54BAF2F3802A",
+    "event_time": "2026-08-04T18:00:00",
+    "event_type": "sim_swap",
+    "tower_id": "3ba3a7ce-b12b-4ef7-9e2e-87feeba0e0d6",
+    "lat": 28.776699487422913,
+    "lon": 77.59217956770485
+  },
+  {
+    "record_id": "DEV-1430",
+    "phone_id": "+917398340369",
+    "sim_id": "SIM-54BAF2F3802A",
+    "device_id": "DEV-AAA31E88",
+    "event_time": "2026-08-04T23:00:00",
     "event_type": "sim_insert",
-    "tower_id": "5a5428f7-195b-4dc9-a87c-476a8fe9a98d"
+    "tower_id": "c1da8e5c-c4a2-4475-83cb-730bc86916a3",
+    "lat": 28.69049251244904,
+    "lon": 76.73178267948178
   },
   {
-    "record_id": "LOC-9899",
-    "entity_or_device_id": "DEV-CA07A53E",
-    "location_id": "64ce0812-92b0-42c3-a7ac-fedbea3589a8",
-    "start_time": "2026-08-14T17:00:00",
-    "end_time": "2026-08-14T17:35:00",
-    "observation_type": "tower_observation"
+    "record_id": "DEV-2816",
+    "phone_id": "+918461364854",
+    "sim_id": "SIM-BA20A4391F30",
+    "device_id": "DEV-378429A3",
+    "event_time": "2026-08-06T00:00:00",
+    "event_type": "sim_swap",
+    "tower_id": "c1da8e5c-c4a2-4475-83cb-730bc86916a3",
+    "lat": 28.69049251244904,
+    "lon": 76.73178267948178
   },
   {
-    "record_id": "DEV-5097",
+    "record_id": "DEV-7484",
+    "device_id": "DEV-E960DD5C",
+    "phone_id": "+918193448329",
+    "sim_id": "SIM-0C0A75FF180D",
+    "event_time": "2026-08-05T17:00:00",
+    "event_type": "device_boot",
+    "tower_id": "c1da8e5c-c4a2-4475-83cb-730bc86916a3",
+    "lat": 28.69049251244904,
+    "lon": 76.73178267948178
+  },
+  {
+    "record_id": "DEV-4509",
+    "device_id": "DEV-A63A7776",
+    "phone_id": "+918445662585",
+    "sim_id": "SIM-97256A9D4F68",
+    "event_time": "2026-08-05T20:00:00",
+    "event_type": "device_boot",
+    "tower_id": "3ba3a7ce-b12b-4ef7-9e2e-87feeba0e0d6",
+    "lat": 28.776699487422913,
+    "lon": 77.59217956770485
+  },
+  {
+    "record_id": "DEV-9443",
+    "device_id": "DEV-AAA31E88",
+    "phone_id": "+917398340369",
+    "sim_id": "SIM-54BAF2F3802A",
+    "event_time": "2026-08-05T15:00:00",
+    "event_type": "sim_swap",
+    "tower_id": "c1da8e5c-c4a2-4475-83cb-730bc86916a3",
+    "lat": 28.69049251244904,
+    "lon": 76.73178267948178
+  },
+  {
+    "record_id": "DEV-5772",
+    "phone_id": "+917398340369",
+    "sim_id": "SIM-54BAF2F3802A",
+    "device_id": "DEV-AAA31E88",
+    "event_time": "2026-08-06T04:00:00",
+    "event_type": "sim_insert",
+    "tower_id": "7484d28e-a5fd-44d5-92a2-d3518f8829c8",
+    "lat": 28.344891853803478,
+    "lon": 76.83953792852515
+  },
+  {
+    "record_id": "DEV-1783",
     "phone_id": "+918631775357",
-    "sim_id": "SIM-017DD17D964A",
-    "device_id": "DEV-CA07A53E",
-    "event_time": "2026-08-15T03:00:00",
+    "sim_id": "SIM-AC8B3FB7FCFB",
+    "device_id": "DEV-4858288D",
+    "event_time": "2026-08-06T01:00:00",
+    "event_type": "device_boot",
+    "tower_id": "3ba3a7ce-b12b-4ef7-9e2e-87feeba0e0d6",
+    "lat": 28.776699487422913,
+    "lon": 77.59217956770485
+  },
+  {
+    "record_id": "DEV-6262",
+    "device_id": "DEV-378429A3",
+    "phone_id": "+918461364854",
+    "sim_id": "SIM-BA20A4391F30",
+    "event_time": "2026-08-07T00:00:00",
     "event_type": "sim_insert",
-    "tower_id": "9b0ef173-2820-4f6a-be21-8a4e8087c4a0"
+    "tower_id": "7484d28e-a5fd-44d5-92a2-d3518f8829c8",
+    "lat": 28.344891853803478,
+    "lon": 76.83953792852515
+  },
+  {
+    "record_id": "DEV-6021",
+    "phone_id": "+918461364854",
+    "sim_id": "SIM-BA20A4391F30",
+    "device_id": "DEV-378429A3",
+    "event_time": "2026-08-07T05:00:00",
+    "event_type": "sim_swap",
+    "tower_id": "3ba3a7ce-b12b-4ef7-9e2e-87feeba0e0d6",
+    "lat": 28.776699487422913,
+    "lon": 77.59217956770485
+  },
+  {
+    "record_id": "DEV-6912",
+    "device_id": "DEV-378429A3",
+    "phone_id": "+917667779376",
+    "sim_id": "SIM-BA20A4391F30",
+    "event_time": "2026-08-06T15:00:00",
+    "event_type": "sim_swap",
+    "tower_id": "c1da8e5c-c4a2-4475-83cb-730bc86916a3",
+    "lat": 28.69049251244904,
+    "lon": 76.73178267948178
+  },
+  {
+    "record_id": "DEV-5961",
+    "device_id": "DEV-D33E8CE6",
+    "phone_id": "+917924765563",
+    "sim_id": "SIM-323F8A7EF0E3",
+    "event_time": "2026-08-06T19:00:00",
+    "event_type": "sim_swap",
+    "tower_id": "3ba3a7ce-b12b-4ef7-9e2e-87feeba0e0d6",
+    "lat": 28.776699487422913,
+    "lon": 77.59217956770485
+  },
+  {
+    "record_id": "DEV-5754",
+    "phone_id": "+918445662585",
+    "sim_id": "SIM-97256A9D4F68",
+    "device_id": "DEV-A63A7776",
+    "event_time": "2026-08-07T03:00:00",
+    "event_type": "sim_swap",
+    "tower_id": "42c52f1d-993b-4167-8aa9-bc6d941831c9",
+    "lat": 28.739426798457885,
+    "lon": 76.72501075522267
+  },
+  {
+    "record_id": "DEV-5728",
+    "device_id": "DEV-D33E8CE6",
+    "phone_id": "+917438989805",
+    "sim_id": "SIM-323F8A7EF0E3",
+    "event_time": "2026-08-07T02:00:00",
+    "event_type": "sim_insert",
+    "tower_id": "7484d28e-a5fd-44d5-92a2-d3518f8829c8",
+    "lat": 28.344891853803478,
+    "lon": 76.83953792852515
+  },
+  {
+    "record_id": "DEV-5715",
+    "device_id": "DEV-4858288D",
+    "phone_id": "+918631775357",
+    "sim_id": "SIM-AC8B3FB7FCFB",
+    "event_time": "2026-08-06T23:00:00",
+    "event_type": "sim_insert",
+    "tower_id": "3ba3a7ce-b12b-4ef7-9e2e-87feeba0e0d6",
+    "lat": 28.776699487422913,
+    "lon": 77.59217956770485
+  },
+  {
+    "record_id": "DEV-4804",
+    "device_id": "DEV-378429A3",
+    "phone_id": "+918461364854",
+    "sim_id": "SIM-BA20A4391F30",
+    "event_time": "2026-08-07T17:00:00",
+    "event_type": "sim_swap",
+    "tower_id": "42c52f1d-993b-4167-8aa9-bc6d941831c9",
+    "lat": 28.739426798457885,
+    "lon": 76.72501075522267
+  },
+  {
+    "record_id": "DEV-8625",
+    "phone_id": "+918193448329",
+    "sim_id": "SIM-0C0A75FF180D",
+    "device_id": "DEV-E960DD5C",
+    "event_time": "2026-08-08T00:00:00",
+    "event_type": "sim_insert",
+    "tower_id": "42c52f1d-993b-4167-8aa9-bc6d941831c9",
+    "lat": 28.739426798457885,
+    "lon": 76.72501075522267
+  },
+  {
+    "record_id": "DEV-1550",
+    "device_id": "DEV-A63A7776",
+    "phone_id": "+918445662585",
+    "sim_id": "SIM-97256A9D4F68",
+    "event_time": "2026-08-07T18:00:00",
+    "event_type": "device_boot",
+    "tower_id": "42c52f1d-993b-4167-8aa9-bc6d941831c9",
+    "lat": 28.739426798457885,
+    "lon": 76.72501075522267
+  },
+  {
+    "record_id": "DEV-8369",
+    "device_id": "DEV-D33E8CE6",
+    "phone_id": "+917438989805",
+    "sim_id": "SIM-323F8A7EF0E3",
+    "event_time": "2026-08-07T17:00:00",
+    "event_type": "device_boot",
+    "tower_id": "3ba3a7ce-b12b-4ef7-9e2e-87feeba0e0d6",
+    "lat": 28.776699487422913,
+    "lon": 77.59217956770485
+  },
+  {
+    "record_id": "DEV-1844",
+    "phone_id": "+917438989805",
+    "sim_id": "SIM-323F8A7EF0E3",
+    "device_id": "DEV-D33E8CE6",
+    "event_time": "2026-08-07T23:00:00",
+    "event_type": "device_boot",
+    "tower_id": "7484d28e-a5fd-44d5-92a2-d3518f8829c8",
+    "lat": 28.344891853803478,
+    "lon": 76.83953792852515
+  },
+  {
+    "record_id": "DEV-7383",
+    "device_id": "DEV-E960DD5C",
+    "phone_id": "+918193448329",
+    "sim_id": "SIM-0C0A75FF180D",
+    "event_time": "2026-08-08T19:00:00",
+    "event_type": "device_boot",
+    "tower_id": "c1da8e5c-c4a2-4475-83cb-730bc86916a3",
+    "lat": 28.69049251244904,
+    "lon": 76.73178267948178
+  },
+  {
+    "record_id": "DEV-7311",
+    "device_id": "DEV-378429A3",
+    "phone_id": "+917667779376",
+    "sim_id": "SIM-BA20A4391F30",
+    "event_time": "2026-08-09T01:00:00",
+    "event_type": "sim_insert",
+    "tower_id": "42c52f1d-993b-4167-8aa9-bc6d941831c9",
+    "lat": 28.739426798457885,
+    "lon": 76.72501075522267
+  },
+  {
+    "record_id": "DEV-2387",
+    "phone_id": "+917667779376",
+    "sim_id": "SIM-BA20A4391F30",
+    "device_id": "DEV-378429A3",
+    "event_time": "2026-08-08T22:00:00",
+    "event_type": "sim_swap",
+    "tower_id": "c1da8e5c-c4a2-4475-83cb-730bc86916a3",
+    "lat": 28.69049251244904,
+    "lon": 76.73178267948178
+  },
+  {
+    "record_id": "DEV-6980",
+    "device_id": "DEV-D33E8CE6",
+    "phone_id": "+917924765563",
+    "sim_id": "SIM-323F8A7EF0E3",
+    "event_time": "2026-08-09T03:00:00",
+    "event_type": "sim_insert",
+    "tower_id": "3ba3a7ce-b12b-4ef7-9e2e-87feeba0e0d6",
+    "lat": 28.776699487422913,
+    "lon": 77.59217956770485
+  },
+  {
+    "record_id": "DEV-6706",
+    "phone_id": "+917438989805",
+    "sim_id": "SIM-323F8A7EF0E3",
+    "device_id": "DEV-D33E8CE6",
+    "event_time": "2026-08-09T06:00:00",
+    "event_type": "sim_insert",
+    "tower_id": "c1da8e5c-c4a2-4475-83cb-730bc86916a3",
+    "lat": 28.69049251244904,
+    "lon": 76.73178267948178
+  },
+  {
+    "record_id": "DEV-5873",
+    "device_id": "DEV-4858288D",
+    "phone_id": "+918631775357",
+    "sim_id": "SIM-AC8B3FB7FCFB",
+    "event_time": "2026-08-08T20:00:00",
+    "event_type": "sim_swap",
+    "tower_id": "c1da8e5c-c4a2-4475-83cb-730bc86916a3",
+    "lat": 28.69049251244904,
+    "lon": 76.73178267948178
+  },
+  {
+    "record_id": "DEV-3221",
+    "device_id": "DEV-E960DD5C",
+    "phone_id": "+918193448329",
+    "sim_id": "SIM-0C0A75FF180D",
+    "event_time": "2026-08-09T18:00:00",
+    "event_type": "device_boot",
+    "tower_id": "3ba3a7ce-b12b-4ef7-9e2e-87feeba0e0d6",
+    "lat": 28.776699487422913,
+    "lon": 77.59217956770485
+  },
+  {
+    "record_id": "DEV-2690",
+    "device_id": "DEV-A63A7776",
+    "phone_id": "+918445662585",
+    "sim_id": "SIM-97256A9D4F68",
+    "event_time": "2026-08-09T18:00:00",
+    "event_type": "device_boot",
+    "tower_id": "42c52f1d-993b-4167-8aa9-bc6d941831c9",
+    "lat": 28.739426798457885,
+    "lon": 76.72501075522267
+  },
+  {
+    "record_id": "DEV-9300",
+    "device_id": "DEV-AAA31E88",
+    "phone_id": "+917398340369",
+    "sim_id": "SIM-54BAF2F3802A",
+    "event_time": "2026-08-10T03:00:00",
+    "event_type": "device_boot",
+    "tower_id": "42c52f1d-993b-4167-8aa9-bc6d941831c9",
+    "lat": 28.739426798457885,
+    "lon": 76.72501075522267
+  },
+  {
+    "record_id": "DEV-9582",
+    "device_id": "DEV-4858288D",
+    "phone_id": "+918631775357",
+    "sim_id": "SIM-AC8B3FB7FCFB",
+    "event_time": "2026-08-09T23:00:00",
+    "event_type": "sim_insert",
+    "tower_id": "c1da8e5c-c4a2-4475-83cb-730bc86916a3",
+    "lat": 28.69049251244904,
+    "lon": 76.73178267948178
+  },
+  {
+    "record_id": "DEV-9128",
+    "phone_id": "+918631775357",
+    "sim_id": "SIM-AC8B3FB7FCFB",
+    "device_id": "DEV-4858288D",
+    "event_time": "2026-08-10T05:00:00",
+    "event_type": "sim_swap",
+    "tower_id": "42c52f1d-993b-4167-8aa9-bc6d941831c9",
+    "lat": 28.739426798457885,
+    "lon": 76.72501075522267
+  },
+  {
+    "record_id": "DEV-4656",
+    "device_id": "DEV-378429A3",
+    "phone_id": "+918461364854",
+    "sim_id": "SIM-BA20A4391F30",
+    "event_time": "2026-08-10T20:00:00",
+    "event_type": "sim_swap",
+    "tower_id": "42c52f1d-993b-4167-8aa9-bc6d941831c9",
+    "lat": 28.739426798457885,
+    "lon": 76.72501075522267
+  },
+  {
+    "record_id": "DEV-4246",
+    "device_id": "DEV-A63A7776",
+    "phone_id": "+918445662585",
+    "sim_id": "SIM-97256A9D4F68",
+    "event_time": "2026-08-10T19:00:00",
+    "event_type": "device_boot",
+    "tower_id": "7484d28e-a5fd-44d5-92a2-d3518f8829c8",
+    "lat": 28.344891853803478,
+    "lon": 76.83953792852515
+  },
+  {
+    "record_id": "DEV-2843",
+    "phone_id": "+917924765563",
+    "sim_id": "SIM-323F8A7EF0E3",
+    "device_id": "DEV-D33E8CE6",
+    "event_time": "2026-08-12T04:00:00",
+    "event_type": "sim_insert",
+    "tower_id": "c1da8e5c-c4a2-4475-83cb-730bc86916a3",
+    "lat": 28.69049251244904,
+    "lon": 76.73178267948178
+  },
+  {
+    "record_id": "DEV-5400",
+    "phone_id": "+918445662585",
+    "sim_id": "SIM-97256A9D4F68",
+    "device_id": "DEV-A63A7776",
+    "event_time": "2026-08-12T02:00:00",
+    "event_type": "sim_insert",
+    "tower_id": "c1da8e5c-c4a2-4475-83cb-730bc86916a3",
+    "lat": 28.69049251244904,
+    "lon": 76.73178267948178
+  },
+  {
+    "record_id": "DEV-5087",
+    "device_id": "DEV-D33E8CE6",
+    "phone_id": "+917438989805",
+    "sim_id": "SIM-323F8A7EF0E3",
+    "event_time": "2026-08-11T16:00:00",
+    "event_type": "sim_insert",
+    "tower_id": "7484d28e-a5fd-44d5-92a2-d3518f8829c8",
+    "lat": 28.344891853803478,
+    "lon": 76.83953792852515
+  },
+  {
+    "record_id": "DEV-3762",
+    "device_id": "DEV-378429A3",
+    "phone_id": "+918461364854",
+    "sim_id": "SIM-BA20A4391F30",
+    "event_time": "2026-08-12T21:00:00",
+    "event_type": "sim_swap",
+    "tower_id": "3ba3a7ce-b12b-4ef7-9e2e-87feeba0e0d6",
+    "lat": 28.776699487422913,
+    "lon": 77.59217956770485
+  },
+  {
+    "record_id": "DEV-4087",
+    "device_id": "DEV-E960DD5C",
+    "phone_id": "+918193448329",
+    "sim_id": "SIM-0C0A75FF180D",
+    "event_time": "2026-08-13T02:00:00",
+    "event_type": "sim_insert",
+    "tower_id": "c1da8e5c-c4a2-4475-83cb-730bc86916a3",
+    "lat": 28.69049251244904,
+    "lon": 76.73178267948178
+  },
+  {
+    "record_id": "DEV-2809",
+    "device_id": "DEV-378429A3",
+    "phone_id": "+917667779376",
+    "sim_id": "SIM-BA20A4391F30",
+    "event_time": "2026-08-12T17:00:00",
+    "event_type": "sim_swap",
+    "tower_id": "42c52f1d-993b-4167-8aa9-bc6d941831c9",
+    "lat": 28.739426798457885,
+    "lon": 76.72501075522267
+  },
+  {
+    "record_id": "DEV-8414",
+    "device_id": "DEV-AAA31E88",
+    "phone_id": "+917398340369",
+    "sim_id": "SIM-54BAF2F3802A",
+    "event_time": "2026-08-13T02:00:00",
+    "event_type": "sim_insert",
+    "tower_id": "c1da8e5c-c4a2-4475-83cb-730bc86916a3",
+    "lat": 28.69049251244904,
+    "lon": 76.73178267948178
+  },
+  {
+    "record_id": "DEV-1035",
+    "phone_id": "+917398340369",
+    "sim_id": "SIM-54BAF2F3802A",
+    "device_id": "DEV-AAA31E88",
+    "event_time": "2026-08-13T01:00:00",
+    "event_type": "device_boot",
+    "tower_id": "7484d28e-a5fd-44d5-92a2-d3518f8829c8",
+    "lat": 28.344891853803478,
+    "lon": 76.83953792852515
+  },
+  {
+    "record_id": "DEV-4695",
+    "phone_id": "+918461364854",
+    "sim_id": "SIM-BA20A4391F30",
+    "device_id": "DEV-378429A3",
+    "event_time": "2026-08-14T02:00:00",
+    "event_type": "sim_swap",
+    "tower_id": "c1da8e5c-c4a2-4475-83cb-730bc86916a3",
+    "lat": 28.69049251244904,
+    "lon": 76.73178267948178
+  },
+  {
+    "record_id": "DEV-6424",
+    "device_id": "DEV-E960DD5C",
+    "phone_id": "+918193448329",
+    "sim_id": "SIM-0C0A75FF180D",
+    "event_time": "2026-08-14T01:00:00",
+    "event_type": "device_boot",
+    "tower_id": "7484d28e-a5fd-44d5-92a2-d3518f8829c8",
+    "lat": 28.344891853803478,
+    "lon": 76.83953792852515
+  },
+  {
+    "record_id": "DEV-1144",
+    "phone_id": "+918193448329",
+    "sim_id": "SIM-0C0A75FF180D",
+    "device_id": "DEV-E960DD5C",
+    "event_time": "2026-08-13T18:00:00",
+    "event_type": "sim_swap",
+    "tower_id": "c1da8e5c-c4a2-4475-83cb-730bc86916a3",
+    "lat": 28.69049251244904,
+    "lon": 76.73178267948178
+  },
+  {
+    "record_id": "DEV-2181",
+    "phone_id": "+917667779376",
+    "sim_id": "SIM-BA20A4391F30",
+    "device_id": "DEV-378429A3",
+    "event_time": "2026-08-13T19:00:00",
+    "event_type": "sim_insert",
+    "tower_id": "c1da8e5c-c4a2-4475-83cb-730bc86916a3",
+    "lat": 28.69049251244904,
+    "lon": 76.73178267948178
+  },
+  {
+    "record_id": "DEV-3561",
+    "device_id": "DEV-D33E8CE6",
+    "phone_id": "+917924765563",
+    "sim_id": "SIM-323F8A7EF0E3",
+    "event_time": "2026-08-14T06:00:00",
+    "event_type": "sim_swap",
+    "tower_id": "42c52f1d-993b-4167-8aa9-bc6d941831c9",
+    "lat": 28.739426798457885,
+    "lon": 76.72501075522267
+  },
+  {
+    "record_id": "DEV-9941",
+    "phone_id": "+917924765563",
+    "sim_id": "SIM-323F8A7EF0E3",
+    "device_id": "DEV-D33E8CE6",
+    "event_time": "2026-08-14T00:00:00",
+    "event_type": "sim_swap",
+    "tower_id": "c1da8e5c-c4a2-4475-83cb-730bc86916a3",
+    "lat": 28.69049251244904,
+    "lon": 76.73178267948178
+  },
+  {
+    "record_id": "DEV-2877",
+    "device_id": "DEV-A63A7776",
+    "phone_id": "+918445662585",
+    "sim_id": "SIM-97256A9D4F68",
+    "event_time": "2026-08-13T21:00:00",
+    "event_type": "sim_insert",
+    "tower_id": "3ba3a7ce-b12b-4ef7-9e2e-87feeba0e0d6",
+    "lat": 28.776699487422913,
+    "lon": 77.59217956770485
+  },
+  {
+    "record_id": "DEV-2127",
+    "device_id": "DEV-378429A3",
+    "phone_id": "+918461364854",
+    "sim_id": "SIM-BA20A4391F30",
+    "event_time": "2026-08-15T05:00:00",
+    "event_type": "sim_insert",
+    "tower_id": "3ba3a7ce-b12b-4ef7-9e2e-87feeba0e0d6",
+    "lat": 28.776699487422913,
+    "lon": 77.59217956770485
+  },
+  {
+    "record_id": "DEV-6142",
+    "device_id": "DEV-A63A7776",
+    "phone_id": "+918445662585",
+    "sim_id": "SIM-97256A9D4F68",
+    "event_time": "2026-08-15T06:00:00",
+    "event_type": "device_boot",
+    "tower_id": "7484d28e-a5fd-44d5-92a2-d3518f8829c8",
+    "lat": 28.344891853803478,
+    "lon": 76.83953792852515
+  },
+  {
+    "record_id": "DEV-3994",
+    "phone_id": "+918445662585",
+    "sim_id": "SIM-97256A9D4F68",
+    "device_id": "DEV-A63A7776",
+    "event_time": "2026-08-14T21:00:00",
+    "event_type": "device_boot",
+    "tower_id": "3ba3a7ce-b12b-4ef7-9e2e-87feeba0e0d6",
+    "lat": 28.776699487422913,
+    "lon": 77.59217956770485
+  },
+  {
+    "record_id": "DEV-9987",
+    "device_id": "DEV-D33E8CE6",
+    "phone_id": "+917438989805",
+    "sim_id": "SIM-323F8A7EF0E3",
+    "event_time": "2026-08-14T20:00:00",
+    "event_type": "device_boot",
+    "tower_id": "3ba3a7ce-b12b-4ef7-9e2e-87feeba0e0d6",
+    "lat": 28.776699487422913,
+    "lon": 77.59217956770485
+  },
+  {
+    "record_id": "DEV-6621",
+    "phone_id": "+917438989805",
+    "sim_id": "SIM-323F8A7EF0E3",
+    "device_id": "DEV-D33E8CE6",
+    "event_time": "2026-08-15T02:00:00",
+    "event_type": "sim_insert",
+    "tower_id": "c1da8e5c-c4a2-4475-83cb-730bc86916a3",
+    "lat": 28.69049251244904,
+    "lon": 76.73178267948178
+  },
+  {
+    "record_id": "DEV-4757",
+    "device_id": "DEV-378429A3",
+    "phone_id": "+918461364854",
+    "sim_id": "SIM-BA20A4391F30",
+    "event_time": "2026-08-16T00:00:00",
+    "event_type": "sim_insert",
+    "tower_id": "c1da8e5c-c4a2-4475-83cb-730bc86916a3",
+    "lat": 28.69049251244904,
+    "lon": 76.73178267948178
+  },
+  {
+    "record_id": "DEV-9059",
+    "device_id": "DEV-E960DD5C",
+    "phone_id": "+918193448329",
+    "sim_id": "SIM-0C0A75FF180D",
+    "event_time": "2026-08-15T15:00:00",
+    "event_type": "device_boot",
+    "tower_id": "c1da8e5c-c4a2-4475-83cb-730bc86916a3",
+    "lat": 28.69049251244904,
+    "lon": 76.73178267948178
+  },
+  {
+    "record_id": "DEV-5799",
+    "phone_id": "+918193448329",
+    "sim_id": "SIM-0C0A75FF180D",
+    "device_id": "DEV-E960DD5C",
+    "event_time": "2026-08-15T22:00:00",
+    "event_type": "sim_insert",
+    "tower_id": "c1da8e5c-c4a2-4475-83cb-730bc86916a3",
+    "lat": 28.69049251244904,
+    "lon": 76.73178267948178
+  },
+  {
+    "record_id": "DEV-1206",
+    "phone_id": "+917924765563",
+    "sim_id": "SIM-323F8A7EF0E3",
+    "device_id": "DEV-D33E8CE6",
+    "event_time": "2026-08-15T18:00:00",
+    "event_type": "sim_swap",
+    "tower_id": "c1da8e5c-c4a2-4475-83cb-730bc86916a3",
+    "lat": 28.69049251244904,
+    "lon": 76.73178267948178
+  },
+  {
+    "record_id": "DEV-4866",
+    "phone_id": "+918445662585",
+    "sim_id": "SIM-97256A9D4F68",
+    "device_id": "DEV-A63A7776",
+    "event_time": "2026-08-16T04:00:00",
+    "event_type": "device_boot",
+    "tower_id": "42c52f1d-993b-4167-8aa9-bc6d941831c9",
+    "lat": 28.739426798457885,
+    "lon": 76.72501075522267
+  },
+  {
+    "record_id": "DEV-1979",
+    "device_id": "DEV-D33E8CE6",
+    "phone_id": "+917438989805",
+    "sim_id": "SIM-323F8A7EF0E3",
+    "event_time": "2026-08-15T16:00:00",
+    "event_type": "device_boot",
+    "tower_id": "3ba3a7ce-b12b-4ef7-9e2e-87feeba0e0d6",
+    "lat": 28.776699487422913,
+    "lon": 77.59217956770485
+  },
+  {
+    "record_id": "DEV-2577",
+    "device_id": "DEV-AAA31E88",
+    "phone_id": "+917398340369",
+    "sim_id": "SIM-54BAF2F3802A",
+    "event_time": "2026-08-15T18:00:00",
+    "event_type": "sim_swap",
+    "tower_id": "3ba3a7ce-b12b-4ef7-9e2e-87feeba0e0d6",
+    "lat": 28.776699487422913,
+    "lon": 77.59217956770485
   },
   {
     "record_id": "DEV-4419",
-    "phone_id": "+917667779376",
-    "sim_id": "SIM-AA307380F7A0",
-    "device_id": "DEV-77A60075",
-    "event_time": "2026-08-16T06:00:00",
-    "event_type": "sim_insert",
-    "tower_id": "64ce0812-92b0-42c3-a7ac-fedbea3589a8"
-  },
-  {
-    "record_id": "LOC-3389",
-    "entity_or_device_id": "DEV-04A49EAF",
-    "location_id": "6d69413c-38b6-4532-a998-6067224bc531",
-    "start_time": "2026-08-16T05:00:00",
-    "end_time": "2026-08-16T05:33:00",
-    "observation_type": "tower_observation"
-  },
-  {
-    "record_id": "DEV-4825",
-    "phone_id": "+917438989805",
-    "sim_id": "SIM-2FE66E316A67",
-    "device_id": "DEV-04A49EAF",
-    "event_time": "2026-08-15T21:00:00",
-    "event_type": "sim_swap",
-    "tower_id": "6d69413c-38b6-4532-a998-6067224bc531"
-  },
-  {
-    "record_id": "LOC-8558",
-    "entity_or_device_id": "DEV-29CAC0BD",
-    "location_id": "6d69413c-38b6-4532-a998-6067224bc531",
-    "start_time": "2026-08-17T00:00:00",
-    "end_time": "2026-08-17T00:15:00",
-    "observation_type": "tower_observation"
-  },
-  {
-    "record_id": "DEV-1840",
-    "phone_id": "+917667779376",
-    "sim_id": "SIM-AA307380F7A0",
-    "device_id": "DEV-77A60075",
-    "event_time": "2026-08-17T04:00:00",
-    "event_type": "device_boot",
-    "tower_id": "6d69413c-38b6-4532-a998-6067224bc531"
-  },
-  {
-    "record_id": "LOC-8001",
-    "entity_or_device_id": "DEV-04A49EAF",
-    "location_id": "64ce0812-92b0-42c3-a7ac-fedbea3589a8",
-    "start_time": "2026-08-16T17:00:00",
-    "end_time": "2026-08-16T17:58:00",
-    "observation_type": "tower_observation"
-  },
-  {
-    "record_id": "LOC-5919",
-    "entity_or_device_id": "DEV-04A49EAF",
-    "location_id": "9b0ef173-2820-4f6a-be21-8a4e8087c4a0",
-    "start_time": "2026-08-17T00:00:00",
-    "end_time": "2026-08-17T00:37:00",
-    "observation_type": "tower_observation"
-  },
-  {
-    "record_id": "LOC-2517",
-    "entity_or_device_id": "DEV-368731AD",
-    "location_id": "9b0ef173-2820-4f6a-be21-8a4e8087c4a0",
-    "start_time": "2026-08-16T21:00:00",
-    "end_time": "2026-08-16T21:33:00",
-    "observation_type": "tower_observation"
-  },
-  {
-    "record_id": "LOC-2873",
-    "entity_or_device_id": "DEV-29CAC0BD",
-    "location_id": "9b0ef173-2820-4f6a-be21-8a4e8087c4a0",
-    "start_time": "2026-08-18T06:00:00",
-    "end_time": "2026-08-18T06:42:00",
-    "observation_type": "tower_observation"
-  },
-  {
-    "record_id": "DEV-7459",
-    "phone_id": "+917924765563",
-    "sim_id": "SIM-2FE66E316A67",
-    "device_id": "DEV-04A49EAF",
-    "event_time": "2026-08-18T01:00:00",
-    "event_type": "sim_swap",
-    "tower_id": "64ce0812-92b0-42c3-a7ac-fedbea3589a8"
-  },
-  {
-    "record_id": "LOC-4878",
-    "entity_or_device_id": "DEV-B8E558E4",
-    "location_id": "9b0ef173-2820-4f6a-be21-8a4e8087c4a0",
-    "start_time": "2026-08-18T06:00:00",
-    "end_time": "2026-08-18T06:50:00",
-    "observation_type": "tower_observation"
-  },
-  {
-    "record_id": "LOC-1845",
-    "entity_or_device_id": "DEV-04A49EAF",
-    "location_id": "64ce0812-92b0-42c3-a7ac-fedbea3589a8",
-    "start_time": "2026-08-17T20:00:00",
-    "end_time": "2026-08-17T20:47:00",
-    "observation_type": "tower_observation"
-  },
-  {
-    "record_id": "LOC-2595",
-    "entity_or_device_id": "DEV-368731AD",
-    "location_id": "6d69413c-38b6-4532-a998-6067224bc531",
-    "start_time": "2026-08-17T16:00:00",
-    "end_time": "2026-08-17T16:39:00",
-    "observation_type": "tower_observation"
-  },
-  {
-    "record_id": "LOC-5230",
-    "entity_or_device_id": "DEV-CA07A53E",
-    "location_id": "6d69413c-38b6-4532-a998-6067224bc531",
-    "start_time": "2026-08-17T16:00:00",
-    "end_time": "2026-08-17T16:57:00",
-    "observation_type": "tower_observation"
-  },
-  {
-    "record_id": "DEV-8218",
+    "device_id": "DEV-4858288D",
     "phone_id": "+918631775357",
-    "sim_id": "SIM-017DD17D964A",
-    "device_id": "DEV-CA07A53E",
-    "event_time": "2026-08-17T17:00:00",
+    "sim_id": "SIM-AC8B3FB7FCFB",
+    "event_time": "2026-08-15T15:00:00",
+    "event_type": "sim_swap",
+    "tower_id": "42c52f1d-993b-4167-8aa9-bc6d941831c9",
+    "lat": 28.739426798457885,
+    "lon": 76.72501075522267
+  },
+  {
+    "record_id": "DEV-3773",
+    "phone_id": "+917667779376",
+    "sim_id": "SIM-BA20A4391F30",
+    "device_id": "DEV-378429A3",
+    "event_time": "2026-08-17T02:00:00",
+    "event_type": "sim_swap",
+    "tower_id": "3ba3a7ce-b12b-4ef7-9e2e-87feeba0e0d6",
+    "lat": 28.776699487422913,
+    "lon": 77.59217956770485
+  },
+  {
+    "record_id": "DEV-8558",
+    "device_id": "DEV-AAA31E88",
+    "phone_id": "+917398340369",
+    "sim_id": "SIM-54BAF2F3802A",
+    "event_time": "2026-08-17T00:00:00",
+    "event_type": "sim_insert",
+    "tower_id": "3ba3a7ce-b12b-4ef7-9e2e-87feeba0e0d6",
+    "lat": 28.776699487422913,
+    "lon": 77.59217956770485
+  },
+  {
+    "record_id": "DEV-6071",
+    "phone_id": "+918631775357",
+    "sim_id": "SIM-AC8B3FB7FCFB",
+    "device_id": "DEV-4858288D",
+    "event_time": "2026-08-17T05:00:00",
     "event_type": "device_boot",
-    "tower_id": "5a5428f7-195b-4dc9-a87c-476a8fe9a98d"
+    "tower_id": "3ba3a7ce-b12b-4ef7-9e2e-87feeba0e0d6",
+    "lat": 28.776699487422913,
+    "lon": 77.59217956770485
   },
   {
-    "record_id": "LOC-1904",
-    "entity_or_device_id": "DEV-77A60075",
-    "location_id": "6d69413c-38b6-4532-a998-6067224bc531",
-    "start_time": "2026-08-19T03:00:00",
-    "end_time": "2026-08-19T03:45:00",
-    "observation_type": "tower_observation"
+    "record_id": "DEV-3204",
+    "phone_id": "+918461364854",
+    "sim_id": "SIM-BA20A4391F30",
+    "device_id": "DEV-378429A3",
+    "event_time": "2026-08-17T18:00:00",
+    "event_type": "sim_swap",
+    "tower_id": "c1da8e5c-c4a2-4475-83cb-730bc86916a3",
+    "lat": 28.69049251244904,
+    "lon": 76.73178267948178
   },
   {
-    "record_id": "DEV-3822",
-    "phone_id": "+918193448329",
-    "sim_id": "SIM-3ABDF561C4C3",
-    "device_id": "DEV-29CAC0BD",
+    "record_id": "DEV-8404",
+    "device_id": "DEV-378429A3",
+    "phone_id": "+917667779376",
+    "sim_id": "SIM-BA20A4391F30",
+    "event_time": "2026-08-18T02:00:00",
+    "event_type": "device_boot",
+    "tower_id": "7484d28e-a5fd-44d5-92a2-d3518f8829c8",
+    "lat": 28.344891853803478,
+    "lon": 76.83953792852515
+  },
+  {
+    "record_id": "DEV-3867",
+    "phone_id": "+917667779376",
+    "sim_id": "SIM-BA20A4391F30",
+    "device_id": "DEV-378429A3",
+    "event_time": "2026-08-17T18:00:00",
+    "event_type": "device_boot",
+    "tower_id": "3ba3a7ce-b12b-4ef7-9e2e-87feeba0e0d6",
+    "lat": 28.776699487422913,
+    "lon": 77.59217956770485
+  },
+  {
+    "record_id": "DEV-1831",
+    "device_id": "DEV-D33E8CE6",
+    "phone_id": "+917924765563",
+    "sim_id": "SIM-323F8A7EF0E3",
+    "event_time": "2026-08-18T05:00:00",
+    "event_type": "sim_insert",
+    "tower_id": "3ba3a7ce-b12b-4ef7-9e2e-87feeba0e0d6",
+    "lat": 28.776699487422913,
+    "lon": 77.59217956770485
+  },
+  {
+    "record_id": "DEV-2735",
+    "phone_id": "+917924765563",
+    "sim_id": "SIM-323F8A7EF0E3",
+    "device_id": "DEV-D33E8CE6",
+    "event_time": "2026-08-18T03:00:00",
+    "event_type": "sim_insert",
+    "tower_id": "42c52f1d-993b-4167-8aa9-bc6d941831c9",
+    "lat": 28.739426798457885,
+    "lon": 76.72501075522267
+  },
+  {
+    "record_id": "DEV-8709",
+    "device_id": "DEV-A63A7776",
+    "phone_id": "+918445662585",
+    "sim_id": "SIM-97256A9D4F68",
+    "event_time": "2026-08-18T05:00:00",
+    "event_type": "sim_insert",
+    "tower_id": "3ba3a7ce-b12b-4ef7-9e2e-87feeba0e0d6",
+    "lat": 28.776699487422913,
+    "lon": 77.59217956770485
+  },
+  {
+    "record_id": "DEV-6606",
+    "device_id": "DEV-AAA31E88",
+    "phone_id": "+917398340369",
+    "sim_id": "SIM-54BAF2F3802A",
+    "event_time": "2026-08-18T04:00:00",
+    "event_type": "sim_swap",
+    "tower_id": "c1da8e5c-c4a2-4475-83cb-730bc86916a3",
+    "lat": 28.69049251244904,
+    "lon": 76.73178267948178
+  },
+  {
+    "record_id": "DEV-4205",
+    "phone_id": "+918631775357",
+    "sim_id": "SIM-AC8B3FB7FCFB",
+    "device_id": "DEV-4858288D",
+    "event_time": "2026-08-17T21:00:00",
+    "event_type": "sim_swap",
+    "tower_id": "c1da8e5c-c4a2-4475-83cb-730bc86916a3",
+    "lat": 28.69049251244904,
+    "lon": 76.73178267948178
+  },
+  {
+    "record_id": "DEV-3744",
+    "device_id": "DEV-378429A3",
+    "phone_id": "+917667779376",
+    "sim_id": "SIM-BA20A4391F30",
+    "event_time": "2026-08-19T00:00:00",
+    "event_type": "sim_insert",
+    "tower_id": "3ba3a7ce-b12b-4ef7-9e2e-87feeba0e0d6",
+    "lat": 28.776699487422913,
+    "lon": 77.59217956770485
+  },
+  {
+    "record_id": "DEV-2595",
+    "device_id": "DEV-A63A7776",
+    "phone_id": "+918445662585",
+    "sim_id": "SIM-97256A9D4F68",
+    "event_time": "2026-08-18T16:00:00",
+    "event_type": "sim_swap",
+    "tower_id": "3ba3a7ce-b12b-4ef7-9e2e-87feeba0e0d6",
+    "lat": 28.776699487422913,
+    "lon": 77.59217956770485
+  },
+  {
+    "record_id": "DEV-5230",
+    "device_id": "DEV-D33E8CE6",
+    "phone_id": "+917438989805",
+    "sim_id": "SIM-323F8A7EF0E3",
     "event_time": "2026-08-18T16:00:00",
     "event_type": "device_boot",
-    "tower_id": "9b0ef173-2820-4f6a-be21-8a4e8087c4a0"
+    "tower_id": "3ba3a7ce-b12b-4ef7-9e2e-87feeba0e0d6",
+    "lat": 28.776699487422913,
+    "lon": 77.59217956770485
   },
   {
-    "record_id": "LOC-2460",
-    "entity_or_device_id": "DEV-77A60075",
-    "location_id": "9b0ef173-2820-4f6a-be21-8a4e8087c4a0",
-    "start_time": "2026-08-18T20:00:00",
-    "end_time": "2026-08-18T20:50:00",
-    "observation_type": "tower_observation"
-  },
-  {
-    "record_id": "DEV-3236",
+    "record_id": "DEV-9056",
     "phone_id": "+917438989805",
-    "sim_id": "SIM-2FE66E316A67",
-    "device_id": "DEV-04A49EAF",
-    "event_time": "2026-08-18T18:00:00",
-    "event_type": "device_boot",
-    "tower_id": "64ce0812-92b0-42c3-a7ac-fedbea3589a8"
-  },
-  {
-    "record_id": "LOC-8452",
-    "entity_or_device_id": "DEV-CA07A53E",
-    "location_id": "64ce0812-92b0-42c3-a7ac-fedbea3589a8",
-    "start_time": "2026-08-18T15:00:00",
-    "end_time": "2026-08-18T15:34:00",
-    "observation_type": "tower_observation"
-  },
-  {
-    "record_id": "LOC-5724",
-    "entity_or_device_id": "DEV-77A60075",
-    "location_id": "64ce0812-92b0-42c3-a7ac-fedbea3589a8",
-    "start_time": "2026-08-19T20:00:00",
-    "end_time": "2026-08-19T20:09:00",
-    "observation_type": "tower_observation"
-  },
-  {
-    "record_id": "DEV-5521",
-    "phone_id": "+918461364854",
-    "sim_id": "SIM-AA307380F7A0",
-    "device_id": "DEV-77A60075",
-    "event_time": "2026-08-19T18:00:00",
+    "sim_id": "SIM-323F8A7EF0E3",
+    "device_id": "DEV-D33E8CE6",
+    "event_time": "2026-08-18T21:00:00",
     "event_type": "sim_swap",
-    "tower_id": "5a5428f7-195b-4dc9-a87c-476a8fe9a98d"
+    "tower_id": "42c52f1d-993b-4167-8aa9-bc6d941831c9",
+    "lat": 28.739426798457885,
+    "lon": 76.72501075522267
   },
   {
-    "record_id": "LOC-2431",
-    "entity_or_device_id": "DEV-B8E558E4",
-    "location_id": "9b0ef173-2820-4f6a-be21-8a4e8087c4a0",
-    "start_time": "2026-08-20T05:00:00",
-    "end_time": "2026-08-20T05:37:00",
-    "observation_type": "tower_observation"
-  },
-  {
-    "record_id": "LOC-7791",
-    "entity_or_device_id": "DEV-04A49EAF",
-    "location_id": "64ce0812-92b0-42c3-a7ac-fedbea3589a8",
-    "start_time": "2026-08-19T23:00:00",
-    "end_time": "2026-08-19T23:16:00",
-    "observation_type": "tower_observation"
-  },
-  {
-    "record_id": "LOC-4087",
-    "entity_or_device_id": "DEV-CA07A53E",
-    "location_id": "5a5428f7-195b-4dc9-a87c-476a8fe9a98d",
-    "start_time": "2026-08-19T22:00:00",
-    "end_time": "2026-08-19T22:55:00",
-    "observation_type": "tower_observation"
-  },
-  {
-    "record_id": "LOC-2581",
-    "entity_or_device_id": "DEV-77A60075",
-    "location_id": "6d69413c-38b6-4532-a998-6067224bc531",
-    "start_time": "2026-08-20T15:00:00",
-    "end_time": "2026-08-20T15:55:00",
-    "observation_type": "tower_observation"
-  },
-  {
-    "record_id": "DEV-4365",
+    "record_id": "DEV-7162",
     "phone_id": "+918461364854",
-    "sim_id": "SIM-AA307380F7A0",
-    "device_id": "DEV-77A60075",
-    "event_time": "2026-08-20T21:00:00",
+    "sim_id": "SIM-BA20A4391F30",
+    "device_id": "DEV-378429A3",
+    "event_time": "2026-08-19T20:00:00",
     "event_type": "sim_insert",
-    "tower_id": "6d69413c-38b6-4532-a998-6067224bc531"
+    "tower_id": "42c52f1d-993b-4167-8aa9-bc6d941831c9",
+    "lat": 28.739426798457885,
+    "lon": 76.72501075522267
   },
   {
-    "record_id": "DEV-9800",
+    "record_id": "DEV-9151",
+    "device_id": "DEV-E960DD5C",
     "phone_id": "+918193448329",
-    "sim_id": "SIM-3ABDF561C4C3",
-    "device_id": "DEV-29CAC0BD",
-    "event_time": "2026-08-20T15:00:00",
-    "event_type": "sim_swap",
-    "tower_id": "9b0ef173-2820-4f6a-be21-8a4e8087c4a0"
+    "sim_id": "SIM-0C0A75FF180D",
+    "event_time": "2026-08-20T06:00:00",
+    "event_type": "sim_insert",
+    "tower_id": "7484d28e-a5fd-44d5-92a2-d3518f8829c8",
+    "lat": 28.344891853803478,
+    "lon": 76.83953792852515
   },
   {
-    "record_id": "DEV-9157",
-    "phone_id": "+918445662585",
-    "sim_id": "SIM-8B18447EEA02",
-    "device_id": "DEV-B8E558E4",
-    "event_time": "2026-08-21T06:00:00",
-    "event_type": "sim_swap",
-    "tower_id": "6d69413c-38b6-4532-a998-6067224bc531"
-  },
-  {
-    "record_id": "LOC-4907",
-    "entity_or_device_id": "DEV-CA07A53E",
-    "location_id": "5a5428f7-195b-4dc9-a87c-476a8fe9a98d",
-    "start_time": "2026-08-21T03:00:00",
-    "end_time": "2026-08-21T03:12:00",
-    "observation_type": "tower_observation"
-  },
-  {
-    "record_id": "DEV-1453",
-    "phone_id": "+918631775357",
-    "sim_id": "SIM-017DD17D964A",
-    "device_id": "DEV-CA07A53E",
-    "event_time": "2026-08-20T22:00:00",
+    "record_id": "DEV-1885",
+    "phone_id": "+918193448329",
+    "sim_id": "SIM-0C0A75FF180D",
+    "device_id": "DEV-E960DD5C",
+    "event_time": "2026-08-20T02:00:00",
     "event_type": "device_boot",
-    "tower_id": "64ce0812-92b0-42c3-a7ac-fedbea3589a8"
+    "tower_id": "42c52f1d-993b-4167-8aa9-bc6d941831c9",
+    "lat": 28.739426798457885,
+    "lon": 76.72501075522267
   },
   {
-    "record_id": "LOC-7928",
-    "entity_or_device_id": "DEV-77A60075",
-    "location_id": "64ce0812-92b0-42c3-a7ac-fedbea3589a8",
-    "start_time": "2026-08-21T22:00:00",
-    "end_time": "2026-08-21T22:18:00",
-    "observation_type": "tower_observation"
+    "record_id": "DEV-4731",
+    "device_id": "DEV-378429A3",
+    "phone_id": "+917667779376",
+    "sim_id": "SIM-BA20A4391F30",
+    "event_time": "2026-08-20T01:00:00",
+    "event_type": "sim_insert",
+    "tower_id": "42c52f1d-993b-4167-8aa9-bc6d941831c9",
+    "lat": 28.739426798457885,
+    "lon": 76.72501075522267
   },
   {
-    "record_id": "DEV-3869",
-    "phone_id": "+918461364854",
-    "sim_id": "SIM-AA307380F7A0",
-    "device_id": "DEV-77A60075",
-    "event_time": "2026-08-21T21:00:00",
-    "event_type": "device_boot",
-    "tower_id": "64ce0812-92b0-42c3-a7ac-fedbea3589a8"
+    "record_id": "DEV-4276",
+    "phone_id": "+917667779376",
+    "sim_id": "SIM-BA20A4391F30",
+    "device_id": "DEV-378429A3",
+    "event_time": "2026-08-20T03:00:00",
+    "event_type": "sim_insert",
+    "tower_id": "c1da8e5c-c4a2-4475-83cb-730bc86916a3",
+    "lat": 28.69049251244904,
+    "lon": 76.73178267948178
   },
   {
-    "record_id": "LOC-4446",
-    "entity_or_device_id": "DEV-29CAC0BD",
-    "location_id": "5a5428f7-195b-4dc9-a87c-476a8fe9a98d",
-    "start_time": "2026-08-22T00:00:00",
-    "end_time": "2026-08-22T01:00:00",
-    "observation_type": "tower_observation"
-  },
-  {
-    "record_id": "LOC-6233",
-    "entity_or_device_id": "DEV-77A60075",
-    "location_id": "5a5428f7-195b-4dc9-a87c-476a8fe9a98d",
-    "start_time": "2026-08-22T04:00:00",
-    "end_time": "2026-08-22T04:33:00",
-    "observation_type": "tower_observation"
-  },
-  {
-    "record_id": "LOC-5754",
-    "entity_or_device_id": "DEV-04A49EAF",
-    "location_id": "5a5428f7-195b-4dc9-a87c-476a8fe9a98d",
-    "start_time": "2026-08-21T15:00:00",
-    "end_time": "2026-08-21T15:21:00",
-    "observation_type": "tower_observation"
-  },
-  {
-    "record_id": "DEV-8388",
+    "record_id": "DEV-1977",
+    "device_id": "DEV-D33E8CE6",
     "phone_id": "+917924765563",
-    "sim_id": "SIM-2FE66E316A67",
-    "device_id": "DEV-04A49EAF",
-    "event_time": "2026-08-21T22:00:00",
+    "sim_id": "SIM-323F8A7EF0E3",
+    "event_time": "2026-08-19T16:00:00",
     "event_type": "device_boot",
-    "tower_id": "64ce0812-92b0-42c3-a7ac-fedbea3589a8"
+    "tower_id": "7484d28e-a5fd-44d5-92a2-d3518f8829c8",
+    "lat": 28.344891853803478,
+    "lon": 76.83953792852515
   },
   {
-    "record_id": "LOC-5603",
-    "entity_or_device_id": "DEV-04A49EAF",
-    "location_id": "5a5428f7-195b-4dc9-a87c-476a8fe9a98d",
-    "start_time": "2026-08-22T06:00:00",
-    "end_time": "2026-08-22T06:52:00",
-    "observation_type": "tower_observation"
+    "record_id": "DEV-8513",
+    "phone_id": "+917924765563",
+    "sim_id": "SIM-323F8A7EF0E3",
+    "device_id": "DEV-D33E8CE6",
+    "event_time": "2026-08-20T04:00:00",
+    "event_type": "sim_insert",
+    "tower_id": "c1da8e5c-c4a2-4475-83cb-730bc86916a3",
+    "lat": 28.69049251244904,
+    "lon": 76.73178267948178
   },
   {
-    "record_id": "LOC-4479",
-    "entity_or_device_id": "DEV-368731AD",
-    "location_id": "5a5428f7-195b-4dc9-a87c-476a8fe9a98d",
-    "start_time": "2026-08-21T23:00:00",
-    "end_time": "2026-08-21T23:42:00",
-    "observation_type": "tower_observation"
+    "record_id": "DEV-5540",
+    "device_id": "DEV-D33E8CE6",
+    "phone_id": "+917438989805",
+    "sim_id": "SIM-323F8A7EF0E3",
+    "event_time": "2026-08-20T04:00:00",
+    "event_type": "sim_insert",
+    "tower_id": "3ba3a7ce-b12b-4ef7-9e2e-87feeba0e0d6",
+    "lat": 28.776699487422913,
+    "lon": 77.59217956770485
   },
   {
-    "record_id": "DEV-2328",
-    "phone_id": "+918631775357",
-    "sim_id": "SIM-017DD17D964A",
-    "device_id": "DEV-CA07A53E",
-    "event_time": "2026-08-22T05:00:00",
+    "record_id": "DEV-8412",
+    "phone_id": "+917438989805",
+    "sim_id": "SIM-323F8A7EF0E3",
+    "device_id": "DEV-D33E8CE6",
+    "event_time": "2026-08-20T06:00:00",
     "event_type": "sim_swap",
-    "tower_id": "64ce0812-92b0-42c3-a7ac-fedbea3589a8"
+    "tower_id": "3ba3a7ce-b12b-4ef7-9e2e-87feeba0e0d6",
+    "lat": 28.776699487422913,
+    "lon": 77.59217956770485
   },
   {
-    "record_id": "LOC-4772",
-    "entity_or_device_id": "DEV-2FE5E84D",
-    "location_id": "64ce0812-92b0-42c3-a7ac-fedbea3589a8",
-    "start_time": "2026-08-01T22:00:00",
-    "end_time": "2026-08-01T22:34:00",
-    "observation_type": "tower_observation"
+    "record_id": "DEV-7513",
+    "device_id": "DEV-378429A3",
+    "phone_id": "+918461364854",
+    "sim_id": "SIM-BA20A4391F30",
+    "event_time": "2026-08-21T02:00:00",
+    "event_type": "sim_insert",
+    "tower_id": "42c52f1d-993b-4167-8aa9-bc6d941831c9",
+    "lat": 28.739426798457885,
+    "lon": 76.72501075522267
   },
   {
-    "record_id": "LOC-6431",
-    "entity_or_device_id": "DEV-2FE5E84D",
-    "location_id": "64ce0812-92b0-42c3-a7ac-fedbea3589a8",
-    "start_time": "2026-08-09T06:00:00",
-    "end_time": "2026-08-09T06:29:00",
-    "observation_type": "tower_observation"
+    "record_id": "DEV-2955",
+    "device_id": "DEV-378429A3",
+    "phone_id": "+917667779376",
+    "sim_id": "SIM-BA20A4391F30",
+    "event_time": "2026-08-20T15:00:00",
+    "event_type": "device_boot",
+    "tower_id": "7484d28e-a5fd-44d5-92a2-d3518f8829c8",
+    "lat": 28.344891853803478,
+    "lon": 76.83953792852515
   },
   {
-    "record_id": "LOC-1110",
-    "entity_or_device_id": "DEV-2FE5E84D",
-    "location_id": "64ce0812-92b0-42c3-a7ac-fedbea3589a8",
-    "start_time": "2026-08-13T20:00:00",
-    "end_time": "2026-08-13T20:28:00",
-    "observation_type": "tower_observation"
+    "record_id": "DEV-3675",
+    "device_id": "DEV-D33E8CE6",
+    "phone_id": "+917924765563",
+    "sim_id": "SIM-323F8A7EF0E3",
+    "event_time": "2026-08-21T02:00:00",
+    "event_type": "sim_insert",
+    "tower_id": "7484d28e-a5fd-44d5-92a2-d3518f8829c8",
+    "lat": 28.344891853803478,
+    "lon": 76.83953792852515
   },
   {
-    "record_id": "LOC-1491",
-    "entity_or_device_id": "DEV-2FE5E84D",
-    "location_id": "9b0ef173-2820-4f6a-be21-8a4e8087c4a0",
-    "start_time": "2026-08-04T02:00:00",
-    "end_time": "2026-08-04T02:40:00",
-    "observation_type": "tower_observation"
+    "record_id": "DEV-6832",
+    "phone_id": "+917924765563",
+    "sim_id": "SIM-323F8A7EF0E3",
+    "device_id": "DEV-D33E8CE6",
+    "event_time": "2026-08-20T16:00:00",
+    "event_type": "device_boot",
+    "tower_id": "c1da8e5c-c4a2-4475-83cb-730bc86916a3",
+    "lat": 28.69049251244904,
+    "lon": 76.73178267948178
   },
   {
-    "record_id": "LOC-8215",
-    "entity_or_device_id": "DEV-2FE5E84D",
-    "location_id": "5a5428f7-195b-4dc9-a87c-476a8fe9a98d",
-    "start_time": "2026-08-06T00:00:00",
-    "end_time": "2026-08-06T00:17:00",
-    "observation_type": "tower_observation"
+    "record_id": "DEV-6036",
+    "device_id": "DEV-D33E8CE6",
+    "phone_id": "+917438989805",
+    "sim_id": "SIM-323F8A7EF0E3",
+    "event_time": "2026-08-20T22:00:00",
+    "event_type": "sim_insert",
+    "tower_id": "7484d28e-a5fd-44d5-92a2-d3518f8829c8",
+    "lat": 28.344891853803478,
+    "lon": 76.83953792852515
   },
   {
-    "record_id": "LOC-7125",
-    "entity_or_device_id": "DEV-AA531B42",
-    "location_id": "356bd415-cd2e-4520-b809-b041b2dee509",
-    "start_time": "2026-08-07T01:00:00",
-    "end_time": "2026-08-07T01:38:00",
-    "observation_type": "tower_observation"
+    "record_id": "DEV-7960",
+    "phone_id": "+917438989805",
+    "sim_id": "SIM-323F8A7EF0E3",
+    "device_id": "DEV-D33E8CE6",
+    "event_time": "2026-08-20T18:00:00",
+    "event_type": "sim_insert",
+    "tower_id": "42c52f1d-993b-4167-8aa9-bc6d941831c9",
+    "lat": 28.739426798457885,
+    "lon": 76.72501075522267
   },
   {
-    "record_id": "LOC-5396",
-    "entity_or_device_id": "DEV-AA531B42",
-    "location_id": "356bd415-cd2e-4520-b809-b041b2dee509",
-    "start_time": "2026-08-17T06:00:00",
-    "end_time": "2026-08-17T06:42:00",
-    "observation_type": "tower_observation"
+    "record_id": "DEV-7557",
+    "phone_id": "+918193448329",
+    "sim_id": "SIM-0C0A75FF180D",
+    "device_id": "DEV-E960DD5C",
+    "event_time": "2026-08-22T02:00:00",
+    "event_type": "device_boot",
+    "tower_id": "3ba3a7ce-b12b-4ef7-9e2e-87feeba0e0d6",
+    "lat": 28.776699487422913,
+    "lon": 77.59217956770485
   },
   {
-    "record_id": "LOC-4394",
-    "entity_or_device_id": "DEV-AA531B42",
-    "location_id": "a024a17d-0b10-49e2-ae30-dc89c75816f6",
-    "start_time": "2026-08-21T16:00:00",
-    "end_time": "2026-08-21T16:19:00",
-    "observation_type": "tower_observation"
+    "record_id": "DEV-8986",
+    "phone_id": "+917667779376",
+    "sim_id": "SIM-BA20A4391F30",
+    "device_id": "DEV-378429A3",
+    "event_time": "2026-08-21T18:00:00",
+    "event_type": "sim_swap",
+    "tower_id": "c1da8e5c-c4a2-4475-83cb-730bc86916a3",
+    "lat": 28.69049251244904,
+    "lon": 76.73178267948178
   },
   {
-    "record_id": "LOC-7486",
-    "entity_or_device_id": "DEV-AA531B42",
-    "location_id": "64ce0812-92b0-42c3-a7ac-fedbea3589a8",
-    "start_time": "2026-08-15T22:00:00",
-    "end_time": "2026-08-15T22:18:00",
-    "observation_type": "tower_observation"
+    "record_id": "DEV-1326",
+    "phone_id": "+917438989805",
+    "sim_id": "SIM-323F8A7EF0E3",
+    "device_id": "DEV-D33E8CE6",
+    "event_time": "2026-08-21T16:00:00",
+    "event_type": "sim_insert",
+    "tower_id": "c1da8e5c-c4a2-4475-83cb-730bc86916a3",
+    "lat": 28.69049251244904,
+    "lon": 76.73178267948178
   },
   {
-    "record_id": "LOC-3575",
-    "entity_or_device_id": "DEV-AA531B42",
-    "location_id": "a4a8f251-d8be-465b-acfe-62bb45d04e08",
-    "start_time": "2026-08-15T03:00:00",
-    "end_time": "2026-08-15T03:28:00",
-    "observation_type": "tower_observation"
+    "record_id": "DEV-5929",
+    "device_id": "DEV-4858288D",
+    "phone_id": "+918631775357",
+    "sim_id": "SIM-AC8B3FB7FCFB",
+    "event_time": "2026-08-21T23:00:00",
+    "event_type": "sim_insert",
+    "tower_id": "c1da8e5c-c4a2-4475-83cb-730bc86916a3",
+    "lat": 28.69049251244904,
+    "lon": 76.73178267948178
   },
   {
-    "record_id": "LOC-3200",
-    "entity_or_device_id": "DEV-AA531B42",
-    "location_id": "a4a8f251-d8be-465b-acfe-62bb45d04e08",
-    "start_time": "2026-08-18T17:00:00",
-    "end_time": "2026-08-18T17:10:00",
-    "observation_type": "tower_observation"
+    "record_id": "DEV-3028",
+    "device_id": "DEV-D845195A",
+    "event_time": "2026-08-02T00:00:00",
+    "event_type": "sim_swap",
+    "tower_id": "3ba3a7ce-b12b-4ef7-9e2e-87feeba0e0d6",
+    "lat": 28.776699487422913,
+    "lon": 77.59217956770485
   },
   {
-    "record_id": "LOC-4438",
-    "entity_or_device_id": "DEV-B2EA4423",
-    "location_id": "a024a17d-0b10-49e2-ae30-dc89c75816f6",
-    "start_time": "2026-08-08T22:00:00",
-    "end_time": "2026-08-08T22:35:00",
-    "observation_type": "tower_observation"
+    "record_id": "DEV-9548",
+    "device_id": "DEV-D845195A",
+    "event_time": "2026-08-07T16:00:00",
+    "event_type": "sim_insert",
+    "tower_id": "7484d28e-a5fd-44d5-92a2-d3518f8829c8",
+    "lat": 28.344891853803478,
+    "lon": 76.83953792852515
   },
   {
-    "record_id": "LOC-8559",
-    "entity_or_device_id": "DEV-B2EA4423",
-    "location_id": "64ce0812-92b0-42c3-a7ac-fedbea3589a8",
-    "start_time": "2026-08-18T05:00:00",
-    "end_time": "2026-08-18T05:26:00",
-    "observation_type": "tower_observation"
+    "record_id": "DEV-1993",
+    "device_id": "DEV-5E72E35A",
+    "event_time": "2026-08-04T23:00:00",
+    "event_type": "device_boot",
+    "tower_id": "d9be46de-eef5-40f2-a9c6-bb2834fff540",
+    "lat": 28.3204406220407,
+    "lon": 77.28926568387591
   },
   {
-    "record_id": "LOC-8025",
-    "entity_or_device_id": "DEV-B2EA4423",
-    "location_id": "5a5428f7-195b-4dc9-a87c-476a8fe9a98d",
-    "start_time": "2026-08-11T21:00:00",
-    "end_time": "2026-08-11T21:31:00",
-    "observation_type": "tower_observation"
+    "record_id": "DEV-2072",
+    "device_id": "DEV-5E72E35A",
+    "event_time": "2026-08-19T04:00:00",
+    "event_type": "device_boot",
+    "tower_id": "e3e48f54-c441-4266-bcc0-756248381a11",
+    "lat": 28.858807367129767,
+    "lon": 76.85965931637689
   },
   {
-    "record_id": "LOC-8835",
-    "entity_or_device_id": "DEV-30CEC81F",
-    "location_id": "5a5428f7-195b-4dc9-a87c-476a8fe9a98d",
-    "start_time": "2026-08-06T04:00:00",
-    "end_time": "2026-08-06T04:09:00",
-    "observation_type": "tower_observation"
+    "record_id": "DEV-1305",
+    "device_id": "DEV-5E72E35A",
+    "event_time": "2026-08-14T22:00:00",
+    "event_type": "device_boot",
+    "tower_id": "42c52f1d-993b-4167-8aa9-bc6d941831c9",
+    "lat": 28.739426798457885,
+    "lon": 76.72501075522267
   },
   {
-    "record_id": "LOC-4369",
-    "entity_or_device_id": "DEV-30CEC81F",
-    "location_id": "a024a17d-0b10-49e2-ae30-dc89c75816f6",
-    "start_time": "2026-08-07T19:00:00",
-    "end_time": "2026-08-07T19:24:00",
-    "observation_type": "tower_observation"
+    "record_id": "DEV-5990",
+    "device_id": "DEV-5E72E35A",
+    "event_time": "2026-08-08T19:00:00",
+    "event_type": "sim_swap",
+    "tower_id": "7484d28e-a5fd-44d5-92a2-d3518f8829c8",
+    "lat": 28.344891853803478,
+    "lon": 76.83953792852515
   },
   {
-    "record_id": "LOC-6084",
-    "entity_or_device_id": "DEV-30CEC81F",
-    "location_id": "a024a17d-0b10-49e2-ae30-dc89c75816f6",
-    "start_time": "2026-08-16T20:00:00",
-    "end_time": "2026-08-16T20:42:00",
-    "observation_type": "tower_observation"
+    "record_id": "DEV-9199",
+    "device_id": "DEV-5E72E35A",
+    "event_time": "2026-08-15T17:00:00",
+    "event_type": "sim_insert",
+    "tower_id": "d9be46de-eef5-40f2-a9c6-bb2834fff540",
+    "lat": 28.3204406220407,
+    "lon": 77.28926568387591
   },
   {
-    "record_id": "LOC-7542",
-    "entity_or_device_id": "DEV-6D1511CC",
-    "location_id": "356bd415-cd2e-4520-b809-b041b2dee509",
-    "start_time": "2026-08-14T01:00:00",
-    "end_time": "2026-08-14T01:17:00",
-    "observation_type": "tower_observation"
+    "record_id": "DEV-5016",
+    "device_id": "DEV-5E72E35A",
+    "event_time": "2026-08-12T20:00:00",
+    "event_type": "sim_swap",
+    "tower_id": "3ba3a7ce-b12b-4ef7-9e2e-87feeba0e0d6",
+    "lat": 28.776699487422913,
+    "lon": 77.59217956770485
   },
   {
-    "record_id": "LOC-5105",
-    "entity_or_device_id": "DEV-6D1511CC",
-    "location_id": "a024a17d-0b10-49e2-ae30-dc89c75816f6",
-    "start_time": "2026-08-02T15:00:00",
-    "end_time": "2026-08-02T15:12:00",
-    "observation_type": "tower_observation"
+    "record_id": "DEV-7166",
+    "device_id": "DEV-2536D5CD",
+    "event_time": "2026-08-05T02:00:00",
+    "event_type": "sim_swap",
+    "tower_id": "e3e48f54-c441-4266-bcc0-756248381a11",
+    "lat": 28.858807367129767,
+    "lon": 76.85965931637689
   },
   {
-    "record_id": "LOC-4613",
-    "entity_or_device_id": "DEV-C07FCD51",
-    "location_id": "4997b6e7-5ad5-4f0d-8527-4a00a5582a23",
-    "start_time": "2026-08-07T17:00:00",
-    "end_time": "2026-08-07T17:11:00",
-    "observation_type": "tower_observation"
+    "record_id": "DEV-1138",
+    "device_id": "DEV-2536D5CD",
+    "event_time": "2026-08-13T20:00:00",
+    "event_type": "sim_insert",
+    "tower_id": "3cfb7d5d-cda9-4015-9166-7f3d9dfc6687",
+    "lat": 28.661245062938615,
+    "lon": 77.41601961292241
   },
   {
-    "record_id": "LOC-7810",
-    "entity_or_device_id": "DEV-C07FCD51",
-    "location_id": "6d69413c-38b6-4532-a998-6067224bc531",
-    "start_time": "2026-08-06T16:00:00",
-    "end_time": "2026-08-06T16:37:00",
-    "observation_type": "tower_observation"
+    "record_id": "DEV-9731",
+    "device_id": "DEV-1BB64051",
+    "event_time": "2026-08-07T15:00:00",
+    "event_type": "sim_swap",
+    "tower_id": "5a1ea53f-1198-402f-843b-5cd828104f0c",
+    "lat": 28.318637974803604,
+    "lon": 77.20535528810336
   },
   {
-    "record_id": "LOC-7264",
-    "entity_or_device_id": "DEV-94978AD1",
-    "location_id": "4997b6e7-5ad5-4f0d-8527-4a00a5582a23",
-    "start_time": "2026-08-02T05:00:00",
-    "end_time": "2026-08-02T05:37:00",
-    "observation_type": "tower_observation"
+    "record_id": "DEV-1032",
+    "device_id": "DEV-1BB64051",
+    "event_time": "2026-08-19T05:00:00",
+    "event_type": "device_boot",
+    "tower_id": "5a1ea53f-1198-402f-843b-5cd828104f0c",
+    "lat": 28.318637974803604,
+    "lon": 77.20535528810336
   },
   {
-    "record_id": "LOC-4811",
-    "entity_or_device_id": "DEV-94978AD1",
-    "location_id": "64ce0812-92b0-42c3-a7ac-fedbea3589a8",
-    "start_time": "2026-08-17T15:00:00",
-    "end_time": "2026-08-17T15:06:00",
-    "observation_type": "tower_observation"
+    "record_id": "DEV-7666",
+    "device_id": "DEV-1BB64051",
+    "event_time": "2026-08-12T04:00:00",
+    "event_type": "device_boot",
+    "tower_id": "42c52f1d-993b-4167-8aa9-bc6d941831c9",
+    "lat": 28.739426798457885,
+    "lon": 76.72501075522267
   },
   {
-    "record_id": "LOC-5068",
-    "entity_or_device_id": "DEV-6A94F6F2",
-    "location_id": "64ce0812-92b0-42c3-a7ac-fedbea3589a8",
-    "start_time": "2026-08-18T16:00:00",
-    "end_time": "2026-08-18T16:19:00",
-    "observation_type": "tower_observation"
+    "record_id": "DEV-9119",
+    "device_id": "DEV-1BB64051",
+    "event_time": "2026-08-18T05:00:00",
+    "event_type": "device_boot",
+    "tower_id": "7484d28e-a5fd-44d5-92a2-d3518f8829c8",
+    "lat": 28.344891853803478,
+    "lon": 76.83953792852515
   },
   {
-    "record_id": "LOC-4007",
-    "entity_or_device_id": "DEV-6A94F6F2",
-    "location_id": "a024a17d-0b10-49e2-ae30-dc89c75816f6",
-    "start_time": "2026-08-18T01:00:00",
-    "end_time": "2026-08-18T01:33:00",
-    "observation_type": "tower_observation"
+    "record_id": "DEV-5553",
+    "device_id": "DEV-1BB64051",
+    "event_time": "2026-08-08T16:00:00",
+    "event_type": "device_boot",
+    "tower_id": "42c52f1d-993b-4167-8aa9-bc6d941831c9",
+    "lat": 28.739426798457885,
+    "lon": 76.72501075522267
   },
   {
-    "record_id": "LOC-2146",
-    "entity_or_device_id": "DEV-6A94F6F2",
-    "location_id": "9b0ef173-2820-4f6a-be21-8a4e8087c4a0",
-    "start_time": "2026-08-04T06:00:00",
-    "end_time": "2026-08-04T06:17:00",
-    "observation_type": "tower_observation"
+    "record_id": "DEV-7420",
+    "device_id": "DEV-1BB64051",
+    "event_time": "2026-08-11T15:00:00",
+    "event_type": "sim_insert",
+    "tower_id": "e3e48f54-c441-4266-bcc0-756248381a11",
+    "lat": 28.858807367129767,
+    "lon": 76.85965931637689
+  },
+  {
+    "record_id": "DEV-1546",
+    "device_id": "DEV-808D6CDF",
+    "event_time": "2026-08-03T16:00:00",
+    "event_type": "device_boot",
+    "tower_id": "7484d28e-a5fd-44d5-92a2-d3518f8829c8",
+    "lat": 28.344891853803478,
+    "lon": 76.83953792852515
+  },
+  {
+    "record_id": "DEV-2015",
+    "device_id": "DEV-808D6CDF",
+    "event_time": "2026-08-03T19:00:00",
+    "event_type": "device_boot",
+    "tower_id": "3cfb7d5d-cda9-4015-9166-7f3d9dfc6687",
+    "lat": 28.661245062938615,
+    "lon": 77.41601961292241
+  },
+  {
+    "record_id": "DEV-2077",
+    "device_id": "DEV-808D6CDF",
+    "event_time": "2026-08-11T04:00:00",
+    "event_type": "sim_insert",
+    "tower_id": "42c52f1d-993b-4167-8aa9-bc6d941831c9",
+    "lat": 28.739426798457885,
+    "lon": 76.72501075522267
+  },
+  {
+    "record_id": "DEV-5831",
+    "device_id": "DEV-808D6CDF",
+    "event_time": "2026-08-18T16:00:00",
+    "event_type": "device_boot",
+    "tower_id": "42c52f1d-993b-4167-8aa9-bc6d941831c9",
+    "lat": 28.739426798457885,
+    "lon": 76.72501075522267
+  },
+  {
+    "record_id": "DEV-4819",
+    "device_id": "DEV-808D6CDF",
+    "event_time": "2026-08-05T04:00:00",
+    "event_type": "sim_swap",
+    "tower_id": "d9be46de-eef5-40f2-a9c6-bb2834fff540",
+    "lat": 28.3204406220407,
+    "lon": 77.28926568387591
+  },
+  {
+    "record_id": "DEV-8605",
+    "device_id": "DEV-808D6CDF",
+    "event_time": "2026-08-16T03:00:00",
+    "event_type": "device_boot",
+    "tower_id": "42c52f1d-993b-4167-8aa9-bc6d941831c9",
+    "lat": 28.739426798457885,
+    "lon": 76.72501075522267
+  },
+  {
+    "record_id": "DEV-2717",
+    "device_id": "DEV-DF44F0EC",
+    "event_time": "2026-08-11T20:00:00",
+    "event_type": "device_boot",
+    "tower_id": "d9be46de-eef5-40f2-a9c6-bb2834fff540",
+    "lat": 28.3204406220407,
+    "lon": 77.28926568387591
+  },
+  {
+    "record_id": "DEV-1060",
+    "device_id": "DEV-DF44F0EC",
+    "event_time": "2026-08-16T22:00:00",
+    "event_type": "sim_swap",
+    "tower_id": "42c52f1d-993b-4167-8aa9-bc6d941831c9",
+    "lat": 28.739426798457885,
+    "lon": 76.72501075522267
+  },
+  {
+    "record_id": "DEV-4492",
+    "device_id": "DEV-DF44F0EC",
+    "event_time": "2026-08-09T05:00:00",
+    "event_type": "sim_insert",
+    "tower_id": "c1da8e5c-c4a2-4475-83cb-730bc86916a3",
+    "lat": 28.69049251244904,
+    "lon": 76.73178267948178
+  },
+  {
+    "record_id": "DEV-4363",
+    "device_id": "DEV-DF44F0EC",
+    "event_time": "2026-08-12T03:00:00",
+    "event_type": "device_boot",
+    "tower_id": "e3e48f54-c441-4266-bcc0-756248381a11",
+    "lat": 28.858807367129767,
+    "lon": 76.85965931637689
+  },
+  {
+    "record_id": "DEV-1343",
+    "device_id": "DEV-47C8F600",
+    "event_time": "2026-08-09T18:00:00",
+    "event_type": "sim_swap",
+    "tower_id": "3ba3a7ce-b12b-4ef7-9e2e-87feeba0e0d6",
+    "lat": 28.776699487422913,
+    "lon": 77.59217956770485
+  },
+  {
+    "record_id": "DEV-6544",
+    "device_id": "DEV-47C8F600",
+    "event_time": "2026-08-13T18:00:00",
+    "event_type": "sim_insert",
+    "tower_id": "3ba3a7ce-b12b-4ef7-9e2e-87feeba0e0d6",
+    "lat": 28.776699487422913,
+    "lon": 77.59217956770485
+  },
+  {
+    "record_id": "DEV-1599",
+    "device_id": "DEV-17DAE04B",
+    "event_time": "2026-08-20T03:00:00",
+    "event_type": "sim_insert",
+    "tower_id": "5a1ea53f-1198-402f-843b-5cd828104f0c",
+    "lat": 28.318637974803604,
+    "lon": 77.20535528810336
+  },
+  {
+    "record_id": "DEV-4840",
+    "device_id": "DEV-17DAE04B",
+    "event_time": "2026-08-08T05:00:00",
+    "event_type": "device_boot",
+    "tower_id": "c1da8e5c-c4a2-4475-83cb-730bc86916a3",
+    "lat": 28.69049251244904,
+    "lon": 76.73178267948178
+  },
+  {
+    "record_id": "DEV-7178",
+    "device_id": "DEV-17DAE04B",
+    "event_time": "2026-08-11T04:00:00",
+    "event_type": "sim_swap",
+    "tower_id": "c1da8e5c-c4a2-4475-83cb-730bc86916a3",
+    "lat": 28.69049251244904,
+    "lon": 76.73178267948178
+  },
+  {
+    "record_id": "DEV-2388",
+    "device_id": "DEV-17DAE04B",
+    "event_time": "2026-08-12T23:00:00",
+    "event_type": "sim_insert",
+    "tower_id": "3ba3a7ce-b12b-4ef7-9e2e-87feeba0e0d6",
+    "lat": 28.776699487422913,
+    "lon": 77.59217956770485
+  },
+  {
+    "record_id": "DEV-9500",
+    "device_id": "DEV-17DAE04B",
+    "event_time": "2026-08-11T05:00:00",
+    "event_type": "device_boot",
+    "tower_id": "7484d28e-a5fd-44d5-92a2-d3518f8829c8",
+    "lat": 28.344891853803478,
+    "lon": 76.83953792852515
   }
 ]

@@ -76,15 +76,17 @@ async def generate_report(
     for h in hypotheses:
         hyp_data = {
             "id": str(h.id),
-            "statement": h.statement,
-            "strength_index": h.strength_index,
-            "review_state": h.review_state.value,
-            "supporting_records": h.supporting_records or [],
-            "contradicting_records": h.contradicting_records or [],
-            "missing_information": h.missing_information or [],
-            "proposed_action": h.proposed_action,
-            "score_breakdown": h.score_breakdown or {},
-            "data_coverage": h.data_coverage or {},
+            "stable_key": h.stable_key,
+            "hypothesis_type": h.hypothesis_type,
+            "entity_pair": h.entity_pair,
+            "notes": h.notes,
+            "numeric_value": h.numeric_value,
+            "quality_factor": h.quality_factor,
+            "state": h.state.value if h.state else None,
+            "review_state": h.review_state.value if h.review_state else None,
+            "contributing_signal_highlights": h.contributing_signal_highlights or [],
+            "timestamp_hypothesis_generated": h.timestamp_hypothesis_generated.isoformat()
+            if h.timestamp_hypothesis_generated else None,
         }
         report_content["hypotheses"].append(hyp_data)
 

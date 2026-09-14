@@ -25,7 +25,7 @@ def upgrade() -> None:
         sa.Column('confidence', sa.Float, nullable=False, server_default='0.0'),
         sa.Column('evidence_record_ids', postgresql.JSON, nullable=True),
         sa.Column('reason', sa.Text, nullable=True),
-        sa.Column('review_state', sa.Enum('new', 'needs_verification', 'supported_by_reviewer', 'rejected', 'archived', name='reviewstate', create_type=False), nullable=False, server_default='new'),
+        sa.Column('review_state', postgresql.ENUM('new', 'needs_verification', 'supported_by_reviewer', 'rejected', 'archived', name='reviewstate', create_type=False), nullable=False, server_default='NEW'),
         sa.Column('created_at', sa.DateTime, nullable=False, server_default=sa.func.now()),
         sa.Column('resolved_at', sa.DateTime, nullable=True),
     )

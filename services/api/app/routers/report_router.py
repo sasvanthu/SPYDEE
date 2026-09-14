@@ -7,7 +7,7 @@ from app.database import get_db
 from app.models.models import Report, User
 from app.auth.auth import get_current_user
 from app.schemas.schemas import ReportRequest, ReportResponse
-from app.services.case_service import check_case_membership, log_audit_event
+from app.services.case_service import check_case_membership, check_case_write_access, log_audit_event
 from app.services.report_service import generate_report
 
 router = APIRouter(prefix="/api/v1/reports", tags=["reports"])
@@ -20,7 +20,7 @@ async def create_report(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    await check_case_membership(db, user.id, case_id)
+    await check_case_write_access(db, user, case_id)
 
     content = await generate_report(
         db, case_id, req.title,
@@ -118,15 +118,13 @@ th {{ background: #f0f0f0; }}
 <h2>Hypotheses</h2>
 """
     for h in content.get("hypotheses", []):
-        strength = h.get("strength_index", 0)
+        strength = h.get("numeric_value", 0)
         band = "strong" if strength >= 70 else ("moderate" if strength >= 40 else "limited")
         html += f"""<div style="margin:15px 0;padding:10px;border:1px solid #ddd;border-left:4px solid {'#e94560' if band=='strong' else '#f5a623' if band=='moderate' else '#ccc'};">
-<h3>{h.get('statement', 'N/A')}</h3>
+<h3>{h.get('hypothesis_type', 'N/A')} — {h.get('notes', '')[:200]}</h3>
 <p>Strength: <span class="{band}">{strength}/100</span> | State: {h.get('review_state', 'new')}</p>
-<p><strong>Supporting:</strong> {len(h.get('supporting_records', []))} records</p>
-<p><strong>Contradicting:</strong> {len(h.get('contradicting_records', []))} records</p>
-<p><strong>Missing:</strong> {', '.join(h.get('missing_information', [])) or 'None identified'}</p>
-<p><strong>Action:</strong> {h.get('proposed_action', 'N/A')}</p>
+<p><strong>Pair:</strong> {h.get('entity_pair', {})}</p>
+<p><strong>Signals:</strong> {', '.join(h.get('contributing_signal_highlights', [])) or 'None'}</p>
 </div>"""
 
     html += "<h2>Limitations</h2><ul>"

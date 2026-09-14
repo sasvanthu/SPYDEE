@@ -14,12 +14,12 @@
         "+917667779376"
       ],
       "devices": [
-        "DEV-77A60075",
-        "DEV-29CAC0BD"
+        "DEV-378429A3",
+        "DEV-E960DD5C"
       ],
       "sims": [
-        "SIM-AA307380F7A0",
-        "SIM-3ABDF561C4C3"
+        "SIM-BA20A4391F30",
+        "SIM-0C0A75FF180D"
       ]
     },
     {
@@ -35,12 +35,12 @@
         "+917438989805"
       ],
       "devices": [
-        "DEV-04A49EAF",
-        "DEV-B8E558E4"
+        "DEV-D33E8CE6",
+        "DEV-A63A7776"
       ],
       "sims": [
-        "SIM-2FE66E316A67",
-        "SIM-8B18447EEA02"
+        "SIM-323F8A7EF0E3",
+        "SIM-97256A9D4F68"
       ]
     },
     {
@@ -54,12 +54,12 @@
         "+918631775357"
       ],
       "devices": [
-        "DEV-368731AD",
-        "DEV-CA07A53E"
+        "DEV-AAA31E88",
+        "DEV-4858288D"
       ],
       "sims": [
-        "SIM-DDA73E0DDA6B",
-        "SIM-017DD17D964A"
+        "SIM-54BAF2F3802A",
+        "SIM-AC8B3FB7FCFB"
       ]
     }
   ],
@@ -74,13 +74,13 @@
     "Alias-08": "Amit Singh"
   },
   "device_assignments": {
-    "DEV-77A60075": "Ravi Sharma",
-    "DEV-29CAC0BD": "Ravi Sharma",
-    "DEV-04A49EAF": "Priya Patel",
-    "DEV-B8E558E4": "Priya Patel",
-    "DEV-368731AD": "Amit Singh",
-    "DEV-CA07A53E": "Amit Singh"
+    "DEV-378429A3": "Ravi Sharma",
+    "DEV-E960DD5C": "Ravi Sharma",
+    "DEV-D33E8CE6": "Priya Patel",
+    "DEV-A63A7776": "Priya Patel",
+    "DEV-AAA31E88": "Amit Singh",
+    "DEV-4858288D": "Amit Singh"
   },
   "control_users": [],
-  "total_records": 1230
+  "total_records": 1169
 }

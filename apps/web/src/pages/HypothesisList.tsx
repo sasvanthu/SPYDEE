@@ -52,16 +52,17 @@ export default function HypothesisList() {
               className={`bg-white border rounded-lg p-4 cursor-pointer hover:shadow-md transition ${selected?.id === h.id ? 'border-azure-500 ring-2 ring-azure-200' : ''}`}>
               <div className="flex items-start justify-between">
                 <div className="flex-1">
-                  <p className="text-sm text-navy-700 mb-2">{h.statement}</p>
+                  <p className="text-sm font-medium text-navy-700 mb-1">{h.hypothesis_type?.replace(/_/g, ' ')}</p>
+                  <p className="text-sm text-navy-500 mb-2">{h.notes}</p>
                   <div className="flex items-center gap-4 text-xs text-navy-400">
-                    <span>Supporting: {h.supporting_records?.length || 0}</span>
-                    <span>Contradicting: {h.contradicting_records?.length || 0}</span>
-                    <span>Families: {h.data_coverage?.families_present?.length || 0}</span>
+                    <span>Signals: {h.contributing_signal_highlights?.length || 0}</span>
+                    <span>Quality: {(h.quality_factor * 100).toFixed(0)}%</span>
+                    <span>Engine: {h.engine_version || 'v2.0'}</span>
                   </div>
                 </div>
                 <div className="text-right ml-4">
-                  <div className={`text-2xl font-bold ${h.strength_index >= 70 ? 'text-red-500' : h.strength_index >= 40 ? 'text-amber-500' : 'text-gray-400'}`}>
-                    {h.strength_index}
+                  <div className={`text-2xl font-bold ${h.numeric_value >= 70 ? 'text-red-500' : h.numeric_value >= 40 ? 'text-amber-500' : 'text-gray-400'}`}>
+                    {Math.round(h.numeric_value)}
                   </div>
                   <span className={`text-xs px-2 py-0.5 rounded ${stateColors[h.review_state] || 'bg-gray-100'}`}>{h.review_state}</span>
                 </div>
@@ -77,10 +78,16 @@ export default function HypothesisList() {
         <div className="w-96 bg-white border rounded-lg p-5 h-fit sticky top-16 max-h-[calc(100vh-6rem)] overflow-y-auto">
           <h3 className="font-semibold text-navy-700 mb-3">Hypothesis Detail</h3>
           <div className="mb-4">
-            <div className={`text-4xl font-bold text-center mb-2 ${selected.strength_index >= 70 ? 'text-red-500' : selected.strength_index >= 40 ? 'text-amber-500' : 'text-gray-400'}`}>
-              {selected.strength_index}<span className="text-lg">/100</span>
+            <div className={`text-4xl font-bold text-center mb-2 ${selected.numeric_value >= 70 ? 'text-red-500' : selected.numeric_value >= 40 ? 'text-amber-500' : 'text-gray-400'}`}>
+              {Math.round(selected.numeric_value)}<span className="text-lg">/100</span>
             </div>
-            <p className="text-sm text-navy-700">{selected.statement}</p>
+            <p className="text-xs text-azure-600 mb-1">{selected.hypothesis_type?.replace(/_/g, ' ')}</p>
+            <p className="text-sm text-navy-700">{selected.notes}</p>
+            {selected.entity_pair && (
+              <div className="text-xs text-navy-400 mt-2">
+                Pair: {selected.entity_pair.source?.slice(0, 8)} ↔ {selected.entity_pair.target?.slice(0, 8)}
+              </div>
+            )}
           </div>
 
           {detailQuery.data?.signals?.length > 0 && (
@@ -88,30 +95,37 @@ export default function HypothesisList() {
               <h4 className="font-medium text-sm text-navy-600 mb-2">Contributing Signals</h4>
               <div className="space-y-2">
                 {detailQuery.data.signals.map((s: any, i: number) => (
-                  <div key={i} className="bg-gray-50 rounded p-2 text-xs">
+                  <div key={i} className={`bg-gray-50 rounded p-2 text-xs ${s.contradiction ? 'border border-red-200' : ''}`}>
                     <div className="flex justify-between">
-                      <span className="font-medium">{s.signal.family}</span>
-                      <span>{(s.signal.numeric_value * 100).toFixed(0)}%</span>
+                      <span className="font-medium">{s.family} {s.contradiction ? '⚠️' : ''}</span>
+                      <span>{Math.round(s.weight * 100)}%</span>
                     </div>
-                    <div className="text-navy-400 mt-1">{s.signal.explanation}</div>
+                    <div className="text-navy-400 mt-1">{s.signal?.explanation || s.signal?.notes || ''}</div>
                   </div>
                 ))}
               </div>
             </div>
           )}
 
-          {selected.missing_information?.length > 0 && (
+          {selected.contributing_signal_highlights?.length > 0 && (
             <div className="mb-4">
-              <h4 className="font-medium text-sm text-navy-600 mb-2">Missing Information</h4>
+              <h4 className="font-medium text-sm text-navy-600 mb-2">Signal Highlights</h4>
               <ul className="text-xs text-navy-400 space-y-1">
-                {selected.missing_information.map((m: string, i: number) => <li key={i}>• {m}</li>)}
+                {selected.contributing_signal_highlights.map((m: string, i: number) => <li key={i}>• {m}</li>)}
               </ul>
             </div>
           )}
 
-          {selected.proposed_action && (
-            <div className="mb-4 p-3 bg-azure-50 rounded text-xs text-azure-700">
-              <strong>Suggested Action:</strong> {selected.proposed_action}
+          {detailQuery.data?.recommendations?.length > 0 && (
+            <div className="mb-4">
+              <h4 className="font-medium text-sm text-navy-600 mb-2">Recommended Actions</h4>
+              <div className="space-y-2">
+                {detailQuery.data.recommendations.map((r: any, i: number) => (
+                  <div key={i} className="p-3 bg-azure-50 rounded text-xs text-azure-700">
+                    <strong>{r.type?.replace(/_/g, ' ')}</strong> ({r.status}) — {r.rationale}
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 

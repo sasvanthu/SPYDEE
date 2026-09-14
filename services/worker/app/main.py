@@ -3,7 +3,7 @@ import logging
 import uuid
 import os
 from datetime import datetime, timedelta
-from sqlalchemy import select, update
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 
 logging.basicConfig(level=logging.INFO)
@@ -18,20 +18,35 @@ CLAIM_TIMEOUT_MINUTES = 10
 POLL_INTERVAL_SECONDS = 5
 
 
-async def process_job(job_id: uuid.UUID):
-    from app.models.models import Job, AnalysisRun, EvidenceFile, Import, SourceRecord
+async def claim_next_job(db: AsyncSession):
+    """Atomically claim the oldest queueable job using FOR UPDATE SKIP LOCKED."""
+    from app.models.models import Job, JobStatus
+    result = await db.execute(
+        select(Job)
+        .where(
+            Job.status == JobStatus.QUEUED,
+            (Job.claim_expires_at.is_(None)) | (Job.claim_expires_at < datetime.utcnow()),
+        )
+        .order_by(Job.created_at)
+        .limit(1)
+        .with_for_update(skip_locked=True)
+    )
+    job = result.scalar_one_or_none()
+    if job:
+        job.status = JobStatus.RUNNING
+        job.started_at = datetime.utcnow()
+        job.claimed_by = f"worker-{uuid.uuid4().hex[:8]}"
+        job.claim_expires_at = datetime.utcnow() + timedelta(minutes=CLAIM_TIMEOUT_MINUTES)
+    return job
 
+
+async def process_job(job_id: uuid.UUID):
+    from app.models.models import Job, JobStatus
     async with async_session() as db:
         result = await db.execute(select(Job).where(Job.id == job_id))
         job = result.scalar_one_or_none()
         if not job:
             return
-
-        job.status = "running"
-        job.started_at = datetime.utcnow()
-        job.claimed_by = f"worker-{uuid.uuid4().hex[:8]}"
-        job.claim_expires_at = datetime.utcnow() + timedelta(minutes=CLAIM_TIMEOUT_MINUTES)
-        await db.commit()
 
         try:
             if job.job_type == "analysis":
@@ -39,29 +54,28 @@ async def process_job(job_id: uuid.UUID):
             elif job.job_type == "import":
                 await process_import_job(db, job)
             else:
-                job.status = "failed"
-                job.error_message = f"Unknown job type: {job.job_type}"
+                raise ValueError(f"Unknown job type: {job.job_type}")
 
-            job.status = "completed"
+            job.status = JobStatus.COMPLETED
             job.completed_at = datetime.utcnow()
         except Exception as e:
-            logger.error(f"Job {job_id} failed: {e}")
-            job.status = "failed"
+            logger.error(f"Job {job_id} ({job.job_type}) failed: {e}", exc_info=True)
             job.error_message = str(e)
             if job.retry_count < job.max_retries:
                 job.retry_count += 1
-                job.status = "queued"
+                job.status = JobStatus.QUEUED
+                job.claim_expires_at = None
+            else:
+                job.status = JobStatus.FAILED
 
         await db.commit()
 
 
-async def process_analysis_job(db, job):
+async def process_analysis_job(db: AsyncSession, job):
     from app.models.models import AnalysisRun, SourceRecord
-    from analysis.engines.communication_engine import analyze_communication
-    from analysis.engines.graph_engine import analyze_graph_structure
-    from analysis.scoring.hypothesis_engine import generate_hypotheses
+    from app.services.analysis_service import run_analysis
 
-    run_id = job.payload.get("analysis_run_id")
+    run_id = (job.payload or {}).get("analysis_run_id")
     if not run_id:
         raise ValueError("No analysis_run_id in job payload")
 
@@ -73,49 +87,63 @@ async def process_analysis_job(db, job):
     records_result = await db.execute(
         select(SourceRecord).where(
             SourceRecord.case_id == run.case_id,
-            SourceRecord.is_duplicate == False,
+            SourceRecord.is_duplicate == False,  # noqa: E712
         )
     )
     records = records_result.scalars().all()
 
-    signals = []
-    signals.extend(await analyze_communication(db, run.case_id, run.id, records))
-    signals.extend(await analyze_graph_structure(db, run.case_id, run.id, records))
-
-    for sig in signals:
-        db.add(sig)
-    await db.flush()
-
-    hypotheses = await generate_hypotheses(db, run.case_id, run.id, signals)
-    for hyp in hypotheses:
-        db.add(hyp)
-    await db.flush()
-
-    run.status = "completed"
-    run.completed_at = datetime.utcnow()
+    stats = await run_analysis(db, run, records)
+    job.result = stats
+    logger.info(
+        f"Analysis run {run.id} completed: {stats.get('signals')} signals, "
+        f"{stats.get('hypotheses')} hypotheses"
+    )
 
 
-async def process_import_job(db, job):
-    pass
+async def process_import_job(db: AsyncSession, job):
+    from app.models.models import Import, EvidenceFile, JobStatus
+    from app.services.evidence_service import process_evidence_file
+
+    payload = job.payload or {}
+    import_id = payload.get("import_id")
+    evidence_file_id = payload.get("evidence_file_id")
+    if not import_id:
+        raise ValueError("No import_id in job payload")
+
+    import_result = await db.execute(select(Import).where(Import.id == uuid.UUID(import_id)))
+    import_obj = import_result.scalar_one_or_none()
+    if not import_obj:
+        raise ValueError("Import not found")
+
+    evidence_result = await db.execute(select(EvidenceFile).where(EvidenceFile.id == import_obj.evidence_file_id))
+    evidence_file = evidence_result.scalar_one_or_none()
+    if not evidence_file:
+        raise ValueError("Evidence file not found")
+
+    await process_evidence_file(db, evidence_file, import_obj.case_id, import_obj)
+
+    job.result = {
+        "accepted_count": import_obj.accepted_count,
+        "rejected_count": import_obj.rejected_count,
+    }
+    logger.info(
+        f"Import {import_obj.id} completed: {import_obj.accepted_count} accepted, "
+        f"{import_obj.rejected_count} rejected"
+    )
 
 
 async def poll_for_jobs():
     from app.models.models import Job
-
     logger.info("Worker started, polling for jobs...")
     while True:
         try:
             async with async_session() as db:
-                result = await db.execute(
-                    select(Job).where(
-                        Job.status == "queued",
-                        Job.claim_expires_at.is_(None) | (Job.claim_expires_at < datetime.utcnow()),
-                    ).order_by(Job.created_at).limit(1)
-                )
-                job = result.scalar_one_or_none()
+                job = await claim_next_job(db)
                 if job:
-                    logger.info(f"Processing job {job.id} ({job.job_type})")
-                    await process_job(job.id)
+                    await db.commit()
+                    job_id = job.id
+                    logger.info(f"Processing job {job_id} ({job.job_type})")
+                    await process_job(job_id)
         except Exception as e:
             logger.error(f"Poll cycle error: {e}")
 

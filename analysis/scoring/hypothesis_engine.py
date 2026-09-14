@@ -1,26 +1,75 @@
+"""SPYDEE Hypothesis Scoring Engine.
+
+Deterministic weighted signal-fusion across families, contradiction penalties,
+info-gap analysis, and per-signal HypothesisSignal linkage with deterministic
+recommendation rows — fully reproducible across repeated runs.
+"""
 import uuid
 from collections import defaultdict
-from typing import List
+from datetime import datetime
+from typing import List, Dict, Tuple
+
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
-from app.models.models import Signal, Hypothesis, Entity, ReviewState
 
+from app.models.models import (
+    Hypothesis, HypothesisSignal, HypothesisRecommendation,
+    Signal, HypothesisState, ReviewState, RecommendationType, RecommendationStatus,
+)
+from analysis.engines._shared import load_entities
 
-FAMILY_WEIGHTS = {
+ENGINE_VERSION = "v2.0"
+CONTRADICTION_PENALTY = 0.25
+NAMESPACE_SPYDEE = uuid.UUID("5f2e6c1a-8b4d-4f2e-9a3b-2c6d1e0f9a8b")
+
+DEFAULT_FAMILY_WEIGHTS = {
     "communication": 0.20,
-    "device_sim": 0.25,
+    "device_sim": 0.20,
     "spatial_temporal": 0.15,
     "writing_style": 0.15,
-    "financial": 0.15,
+    "financial": 0.10,
     "infrastructure": 0.10,
+    "network_topology": 0.10,
 }
 
-STRONG_MIN_FAMILIES = 3
-STRONG_MIN_INDEPENDENT = 3
-LOW_MAX = 40
-MODERATE_MIN = 40
-MODERATE_MAX = 70
-CONTRADICTION_PENALTY = 0.25
+HYPOTHESIS_TYPES = [
+    ("subversive_activity", RecommendationType.FLAG_SUBVERSIVE_ACTIVITY,
+     "Subversive or unlawful activity indicated"),
+    ("terror_link", RecommendationType.FLAG_TERROR_LINK,
+     "Possible nexus to proscribed entity"),
+    ("forged_documents", RecommendationType.FLAG_FORGED_DOCUMENTS,
+     "Potential forged or fraudulently obtained documents"),
+    ("social_network", RecommendationType.FLAG_SOCIAL_NETWORK,
+     "Unusual or operationally significant social network concentration"),
+    ("credential_inconsistency", RecommendationType.FLAG_CREDENTIAL_INCONSISTENCY,
+     "Alias/credential data inconsistency requiring further verification"),
+    ("financial_anomaly", RecommendationType.FLAG_FINANCIAL_ANOMALY,
+     "Financial transaction pattern anomaly detected"),
+]
+
+TYPE_FAMILY_IMPORTANCE = {
+    "subversive_activity": ["communication", "network_topology", "device_sim"],
+    "terror_link": ["communication", "network_topology", "spatial_temporal"],
+    "forged_documents": ["device_sim", "infrastructure"],
+    "social_network": ["communication", "network_topology", "writing_style"],
+    "credential_inconsistency": ["communication", "writing_style"],
+    "financial_anomaly": ["financial", "communication"],
+}
+
+
+def stable_key(case_id, source: str, target: str, hypothesis_type: str) -> uuid.UUID:
+    key = f"{case_id}:{source}:{target}:{hypothesis_type}"
+    return uuid.uuid5(NAMESPACE_SPYDEE, key)
+
+
+def _recommendation_key(stable_key_val: uuid.UUID, rec_type: str) -> uuid.UUID:
+    return uuid.uuid5(NAMESPACE_SPYDEE, f"{stable_key_val}:{rec_type}")
+
+
+def _best_signal(pair_signals: List[Signal], family: str) -> Signal:
+    candidates = [s for s in pair_signals if s.family == family]
+    if not candidates:
+        return None
+    return max(candidates, key=lambda s: (s.numeric_value or 0.0, str(s.id)))
 
 
 async def generate_hypotheses(
@@ -28,132 +77,162 @@ async def generate_hypotheses(
     case_id: uuid.UUID,
     analysis_run_id: uuid.UUID,
     signals: List[Signal],
-) -> List[Hypothesis]:
-    entity_pairs = defaultdict(list)
-    for sig in signals:
-        key = _pair_key(sig.entity_pair)
-        entity_pairs[key].append(sig)
+    config: Dict = None,
+) -> Tuple[List[Hypothesis], List[HypothesisSignal], List[HypothesisRecommendation]]:
+    """Return (hypotheses, hypothesis_signals, recommendations).
 
-    hypotheses = []
+    Fully deterministic from the input signal set: identical stable_keys,
+    numeric_value, quality_factor, and contribution weighting across runs.
+    """
+    config = config or {}
+    weights = dict(DEFAULT_FAMILY_WEIGHTS)
+    weights.update(config.get("family_weights", {}) or {})
 
-    for pair_key, pair_signals in entity_pairs.items():
-        src_id, tgt_id = pair_key
+    entity_rows = await load_entities(db, case_id)
+    entity_type_map = {str(e.id): e.entity_type.value for e in entity_rows}
 
-        families = defaultdict(list)
-        for sig in pair_signals:
-            families[sig.family].append(sig)
+    pairs = defaultdict(list)
+    for s in signals:
+        ep = s.entity_pair or {}
+        src, tgt = ep.get("source"), ep.get("target")
+        if src and tgt and src != tgt:
+            pairs[tuple(sorted((str(src), str(tgt))))].append(s)
 
-        num_families = len(families)
+    hypotheses: List[Hypothesis] = []
+    hyp_signals: List[HypothesisSignal] = []
+    recommendations: List[HypothesisRecommendation] = []
 
-        family_scores = {}
-        family_quality = {}
-        for family, fam_signals in families.items():
-            best = max(fam_signals, key=lambda s: s.numeric_value * s.quality_factor)
-            family_scores[family] = best.numeric_value
-            family_quality[family] = best.quality_factor
+    for (src, tgt), pair_signals in pairs.items():
+        src_type = entity_type_map.get(src, "unknown")
+        tgt_type = entity_type_map.get(tgt, "unknown")
+        for hyp_type, rec_type, description in HYPOTHESIS_TYPES:
+            important_families = TYPE_FAMILY_IMPORTANCE.get(hyp_type, list(weights.keys()))
+            applicable = []
+            for fam in important_families:
+                if weights.get(fam, 0) <= 0:
+                    continue
+                sig = _best_signal(pair_signals, fam)
+                if sig is not None and (sig.numeric_value or 0) > 0:
+                    applicable.append((fam, sig))
+            if not applicable:
+                continue
 
-        weighted_sum = 0.0
-        total_weight = 0.0
-        for family, w in FAMILY_WEIGHTS.items():
-            if family in family_scores:
-                weighted_sum += w * family_scores[family] * family_quality[family]
-                total_weight += w
+            contradicting = [
+                s for s in pair_signals
+                if s.contradiction
+                and s.family in important_families
+                and weights.get(s.family, 0) > 0
+            ]
+            has_contradiction = bool(contradicting)
+            missing_families = [f for f in important_families
+                                if all(f != ff for ff, _ in applicable)]
 
-        if total_weight > 0:
-            normalized = weighted_sum / total_weight
-        else:
-            normalized = 0.0
+            total_weight = sum(weights[f] for f, _ in applicable)
+            weighted_sum = sum(weights[f] * (s.numeric_value or 0.0) * (s.quality_factor or 1.0)
+                               for f, s in applicable)
+            strength = round(100.0 * weighted_sum / total_weight, 1)
+            if has_contradiction:
+                strength = round(max(0.0, strength * (1.0 - CONTRADICTION_PENALTY)), 1)
+            quality = round(sum(s.quality_factor or 1.0 for _, s in applicable)
+                            / len(applicable), 4)
 
-        strength_raw = normalized * 100
-        strength = max(0, min(100, int(round(strength_raw))))
+            if strength >= 80:
+                label = "High Plausibility"
+            elif strength >= 50:
+                label = "Medium Plausibility"
+            else:
+                label = "Low Plausibility"
 
-        supporting = []
-        contradicting = []
-        for sig in pair_signals:
-            for rid in (sig.contributing_record_ids or []):
-                if rid not in supporting:
-                    supporting.append(rid)
+            notes = (
+                f"{description}. Strength {strength}/100 ({label}). "
+                + ("Contradiction detected — penalty applied." if has_contradiction else "")
+                + (f" Data gaps: {', '.join(missing_families)}." if missing_families else "")
+            )
 
-        missing = []
-        all_families = set(FAMILY_WEIGHTS.keys())
-        present = set(families.keys())
-        missing_families = all_families - present
-        if missing_families:
-            missing.append(f"Missing signal families: {', '.join(sorted(missing_families))}")
-        if num_families < STRONG_MIN_FAMILIES:
-            missing.append(f"Only {num_families} independent families (need {STRONG_MIN_FAMILIES} for strong)")
+            skey = stable_key(case_id, src, tgt, hyp_type)
+            highlights = [
+                f"{fam}@{s.numeric_value:.2f}"
+                for fam, s in applicable
+            ]
 
-        if num_families >= STRONG_MIN_INDEPENDENT and strength >= 70:
-            review_state = "new"
-        elif strength >= LOW_MAX:
-            review_state = "new"
-        else:
-            review_state = "new"
+            hyp = Hypothesis(
+                id=skey,
+                case_id=case_id,
+                analysis_run_id=analysis_run_id,
+                stable_key=str(skey),
+                entity_pair={"source": src, "target": tgt,
+                             "types": {"source": src_type, "target": tgt_type}},
+                notes=notes,
+                timestamp_hypothesis_generated=None,
+                contributing_signal_highlights=highlights,
+                state=HypothesisState.CANDIDATE,
+                review_state=ReviewState.NEW,
+                numeric_value=strength,
+                quality_factor=quality,
+                engine_version=ENGINE_VERSION,
+                hypothesis_type=hyp_type,
+            )
+            hypotheses.append(hyp)
 
-        statement = _build_statement(src_id, tgt_id, families, strength)
-        action = _propose_action(families, missing, strength)
+            link_sources = list(applicable)
+            for cs in contradicting:
+                if all(cs is not s for _, s in applicable):
+                    link_sources.append((cs.family, cs))
+            for fam, sig in link_sources:
+                contribution = round(weights[fam] * (sig.numeric_value or 0.0)
+                                     * (sig.quality_factor or 1.0) / total_weight, 4)
+                hsig = HypothesisSignal(
+                    id=uuid.uuid5(NAMESPACE_SPYDEE,
+                                  f"{skey}:{fam}:{str(sig.id)[:8]}"),
+                    hypothesis_id=skey,
+                    signal_id=sig.id,
+                    family=fam,
+                    entity_pair=sig.entity_pair,
+                    weight=weights[fam],
+                    contribution=contribution,
+                    quality_factor=sig.quality_factor or 1.0,
+                    feature_details=(sig.feature_details or {}) | {
+                        "signal_explanation": sig.explanation,
+                    },
+                    contradiction=bool(sig.contradiction),
+                )
+                hyp_signals.append(hsig)
 
-        score_breakdown = {
-            "weighted_normalized": round(normalized, 4),
-            "strength_raw": round(strength_raw, 1),
-            "family_scores": {f: {"score": round(s, 4), "quality": round(family_quality[f], 4), "weight": FAMILY_WEIGHTS.get(f, 0)} for f, s in family_scores.items()},
-            "num_families": num_families,
-        }
+            rec_desc = {
+                "subversive_activity": "Escalate for field investigation.",
+                "terror_link": "Coordinate with specialized desk for linkage validation.",
+                "forged_documents": "Verify document authenticity via issuing authority.",
+                "social_network": "Map extended network and prioritize high-brokerage nodes.",
+                "credential_inconsistency": "Cross-validate identity attributes across sources.",
+                "financial_anomaly": "Escalate to financial intelligence desk for KYC/AML review.",
+            }[hyp_type]
 
-        data_coverage = {
-            "families_present": list(present),
-            "families_missing": list(missing_families),
-            "total_signals": len(pair_signals),
-        }
+            if missing_families:
+                recommendations.append(HypothesisRecommendation(
+                    id=_recommendation_key(skey, "data_gap"),
+                    hypothesis_id=skey,
+                    type=RecommendationType.BOOK_EXTERNAL_INT_DESK,
+                    status=RecommendationStatus.PENDING,
+                    estimated_completion_days=5,
+                    rationale=f"Missing data families: {', '.join(missing_families)}.",
+                ))
+            if strength < 50 and not missing_families:
+                recommendations.append(HypothesisRecommendation(
+                    id=_recommendation_key(skey, "humint"),
+                    hypothesis_id=skey,
+                    type=RecommendationType.COLLECT_HUMAN_INTEL,
+                    status=RecommendationStatus.PENDING,
+                    estimated_completion_days=3,
+                    rationale="Score below 50 — recommend HUMINT or additional field data.",
+                ))
 
-        hyp = Hypothesis(
-            case_id=case_id,
-            analysis_run_id=analysis_run_id,
-            stable_key=f"{src_id}-{tgt_id}-v{analysis_run_id}",
-            statement=statement,
-            target_relationship_type="POSSIBLE_LINK",
-            source_entity_id=uuid.UUID(src_id),
-            target_entity_id=uuid.UUID(tgt_id),
-            strength_index=strength,
-            supporting_records=supporting[:50],
-            contradicting_records=contradicting,
-            missing_information=missing,
-            proposed_action=action,
-            score_breakdown=score_breakdown,
-            data_coverage=data_coverage,
-            review_state=review_state,
-        )
-        hypotheses.append(hyp)
+            recommendations.append(HypothesisRecommendation(
+                id=_recommendation_key(skey, str(rec_type.value)),
+                hypothesis_id=skey,
+                type=rec_type,
+                status=RecommendationStatus.PENDING,
+                estimated_completion_days=2,
+                rationale=rec_desc,
+            ))
 
-    return hypotheses
-
-
-def _pair_key(entity_pair):
-    src = str(entity_pair.get("source", ""))
-    tgt = str(entity_pair.get("target", ""))
-    return tuple(sorted([src, tgt]))
-
-
-def _build_statement(src_id, tgt_id, families, strength):
-    family_names = list(families.keys())
-    if strength >= 70:
-        level = "Strong"
-    elif strength >= 40:
-        level = "Moderate"
-    else:
-        level = "Weak"
-    return (
-        f"{level} evidence-strength index ({strength}/100) suggests possible link between "
-        f"entities {src_id[:8]} and {tgt_id[:8]} "
-        f"based on {', '.join(family_names)} signals."
-    )
-
-
-def _propose_action(families, missing, strength):
-    if strength < 40:
-        return "Insufficient evidence. Consider importing more records before review."
-    if len(families) < 2:
-        return "Only one signal family present. Seek independent evidence types."
-    if missing:
-        return f"Address gaps: {'; '.join(missing[:2])}. Then re-review."
-    return "Review independent signal sources and record decision."
+    return hypotheses, hyp_signals, recommendations

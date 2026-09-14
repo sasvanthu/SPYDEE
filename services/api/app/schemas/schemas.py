@@ -27,6 +27,20 @@ class UserResponse(BaseModel):
         from_attributes = True
 
 
+class UserCreate(BaseModel):
+    username: str = Field(..., min_length=3, max_length=50)
+    email: str = Field(..., max_length=120)
+    display_name: str = Field(..., max_length=120)
+    password: str = Field(..., min_length=8, max_length=128)
+    role: str = "investigator"
+
+
+class UserUpdate(BaseModel):
+    display_name: Optional[str] = None
+    role: Optional[str] = None
+    is_active: Optional[bool] = None
+
+
 class CaseCreate(BaseModel):
     title: str = Field(..., max_length=300)
     case_code: str = Field(..., max_length=50)
@@ -77,6 +91,7 @@ class EntityResponse(BaseModel):
     description: Optional[str]
     review_state: str
     created_at: datetime
+    attributes: Optional[dict] = None
     identifiers: List["IdentifierResponse"] = []
 
     class Config:
@@ -189,17 +204,34 @@ class TimelineEvent(BaseModel):
 class HypothesisResponse(BaseModel):
     id: UUID
     case_id: UUID
-    statement: str
-    target_relationship_type: Optional[str]
-    strength_index: int
-    supporting_records: Optional[List]
-    contradicting_records: Optional[List]
-    missing_information: Optional[List]
-    proposed_action: Optional[str]
-    score_breakdown: Optional[dict]
-    data_coverage: Optional[dict]
+    analysis_run_id: UUID
+    stable_key: str
+    hypothesis_type: Optional[str]
+    entity_pair: Optional[dict]
+    notes: Optional[str]
+    timestamp_hypothesis_generated: Optional[datetime]
+    contributing_signal_highlights: Optional[List]
+    state: str
     review_state: str
-    created_at: datetime
+    numeric_value: float
+    quality_factor: Optional[float]
+    engine_version: Optional[str]
+    created_at: Optional[datetime]
+
+    class Config:
+        from_attributes = True
+
+
+class HypothesisSignalResponse(BaseModel):
+    id: UUID
+    hypothesis_id: UUID
+    family: str
+    entity_pair: Optional[dict]
+    weight: float
+    contribution: float
+    quality_factor: float
+    contradiction: bool
+    feature_details: Optional[dict]
 
     class Config:
         from_attributes = True
@@ -219,6 +251,8 @@ class SignalResponse(BaseModel):
     quality_factor: float
     explanation: Optional[str]
     contributing_record_ids: Optional[List]
+    contradiction: bool = False
+    contradiction_reason: Optional[str] = None
 
     class Config:
         from_attributes = True

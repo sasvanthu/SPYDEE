@@ -6,6 +6,7 @@ import CaseOverview from './pages/CaseOverview';
 import EvidenceRoom from './pages/EvidenceRoom';
 import EntityRegistry from './pages/EntityRegistry';
 import InvestigationGraph from './pages/InvestigationGraph';
+import NetworkMap from './pages/NetworkMap';
 import Timeline from './pages/Timeline';
 import IntelligenceWorkbench from './pages/IntelligenceWorkbench';
 import HypothesisList from './pages/HypothesisList';
@@ -34,6 +35,7 @@ export default function App() {
             <Route path="cases/:caseId/evidence" element={<EvidenceRoom />} />
             <Route path="cases/:caseId/entities" element={<EntityRegistry />} />
             <Route path="cases/:caseId/graph" element={<InvestigationGraph />} />
+            <Route path="cases/:caseId/map" element={<NetworkMap />} />
             <Route path="cases/:caseId/timeline" element={<Timeline />} />
             <Route path="cases/:caseId/workbench" element={<IntelligenceWorkbench />} />
             <Route path="cases/:caseId/hypotheses" element={<HypothesisList />} />

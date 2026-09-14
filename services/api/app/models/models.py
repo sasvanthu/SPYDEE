@@ -62,6 +62,31 @@ class RelationshipDirection(str, enum.Enum):
     UNDIRECTED = "undirected"
 
 
+class HypothesisState(str, enum.Enum):
+    CANDIDATE = "candidate"
+    NEEDS_VERIFICATION = "needs_verification"
+    SUPPORTED = "supported"
+    REJECTED = "rejected"
+
+
+class RecommendationType(str, enum.Enum):
+    FLAG_SUBVERSIVE_ACTIVITY = "flag_subversive_activity"
+    FLAG_TERROR_LINK = "flag_terror_link"
+    FLAG_FORGED_DOCUMENTS = "flag_forged_documents"
+    FLAG_SOCIAL_NETWORK = "flag_social_network"
+    FLAG_CREDENTIAL_INCONSISTENCY = "flag_credential_inconsistency"
+    FLAG_FINANCIAL_ANOMALY = "flag_financial_anomaly"
+    BOOK_EXTERNAL_INT_DESK = "book_external_int_desk"
+    COLLECT_HUMAN_INTEL = "collect_human_intel"
+
+
+class RecommendationStatus(str, enum.Enum):
+    PENDING = "pending"
+    IN_PROGRESS = "in_progress"
+    COMPLETED = "completed"
+    CANCELLED = "cancelled"
+
+
 # ─── Users & Auth ────────────────────────────────────────────────────
 
 class User(Base):
@@ -392,6 +417,8 @@ class Signal(Base):
     quality_factor = Column(Float, nullable=False, default=1.0)
     feature_details = Column(JSON, nullable=True)
     explanation = Column(Text, nullable=True)
+    contradiction = Column(Boolean, nullable=False, default=False)
+    contradiction_reason = Column(Text, nullable=True)
     created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
 
     analysis_run = relationship("AnalysisRun", back_populates="signals")
@@ -407,35 +434,58 @@ class Hypothesis(Base):
     case_id = Column(UUID(as_uuid=True), ForeignKey("cases.id"), nullable=False, index=True)
     analysis_run_id = Column(UUID(as_uuid=True), ForeignKey("analysis_runs.id"), nullable=False, index=True)
     stable_key = Column(String(200), nullable=False)
-    statement = Column(Text, nullable=False)
-    target_relationship_type = Column(String(50), nullable=True)
-    source_entity_id = Column(UUID(as_uuid=True), ForeignKey("entities.id"), nullable=True)
-    target_entity_id = Column(UUID(as_uuid=True), ForeignKey("entities.id"), nullable=True)
-    strength_index = Column(Integer, nullable=False, default=0)
-    supporting_records = Column(JSON, nullable=True)
-    contradicting_records = Column(JSON, nullable=True)
-    missing_information = Column(JSON, nullable=True)
-    proposed_action = Column(Text, nullable=True)
-    score_breakdown = Column(JSON, nullable=True)
-    data_coverage = Column(JSON, nullable=True)
+    entity_pair = Column(JSON, nullable=False)
+    notes = Column(Text, nullable=True)
+    timestamp_hypothesis_generated = Column(DateTime, nullable=True)
+    contributing_signal_highlights = Column(JSON, nullable=True)
+    state = Column(SAEnum(HypothesisState), nullable=False, default=HypothesisState.CANDIDATE)
     review_state = Column(SAEnum(ReviewState), nullable=False, default=ReviewState.NEW)
+    numeric_value = Column(Float, nullable=False, default=0)
+    quality_factor = Column(Float, nullable=False, default=1.0)
+    engine_version = Column(String(50), nullable=True)
+    hypothesis_type = Column(String(50), nullable=True)
     created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
     updated_at = Column(DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     case = relationship("Case", back_populates="hypotheses")
     hypothesis_signals = relationship("HypothesisSignal", back_populates="hypothesis")
+    recommendations = relationship(
+        "HypothesisRecommendation", back_populates="hypothesis", cascade="all, delete-orphan"
+    )
+
+    __table_args__ = (
+        Index("ix_hypothesis_case_key", "case_id", "stable_key"),
+    )
 
 
 class HypothesisSignal(Base):
     __tablename__ = "hypothesis_signals"
     id = Column(UUID(as_uuid=True), primary_key=True, default=gen_uuid)
     hypothesis_id = Column(UUID(as_uuid=True), ForeignKey("hypotheses.id"), nullable=False, index=True)
-    signal_id = Column(UUID(as_uuid=True), ForeignKey("signals.id"), nullable=False)
+    signal_id = Column(UUID(as_uuid=True), ForeignKey("signals.id"), nullable=True, index=True)
+    family = Column(String(50), nullable=False)
+    entity_pair = Column(JSON, nullable=False)
     weight = Column(Float, nullable=False)
     contribution = Column(Float, nullable=False)
+    quality_factor = Column(Float, nullable=False, default=1.0)
+    feature_details = Column(JSON, nullable=True)
+    contradiction = Column(Boolean, nullable=False, default=False)
 
     hypothesis = relationship("Hypothesis", back_populates="hypothesis_signals")
     signal = relationship("Signal")
+
+
+class HypothesisRecommendation(Base):
+    __tablename__ = "hypothesis_recommendations"
+    id = Column(UUID(as_uuid=True), primary_key=True, default=gen_uuid)
+    hypothesis_id = Column(UUID(as_uuid=True), ForeignKey("hypotheses.id"), nullable=False, index=True)
+    type = Column(SAEnum(RecommendationType), nullable=False)
+    status = Column(SAEnum(RecommendationStatus), nullable=False, default=RecommendationStatus.PENDING)
+    estimated_completion_days = Column(Integer, nullable=True)
+    rationale = Column(Text, nullable=True)
+    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+
+    hypothesis = relationship("Hypothesis", back_populates="recommendations")
 
 
 # ─── Review & Workflow ──────────────────────────────────────────────

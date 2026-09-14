@@ -6,7 +6,7 @@ from app.database import get_db
 from app.models.models import Entity, Identifier, EntityIdentifierLink, EntityReviewDecision, User
 from app.auth.auth import get_current_user
 from app.schemas.schemas import EntityCreate, EntityResponse, EntityReviewRequest, IdentifierResponse
-from app.services.case_service import check_case_membership, log_audit_event
+from app.services.case_service import check_case_membership, check_case_write_access, log_audit_event
 from app.services.entity_service import get_entity_profile
 
 router = APIRouter(prefix="/api/v1/entities", tags=["entities"])
@@ -78,7 +78,7 @@ async def create_entity(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    await check_case_membership(db, user.id, case_id)
+    await check_case_write_access(db, user, case_id)
     entity = Entity(
         case_id=case_id,
         entity_type=req.entity_type,
@@ -100,7 +100,7 @@ async def review_entity(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    await check_case_membership(db, user.id, case_id)
+    await check_case_write_access(db, user, case_id)
     result = await db.execute(select(Entity).where(Entity.id == entity_id, Entity.case_id == case_id))
     entity = result.scalar_one_or_none()
     if not entity:

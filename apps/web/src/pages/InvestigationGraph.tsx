@@ -16,6 +16,45 @@ export default function InvestigationGraph() {
     enabled: !!caseId,
   });
 
+  const [dateFrom, setDateFrom] = useState<string>('');
+  const [dateTo, setDateTo] = useState<string>('');
+
+  const applyDates = (from?: string, to?: string) => {
+    setDateFrom(from || '');
+    setDateTo(to || '');
+    setFilters((f: any) => ({
+      ...f,
+      date_from: from ? new Date(from).toISOString() : undefined,
+      date_to: to ? new Date(to).toISOString() : undefined,
+    }));
+  };
+
+  const edgeRange = () => {
+    let min: number | null = null;
+    let max: number | null = null;
+    (graphData?.edges || []).forEach((e: any) => {
+      ['valid_from', 'valid_to'].forEach((k) => {
+        const v = e.properties?.[k];
+        if (!v) return;
+        const t = new Date(v).getTime();
+        if (Number.isNaN(t)) return;
+        if (min === null || t < min) min = t;
+        if (max === null || t > max) max = t;
+      });
+    });
+    return { min: min !== null ? new Date(min).toISOString() : undefined, max: max !== null ? new Date(max).toISOString() : undefined };
+  };
+
+  const applyPreset = (hours: number | null) => {
+    if (hours === null) { applyDates(undefined, undefined); return; }
+    const range = edgeRange();
+    if (!range.max) return;
+    const to = new Date(range.max);
+    applyDates(new Date(to.getTime() - hours * 3600 * 1000).toISOString(), to.toISOString());
+  };
+
+  const range = edgeRange();
+
   useEffect(() => {
     if (!graphData || !cyRef.current) return;
 
@@ -106,6 +145,34 @@ export default function InvestigationGraph() {
           <button onClick={() => refetch()} className="bg-azure-500 text-white px-3 py-1.5 rounded text-sm hover:bg-azure-600">Refresh</button>
         </div>
       </div>
+      <div className="flex flex-wrap items-center gap-3 px-3 py-2 bg-white border rounded-lg mb-3">
+        <span className="text-xs font-semibold text-navy-700">Timeline scrubber</span>
+        <input type="datetime-local" value={dateFrom ? toLocalInput(dateFrom) : ''}
+          onChange={e => applyDates(e.target.value ? new Date(e.target.value).toISOString() : undefined, dateTo || undefined)}
+          className="px-2 py-1 border rounded text-xs" />
+        <span className="text-navy-400 text-xs">→</span>
+        <input type="datetime-local" value={dateTo ? toLocalInput(dateTo) : ''}
+          onChange={e => applyDates(dateFrom || undefined, e.target.value ? new Date(e.target.value).toISOString() : undefined)}
+          className="px-2 py-1 border rounded text-xs" />
+        <div className="flex gap-1">
+          {[24, 24 * 7, 24 * 30].map(h => (
+            <button key={h} onClick={() => applyPreset(h)}
+              className="px-2 py-1 rounded text-xs border hover:bg-gray-50">
+              {h === 24 ? '24h' : h === 24 * 7 ? '7d' : '30d'}
+            </button>
+          ))}
+          <button onClick={() => applyPreset(null)} className="px-2 py-1 rounded text-xs border hover:bg-gray-50">All</button>
+        </div>
+        {dateFrom ? (
+          <span className="text-xs text-navy-400 ml-auto">
+            {new Date(dateFrom).toLocaleString()} – {dateTo ? new Date(dateTo).toLocaleString() : 'now'}
+          </span>
+        ) : (
+          <span className="text-xs text-navy-400 ml-auto">
+            {range.min ? `Edge data spans ${new Date(range.min).toLocaleString()} – ${new Date(range.max!).toLocaleString()}` : 'No time-aware edges'}
+          </span>
+        )}
+      </div>
       <div className="flex-1 flex gap-4">
         <div className="flex-1 bg-white border rounded-lg overflow-hidden relative">
           {isLoading && <div className="absolute inset-0 bg-white/80 flex items-center justify-center z-10">Loading graph...</div>}
@@ -151,4 +218,10 @@ export default function InvestigationGraph() {
       </div>
     </div>
   );
+}
+
+function toLocalInput(iso: string): string {
+  const d = new Date(iso);
+  const p = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
 }

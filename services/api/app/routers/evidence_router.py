@@ -10,10 +10,11 @@ from app.auth.auth import get_current_user
 from app.schemas.schemas import (
     EvidenceUploadResponse, ImportResponse, SourceRecordResponse
 )
-from app.services.case_service import check_case_membership, log_audit_event
+from app.services.case_service import check_case_membership, check_case_write_access, log_audit_event
 from app.services.evidence_service import (
-    save_uploaded_file, parse_and_import_csv, parse_and_import_json
+    save_uploaded_file, parse_and_import_csv, parse_and_import_json, create_import_job
 )
+from app.config import get_settings
 
 router = APIRouter(prefix="/api/v1/evidence", tags=["evidence"])
 
@@ -27,7 +28,7 @@ async def upload_evidence(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    await check_case_membership(db, user.id, case_id)
+    await check_case_write_access(db, user, case_id)
 
     if not file.filename:
         raise HTTPException(status_code=400, detail="No filename provided")
@@ -51,10 +52,14 @@ async def upload_evidence(
 async def import_evidence(
     case_id: uuid.UUID,
     file_id: uuid.UUID,
+    sync: bool = None,
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    await check_case_membership(db, user.id, case_id)
+    """Queue an import job for the worker, or run synchronously for the demo
+    (single-node) deployment. `?sync=true` forces in-process processing;
+    `?sync=false` always enqueues. When `sync` is omitted, DEMO_MODE decides."""
+    await check_case_write_access(db, user, case_id)
 
     result = await db.execute(
         select(EvidenceFile).where(
@@ -67,21 +72,31 @@ async def import_evidence(
         raise HTTPException(status_code=404, detail="Evidence file not found")
 
     ext = ev.original_filename.rsplit(".", 1)[-1].lower() if "." in ev.original_filename else ""
+    if ext not in ("csv", "json"):
+        raise HTTPException(status_code=400, detail=f"Import not supported for type: {ext}")
 
-    try:
-        if ext == "csv":
-            imp = await parse_and_import_csv(db, ev, case_id)
-        elif ext == "json":
-            imp = await parse_and_import_json(db, ev, case_id)
-        else:
-            raise HTTPException(status_code=400, detail=f"Import not supported for type: {ext}")
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Import failed: {str(e)}")
+    if sync is None:
+        sync = get_settings().DEMO_MODE
 
-    await log_audit_event(db, case_id, user.id, "evidence_imported", "import", imp.id, {
-        "accepted": imp.accepted_count,
-        "rejected": imp.rejected_count,
-    })
+    if sync:
+        try:
+            if ext == "csv":
+                imp = await parse_and_import_csv(db, ev, case_id)
+            else:
+                imp = await parse_and_import_json(db, ev, case_id)
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Import failed: {str(e)}")
+
+        await log_audit_event(db, case_id, user.id, "evidence_imported", "import", imp.id, {
+            "accepted": imp.accepted_count,
+            "rejected": imp.rejected_count,
+        })
+    else:
+        imp, job = await create_import_job(db, case_id, file_id, user.id)
+        await log_audit_event(db, case_id, user.id, "evidence_import_queued", "import", imp.id, {
+            "job_id": str(job.id),
+        })
+
     await db.commit()
     await db.refresh(imp)
     return ImportResponse.model_validate(imp)

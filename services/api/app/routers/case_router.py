@@ -11,7 +11,9 @@ from app.auth.auth import get_current_user
 from app.schemas.schemas import (
     CaseCreate, CaseResponse, CaseUpdate, MembershipGrant
 )
-from app.services.case_service import check_case_membership, log_audit_event
+from app.services.case_service import (
+    check_case_membership, check_supervisor_access, check_case_write_access, log_audit_event
+)
 
 router = APIRouter(prefix="/api/v1/cases", tags=["cases"])
 
@@ -126,11 +128,14 @@ async def update_case(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    await check_case_membership(db, user.id, case_id)
+    await check_case_write_access(db, user, case_id)
     result = await db.execute(select(Case).where(Case.id == case_id))
     case = result.scalar_one_or_none()
     if not case:
         raise HTTPException(status_code=404, detail="Case not found")
+
+    if req.status and req.status == CaseStatus.ARCHIVED.value:
+        await check_supervisor_access(db, user, case_id)
 
     if req.title:
         case.title = req.title
@@ -152,11 +157,15 @@ async def add_member(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    await check_case_membership(db, user.id, case_id)
+    await check_supervisor_access(db, user, case_id)
 
     target_result = await db.execute(select(User).where(User.id == req.user_id))
     if not target_result.scalar_one_or_none():
         raise HTTPException(status_code=404, detail="User not found")
+
+    grant_role = UserRole(req.role)
+    if grant_role == UserRole.CASE_SUPERVISOR and user.role != UserRole.ADMINISTRATOR:
+        raise HTTPException(status_code=403, detail="Only administrators can grant case supervisor role")
 
     existing = await db.execute(
         select(CaseMembership).where(

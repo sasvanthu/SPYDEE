@@ -12,6 +12,10 @@ class Settings(BaseSettings):
     DEMO_MODE: bool = True
     CORS_ORIGINS: str = "http://localhost:5173,http://localhost:5174"
     MAX_UPLOAD_BYTES: int = 50_000_000
+    LLM_PROVIDER: str = ""
+    OLLAMA_BASE_URL: str = "http://localhost:11434"
+    OLLAMA_MODEL: str = "llama3.1"
+    LLM_API_KEY: str = ""
 
     class Config:
         env_file = ".env"
