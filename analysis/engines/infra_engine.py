@@ -64,6 +64,17 @@ async def analyze_infrastructure(db, case_id, analysis_run_id, records):
             continue
         tower_observations[str(tower).strip().upper()].append((ts, eids, str(r.id)))
 
+    # Background normalization: a tower where many distinct identities appear is
+    # a busy, high-traffic location where sharing the tower is common and
+    # therefore a weak co-location signal. Busyness is measured as the number of
+    # distinct resolved identities observed at the tower across the dataset.
+    tower_busyness = {}
+    for tower, events in tower_observations.items():
+        uniq = set()
+        for _, eids, _ in events:
+            uniq.update(eids)
+        tower_busyness[tower] = len(uniq)
+
     direct_calls = await _load_direct_call_pairs(db, case_id)
     pair_encounters = defaultdict(list)
     for tower, events in tower_observations.items():
@@ -98,14 +109,17 @@ async def analyze_infrastructure(db, case_id, analysis_run_id, records):
         density = 1.0 - math.exp(-len(encounters) / 80.0)
         tower_bonus = min(len(towers) - 1, 3) * 0.03
         overlap_bonus = min(total_overlap, 4) * 0.04
+        busy = max((tower_busyness.get(t, 0) for t in towers), default=0)
+        background_multiplier = clamp01(1.35 - 0.02 * busy)
         score = clamp01(0.32 + 0.6 * density + tower_bonus + overlap_bonus)
+        score = clamp01(score * background_multiplier)
         record_ids = [e["record_b"] for e in encounters]
         nearest = min(encounters, key=lambda x: x["minutes_apart"])
         signals.append(Signal(
             case_id=case_id,
             analysis_run_id=analysis_run_id,
             engine_name="infrastructure",
-            engine_version="v2.1",
+            engine_version="v2.2",
             entity_pair=entity_pair_json(a, b),
             family="spatial_temporal",
             contributing_record_ids=record_ids[:25],
@@ -121,11 +135,17 @@ async def analyze_infrastructure(db, case_id, analysis_run_id, records):
                 "span_hours": round(span_hours, 1),
                 "closest_encounter_min": nearest["minutes_apart"],
                 "no_direct_calls": True,
+                "tower_busyness_max": busy,
+                "busy_tower": busy >= 20,
+                "background_multiplier": round(background_multiplier, 4),
             },
             explanation=(
                 f"Identities observed at {len(encounters)} shared-tower encounter(s) "
                 f"across {len(towers)} tower(s) over ~{round(span_hours,1)}h "
                 f"(closest {nearest['minutes_apart']} min apart) with no direct call records."
+                + (f" Tower({', '.join(towers)}) is a high-traffic site shared by "
+                   f"{busy} identities — co-location there may be coincidental."
+                   if busy >= 20 else "")
             ),
         ))
 

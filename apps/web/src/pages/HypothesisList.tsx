@@ -1,6 +1,6 @@
 import { useParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { api } from '../lib/api';
 
 export default function HypothesisList() {
@@ -35,6 +35,17 @@ export default function HypothesisList() {
   const familyIcons: Record<string, string> = {
     financial: '$', communication: '@', spatial_temporal: '#', network_topology: '%', writing_style: 'T', device_sim: 'D',
   };
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && selected) {
+        setSelected(null);
+        setReviewNote('');
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [selected]);
 
   const getContradictionCount = (h: any) => {
     return detailQuery.data?.signals?.filter((s: any) => s.contradiction).length || 0;
@@ -117,13 +128,21 @@ export default function HypothesisList() {
 
       {selected && (
         <div className="w-96 bg-white border border-gray-200 rounded-lg p-5 h-fit sticky top-16 max-h-[calc(100vh-6rem)] overflow-y-auto">
-          <h3 className="font-semibold text-gray-900 mb-3">Hypothesis Detail</h3>
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="font-semibold text-gray-900">Hypothesis Detail</h3>
+            <button onClick={() => { setSelected(null); setReviewNote(''); }}
+              className="text-gray-400 hover:text-gray-600 text-sm px-1" aria-label="Close detail">✕</button>
+          </div>
           <div className="mb-4">
             <div className={`text-4xl font-bold text-center mb-2 ${selected.numeric_value >= 70 ? 'text-red-500' : selected.numeric_value >= 40 ? 'text-amber-500' : 'text-gray-400'}`}>
               {Math.round(selected.numeric_value)}<span className="text-lg text-gray-400">/100</span>
             </div>
             <p className="text-xs text-cyan-600 mb-1 text-center">{selected.hypothesis_type?.replace(/_/g, ' ')}</p>
             <p className="text-sm text-gray-700">{selected.notes}</p>
+            <div className="text-xs text-gray-500 mt-2 bg-gray-50 rounded p-2">
+              <span className="font-medium">Methodology:</span> score = weighted mean over applicable evidence families
+              <span className="block mt-0.5 text-amber-700">Scores are uncalibrated evidence scores, <em>not</em> probabilities. A hypothesis<em> score ≥ 70 still requires investigator verification</em> before it implies a possible link.</span>
+            </div>
             {selected.entity_pair && (
               <div className="text-xs text-gray-500 mt-2 bg-gray-50 rounded p-2">
                 <span className="font-medium">Pair:</span> {selected.entity_pair.source?.slice(0, 8)} ↔ {selected.entity_pair.target?.slice(0, 8)}

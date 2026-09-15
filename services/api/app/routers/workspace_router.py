@@ -185,6 +185,25 @@ async def case_workspace_summary(case_id: str, user: User = Depends(get_current_
             "hypothesis_count": await _count_by_run(db, Hypothesis, r.id),
         }
 
+    # Findings freshness: if evidence arrived after the latest analysis run
+    # completed, the current findings may no longer reflect all the data.
+    analysis_stale = False
+    analysis_stale_reason = None
+    if latest_run and latest_run["status"] == "completed" and latest_run["completed_at"]:
+        from app.models.models import SourceRecord
+        latest_evidence_ts = (await db.execute(
+            select(func.max(SourceRecord.created_at)).where(SourceRecord.case_id == cid)
+        )).scalar()
+        if latest_evidence_ts and latest_evidence_ts > latest_run["completed_at"]:
+            analysis_stale = True
+            analysis_stale_reason = (
+                f"New evidence was added after the latest analysis run "
+                f"(v{latest_run['version']}); re-run analysis to refresh findings."
+            )
+    elif not latest_run:
+        analysis_stale = True
+        analysis_stale_reason = "No analysis run has been completed for this case yet."
+
     case_final = CaseResponse(
         id=case_res.id, title=case_res.title, case_code=case_res.case_code,
         description=case_res.description, status=str(case_res.status.value) if case_res.status else "draft",
@@ -204,6 +223,8 @@ async def case_workspace_summary(case_id: str, user: User = Depends(get_current_
         findings_awaiting_review=pending_hypotheses,
         recent_evidence=recent_evidence, recent_activity=activity,
         latest_run=latest_run,
+        analysis_stale=analysis_stale,
+        analysis_stale_reason=analysis_stale_reason,
     )
 
 

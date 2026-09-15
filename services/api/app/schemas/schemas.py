@@ -600,6 +600,8 @@ class CaseWorkspaceSummary(BaseModel):
     recent_evidence: List[dict] = []
     recent_activity: List[dict] = []
     latest_run: Optional[dict] = None
+    analysis_stale: bool = False
+    analysis_stale_reason: Optional[str] = None
 
 
 class EvidenceDetailResponse(BaseModel):

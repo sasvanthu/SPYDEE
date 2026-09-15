@@ -86,8 +86,13 @@ async def analyze_stylometry(db, case_id, analysis_run_id, records):
     if len(authors) < 2:
         return signals
 
-    # Only authors with a meaningful corpus can be compared.
-    eligible = [a for a in authors if sum(len(t) for t in author_texts[a]) >= 40]
+    # Only authors with a meaningful corpus can be compared. Require at least
+    # two messages and a minimum number of characters; a single short message is
+    # not a style sample and is abstained (no signal) rather than guessed.
+    eligible = [
+        a for a in authors
+        if len(author_texts[a]) >= 2 and sum(len(t) for t in author_texts[a]) >= 60
+    ]
     if len(eligible) < 2:
         return signals
 
@@ -128,7 +133,7 @@ async def analyze_stylometry(db, case_id, analysis_run_id, records):
                 case_id=case_id,
                 analysis_run_id=analysis_run_id,
                 engine_name="stylometry",
-                engine_version="v2.0",
+                engine_version="v2.1",
                 entity_pair=entity_pair_json(a, b),
                 family="writing_style",
                 contributing_record_ids=(author_records[a] + author_records[b])[:25],
@@ -144,10 +149,16 @@ async def analyze_stylometry(db, case_id, analysis_run_id, records):
                     "hinglish_markers_tgt": pb["hinglish_markers"],
                     "src_chars": pa["total_chars"],
                     "tgt_chars": pb["total_chars"],
+                    "src_messages": len(author_texts[a]),
+                    "tgt_messages": len(author_texts[b]),
+                    "limitation": ("Character n-gram similarity is indicative, not authorship "
+                                   "identification; short or highly formulaic messages can "
+                                   "coincide by chance."),
                 },
                 explanation=(
                     f"Stylometric match between '{author_meta[a]}' and '{author_meta[b]}' "
-                    f"(3-gram cosine {sim:.3f})."
+                    f"(3-gram cosine {sim:.3f}). This is an uncalibrated similarity score, "
+                    "not authorship identification; treat matches below 0.7 as weak."
                 ),
             ))
 

@@ -9,7 +9,10 @@ from app.models.models import (
 from app.auth.auth import get_current_user
 from app.schemas.schemas import EntityCreate, EntityResponse, EntityReviewRequest, IdentifierResponse
 from app.services.case_service import check_case_membership, check_case_write_access, log_audit_event
-from app.services.entity_service import get_entity_profile, get_merge_suggestions, apply_merge_suggestion, generate_merge_suggestions
+from app.services.entity_service import (
+    get_entity_profile, get_merge_suggestions, apply_merge_suggestion,
+    generate_merge_suggestions, revert_merge_suggestion, get_entity_review_history,
+)
 
 router = APIRouter(prefix="/api/v1/entities", tags=["entities"])
 
@@ -112,6 +115,20 @@ async def get_entity(
     }
 
 
+@router.get("/{case_id}/{entity_id}/review-history", response_model=list[dict])
+async def entity_review_history(
+    case_id: uuid.UUID,
+    entity_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    await check_case_membership(db, user.id, case_id)
+    result = await db.execute(select(Entity).where(Entity.id == entity_id, Entity.case_id == case_id))
+    if not result.scalar_one_or_none():
+        raise HTTPException(status_code=404, detail="Entity not found")
+    return await get_entity_review_history(db, entity_id)
+
+
 @router.post("/{case_id}", response_model=EntityResponse)
 async def create_entity(
     case_id: uuid.UUID,
@@ -147,11 +164,18 @@ async def review_entity(
     if not entity:
         raise HTTPException(status_code=404, detail="Entity not found")
 
-    entity.review_state = req.decision
+    # Native PG enums store uppercase labels; accept case-insensitive input.
+    try:
+        decision_enum = ReviewState[req.decision.strip().upper()]
+    except KeyError:
+        allowed = ", ".join(sorted(v.name for v in ReviewState))
+        raise HTTPException(status_code=422, detail=f"Invalid decision. Use one of: {allowed}")
+
+    entity.review_state = decision_enum
     decision = EntityReviewDecision(
         entity_id=entity_id,
         reviewer_id=user.id,
-        decision=req.decision,
+        decision=req.decision.strip().lower(),
         note=req.note,
     )
     db.add(decision)
@@ -225,3 +249,21 @@ async def dismiss_suggestion(
                           {"note": "investigator dismissed"})
     await db.commit()
     return {"message": "Merge suggestion dismissed"}
+
+
+@router.post("/{case_id}/merge-suggestions/{suggestion_id}/revert")
+async def revert_suggestion(
+    case_id: uuid.UUID,
+    suggestion_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    """Revert an applied merge: restore identifiers, participants and
+    relationships to the secondary entity and reactivate it."""
+    await check_case_write_access(db, user, case_id)
+    try:
+        secondary = await revert_merge_suggestion(db, case_id, suggestion_id, user.id)
+    except ValueError as exc:
+        raise HTTPException(status_code=409, detail=str(exc))
+    await db.commit()
+    return {"message": "Merge reverted", "restored_entity_id": str(secondary.id)}

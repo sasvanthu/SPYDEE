@@ -70,3 +70,51 @@
 - Info-gap alerts surface contradictions driving the next investigation step
 - Negative controls prove engines do not produce false positives on clean data
 - Synthetic demo marker visible throughout (top-right "SYNTHETIC DATA" badge)
+
+---
+
+# New capabilities walkthrough (product-integration pass)
+
+Reproducible via the automated scenario tests (`tests/integration/test_demo_scenarios.py`,
+`test_entity_review.py`, `test_freshness.py`, `test_workspace_generation.py`). For a live
+demo, run those tests to create the corresponding cases, then open each from the Cases list.
+
+## Scenario 1 — Supported connection (strong link + auto lead)
+1. Run `python -m pytest tests/integration/test_demo_scenarios.py::test_scenario1_supported_connection`.
+2. Open the created case → Workbench: communication signals (20 calls) + a shared-handset
+   device_sim signal both link the pair.
+3. Hypotheses: the pair's subversive_activity score is ≈ 92/100. Notes state the fusion
+   formula and the caveat: *"uncalibrated evidence scores, not probabilities … requires
+   investigator verification."*
+4. Leads → the high hypothesis auto-created a **lead** (reviewable, not auto-promoted).
+
+## Scenario 2 — Misleading overlap (busy-tower coincidence is NOT a link)
+1. Run `test_scenario2_misleading_overlap`.
+2. Graph → the tower-registered stranger pair share only one encounter at a 42-identity
+   public tower. GhostTower flags `busy_tower` and applies background_multiplier 0.51,
+   so the co-location signal scores ≈ 0.18 (dark grey, well below any threat threshold).
+3. Hypotheses: no hypothesis ≥ 50 exists for the pair. The coincidence is not presented
+   as a link.
+
+## Scenario 3 — Conflicting / insufficient evidence
+1. Run `test_scenario3_conflicting_and_insufficient`.
+2. Contradictions page: an **open contradiction record** is auto-created for the
+   impossible travel (Delhi→Mumbai in 6 minutes, SIM relocation/spoofed telemetry).
+3. The supporting co-location signal is re-flagged `contradicted` (dotted red edge in the
+   graph legend), and any fused hypothesis carries the contradiction penalty.
+4. The two single short messages produce **no writing-style signal** — StyloLink abstains
+   rather than inventing an authorship link.
+
+## Reversible entity resolution
+1. Entities → generate merge candidates; apply one.
+2. The merge now stores a manifest. Re-open the suggestion and click **Revert**: the
+   merged entity is reactivated, identifiers/participants/relationship ends are restored
+   to it, and the suggestion returns to NEW (audit logged `merge_reverted`). Nothing is
+   silently undone — history is reviewable (`review-history`).
+
+## Analysis freshness round-trip
+1. Open any case → Case Overview shows the analysis run card.
+2. Import a new evidence file (or add a SourceRecord post-run).
+3. Re-open Overview: an amber **"Findings may be stale"** banner + STALE pill appears and
+   the summary API returns `analysis_stale=true`; click **Re-run analysis** to refresh
+   derived findings (prior run history and review decisions are preserved).

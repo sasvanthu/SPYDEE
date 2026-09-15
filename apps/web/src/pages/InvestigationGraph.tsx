@@ -103,6 +103,9 @@ export default function InvestigationGraph() {
         })),
         { selector: 'edge.observed', style: { 'line-color': '#64748b', width: 1.5, 'target-arrow-color': '#64748b', 'target-arrow-shape': 'triangle', 'curve-style': 'bezier' } },
         { selector: 'edge.inferred', style: { 'line-color': '#f59e0b', width: 1.5, 'line-style': 'dashed', 'target-arrow-color': '#f59e0b', 'target-arrow-shape': 'triangle', 'curve-style': 'bezier' } },
+        { selector: 'edge.contradicted', style: { 'line-color': '#ef4444', 'line-style': 'dotted', 'target-arrow-color': '#ef4444', 'target-arrow-shape': 'triangle', 'curve-style': 'bezier' } },
+        { selector: 'edge.strong', style: { width: 4 } },
+        { selector: 'edge.moderate', style: { width: 2.5 } },
         { selector: 'node.highlighted', style: { 'border-width': 3, 'border-color': '#facc15' } },
         { selector: 'node:selected', style: { 'border-width': 3, 'border-color': '#22d3ee' } },
         { selector: 'edge:selected', style: { 'line-color': '#22d3ee', 'width': 3 } },
@@ -125,9 +128,16 @@ export default function InvestigationGraph() {
       });
     });
     graphData.edges.forEach((e: any) => {
+      const contradicted = !!(e.properties?.contradiction || e.properties?.contradicted || e.properties?.contradiction_reason);
+      const strength = e.evidence_count || e.properties?.evidence_count || 0;
+      const cls = [
+        e.classification === 'inferred' ? 'inferred' : 'observed',
+        contradicted ? 'contradicted' : '',
+        strength >= 10 ? 'strong' : strength >= 3 ? 'moderate' : '',
+      ].filter(Boolean).join(' ');
       elements.push({
-        data: { id: e.id, source: e.source, target: e.target, label: e.label, classification: e.classification, relationship_type: e.relationship_type, props: e.properties },
-        classes: e.classification === 'inferred' ? 'inferred' : 'observed',
+        data: { id: e.id, source: e.source, target: e.target, label: e.label, classification: e.classification, relationship_type: e.relationship_type, evidence_count: strength, contradicted, props: e.properties },
+        classes: cls,
       });
     });
     cy.elements().remove();
@@ -165,6 +175,16 @@ export default function InvestigationGraph() {
   }, [caseId]);
 
   const typeOptions = ['person', 'alias', 'phone_sim', 'device', 'account', 'location', 'organization', 'domain_ip'];
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return;
+      setSelectedNode(null); setSelectedEdge(null); setNodeDetail(null); setEdgeDetail(null);
+      cyInstance.current?.elements().unselect();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
 
   return (
     <div className="h-[calc(100vh-9rem)] flex flex-col min-w-0">
@@ -242,7 +262,9 @@ export default function InvestigationGraph() {
             <div className="flex items-center gap-2"><span className="w-3 h-3 rounded-full bg-blue-500 inline-block"></span> Phone / SIM</div>
             <div className="border-t border-gray-700 pt-1 mt-1">
               <div className="flex items-center gap-2"><span className="w-4 h-0.5 bg-gray-400 inline-block"></span> Observed (direct)</div>
-              <div className="flex items-center gap-2"><span className="w-4 h-0.5 bg-amber-500 inline-block border-dashed"></span> Inferred</div>
+              <div className="flex items-center gap-2"><span className="w-4 h-0.5 bg-amber-500 inline-block border-dashed"></span> Inferred (from analysis)</div>
+              <div className="flex items-center gap-2"><span className="w-4 h-0.5 bg-red-500 inline-block border-dotted"></span> Contradicted (impossible travel / conflict)</div>
+              <div className="flex items-center gap-2"><span className="w-1 h-0 bg-gray-200 border-dotted"></span><span className="inline-block h-0.5 w-6 bg-gradient-to-r from-gray-600 to-gray-400"></span> Edge weight = evidence count</div>
             </div>
           </div>
         </div>
@@ -298,6 +320,12 @@ export default function InvestigationGraph() {
                       {selectedEdge.classification || 'observed'}
                     </span>
                   </div>
+                  {selectedEdge.evidence_count ? (
+                    <div><span className="text-gray-500">Evidence count:</span> {selectedEdge.evidence_count}</div>
+                  ) : null}
+                  {selectedEdge.contradicted && (
+                    <div><span className="text-red-400">Contradicted:</span> <span className="text-gray-400">link invalidated by conflicting evidence</span></div>
+                  )}
                 </div>
                 {edgeDetail?.evidence?.length > 0 && (
                   <div>

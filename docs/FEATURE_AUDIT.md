@@ -3,6 +3,7 @@
 Audit date: 2026-09-15
 Scope: existing prototype at repo root, repair + verification pass (SIH 2026, PS 26189).
 Investigation workspace extension: contradictions, leads, gaps, actions, evidence detail, manual events, merge review, copilot/report enrichment.
+Product-integration pass (this update): reversible entity resolution, honest specialist engines, transparent fusion, auto-provisioned contradictions/leads/gaps, analysis staleness, demo scenarios, frontend polish.
 
 ## Status legend
 - OK       - verified working end-to-end during this audit
@@ -176,6 +177,10 @@ Investigation workspace extension: contradictions, leads, gaps, actions, evidenc
 | Apply merge | OK | POST `/{suggestion_id}/apply` — relinks identifiers, participants, relationships; archives secondary; idempotent guard (409) |
 | Dismiss merge | OK | POST `/{suggestion_id}/dismiss` — sets review_state=rejected |
 | Route shadowing fix | REPAIRED | `GET /merge-suggestions` was shadowed by `GET /{entity_id}` (422); moved above generic route |
+| Merge manifest recorded | OK | applied merges store `merge_manifest` JSON (identifier links, event participants, relationship ends changed) for reversibility |
+| **Revert merge** | OK | POST `/{suggestion_id}/revert` — restores identifiers/participants/relationship ends to the secondary entity, reactivates it, resets suggestion to NEW with manifest cleared, logs `merge_reverted`; 409 if not applied |
+| Review history | OK | GET `/entities/{case_id}/{entity_id}/review-history` — chronological review decisions with reviewer + note |
+| Entity review enum fix | REPAIRED | `review_entity` previously bound lowercase strings against native PG `reviewstate` enum and failed; decision now coerced via `ReviewState[...]` (invalid → 422 with allowed values) |
 
 ## 18. Enhanced copilot (workspace-aware)
 | Feature | Status | Notes |
@@ -212,6 +217,48 @@ Investigation workspace extension: contradictions, leads, gaps, actions, evidenc
 | TS compile | OK | `npx tsc --noEmit` exit 0 |
 | API smoke suite | OK | 16 endpoints verified (see VERIFICATION_REPORT.md) |
 | Server reload safety | REPAIRED | documented launch via `pythonw.exe` through WMI (console-inherited processes are killed by shell cleanup; `--reload` watcher is unreliable) |
+
+## 22. Analysis freshness
+| Feature | Status | Notes |
+|---|---|---|
+| Staleness flag | OK | `CaseWorkspaceSummary.analysis_stale` + `analysis_stale_reason` |
+| Comparator | OK | newest `SourceRecord.created_at` vs latest completed `AnalysisRun.completed_at`; stale (with reason) when no run exists |
+| CaseOverview banner | OK | amber "Findings may be stale" banner with reason + "Re-run analysis" button |
+| Run card freshness badge | OK | STALE / UP TO DATE pill on the Latest Analysis Run card, clickable to re-run |
+| Freshness tests | OK | `test_summary_fresh_when_no_new_evidence`, `test_summary_stale_after_new_evidence` |
+
+## 23. Honest specialist engines
+| Feature | Status | Notes |
+|---|---|---|
+| GhostTower busyness penalty | OK | `background_multiplier=clamp01(1.35−0.02·busyness)`; `busy_tower` at ≥20 identities; busy co-location scores ≈0.18, never a strong link |
+| Impossible-travel contradiction | OK | towers ≥`ANTENNA_LIMIT_KM` apart in less than `SPEED_LIMIT_KMH` time → contradiction signal, score 0, propagated to affected co-location pairs |
+| StyloLink abstention | OK | requires ≥2 messages AND ≥60 chars per author; limitation disclosed in feature_details + explanation |
+| Device/SIM IMEI reuse | OK | signature reuse across distinct handsets surfaced (`imei_reuse`, `device_hop`); record-append dedupe fix |
+| Fusion transparency | OK | hypothesis notes state exact weighted-mean formula, family weights, "uncalibrated evidence scores, not probabilities", and verification caveat |
+| Engine version bump | OK | infra v2.2, stylo v2.1, device v2.1, communication v2.1 |
+| Engine-limits tests | OK | `tests/unit/test_engine_limits.py` (4 passing) |
+
+## 24. Auto-provisioned workspace + demo scenarios
+| Feature | Status | Notes |
+|---|---|---|
+| Contradiction records from signals | OK | idempotent, keyed (detection_method, sorted entity_ids); autos `open` |
+| Leads from high hypotheses | OK | strength ≥ 80 → lead (origin `analysis:hypothesis`); upserted on re-run |
+| Info gaps from hypothesis notes | OK | `Data gaps:` parsed; upsert on matching title |
+| Wired into run | OK | `generate_workspace_from_run` called after run completes (config `auto_workspace`, default true; never fails a run) |
+| Scenario 1 — supported connection | OK | strong calls + shared handset + quiet co-location → fused strength ≥ 80 and auto lead |
+| Scenario 2 — misleading overlap | OK | single busy-tower co-location (40 background identities) → busy_tower penalty, no hypothesis ≥ 50 |
+| Scenario 3 — conflicting/insufficient | OK | impossible travel → contradiction record + penalised fusion; single short messages → no stylometry signal |
+| Demo scenario tests | OK | `tests/integration/test_demo_scenarios.py` (3 passing, real pipeline) |
+
+## 25. Frontend (Stage F)
+| Feature | Status | Notes |
+|---|---|---|
+| Graph edge classes | OK | contradicted edges (dotted red) + evidence-weight width (`strong` ≥10, `moderate` ≥3) |
+| Graph legend | OK | observed / inferred / contradicted / evidence-weight rows |
+| Edge detail evidence count | OK | displayed alongside classification; contradicted edge warning |
+| Hypothesis methodology disclosure | OK | detail shows weighted-mean formula + "not probabilities" + verification caveat |
+| Keyboard accessibility | OK | Esc closes graph/hypothesis detail panels; close buttons carry aria-labels |
+| 404 route | OK | catch-all NotFound page with link home |
 
 ## Known limitations (accepted for prototype)
 - Network map: synthetic location entities lack lat/lon attributes in most cases -> empty map.

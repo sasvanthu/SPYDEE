@@ -60,10 +60,25 @@
 - [x] All state changes logged
 - [x] Audit events scoped to case
 
+## Automated suite (2026-09-15)
+Run per-file from repo root (the full `pytest tests` run times out; see VERIFICATION_REPORT.md section G):
+
+| File | Covers |
+|---|---|
+| `tests/integration/test_entity_review.py` | merge apply → revert restores identifiers/participants/relationships, entity reactivation, suggestion reuse, audit history, 409 guards |
+| `tests/integration/test_workspace_generation.py` | auto contradictions / leads (≥80) / info gaps, idempotent re-run |
+| `tests/integration/test_demo_scenarios.py` | supported connection, misleading busy-tower overlap, conflicting/insufficient evidence (real pipeline) |
+| `tests/integration/test_freshness.py` | `analysis_stale` flag when evidence post-dates latest completed run |
+| `tests/unit/test_engine_limits.py` | stylometry abstention, GhostTower busy penalty, device IMEI reuse, fusion transparency notes |
+| `tests/unit/test_hypothesis_fusion.py` | fusion determinism from direct signal construction |
+| `tests/integration/test_rbac.py`, `test_contradiction.py`, `test_workspace.py` | case authorization, contradiction review, workspace CRUD |
+
+43 tests total, all passing (2026-09-15).
+
 ## Known Limitations
-- StyloLink engine not yet implemented
-- GhostTower engine not yet implemented
-- Device/SIM Continuity engine not yet implemented
+- StyloLink is a stylistic heuristic, not authorship identification — abstains below
+  minimum corpus (≥2 messages, ≥60 chars) and discloses the limitation.
+- GhostTower busyness normalization uses per-run evidence (no historical tower baseline).
 - PDF text extraction requires extractable text
 - No real OCR for scanned documents
 - Graph visualization uses external CDN for Cytoscape.js

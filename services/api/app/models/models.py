@@ -309,6 +309,7 @@ class MergeSuggestion(Base):
     review_state = Column(SAEnum(ReviewState), nullable=False, default=ReviewState.NEW)
     created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
     resolved_at = Column(DateTime, nullable=True)
+    merge_manifest = Column(JSON, nullable=True)
 
     __table_args__ = (
         Index("ix_merge_case_pair", "case_id", "primary_entity_id", "secondary_entity_id"),

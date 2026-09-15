@@ -148,6 +148,13 @@ async def generate_hypotheses(
                 + ("Contradiction detected — penalty applied." if has_contradiction else "")
                 + (f" Data gaps: {', '.join(missing_families)}." if missing_families else "")
             )
+            # Fusion transparency: state exactly how the strength was combined.
+            # Scores are uncalibrated evidence scores, NOT probabilities.
+            applied = ", ".join(f"{fam} (w={weights[fam]:.2f})" for fam, _ in applicable)
+            notes += f" Fusion: strength = weighted mean of family evidence scores using [{applied}]; "
+            notes += "scores are uncalibrated evidence scores, not probabilities. "
+            notes += ("Indicative of a possible link; requires investigator verification." if strength >= 50
+                      else "Weak signal set; does not establish a link.")
 
             skey = stable_key(case_id, src, tgt, hyp_type)
             highlights = [

@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import { api } from '../lib/api';
 
 export default function CaseOverview() {
@@ -10,6 +10,10 @@ export default function CaseOverview() {
     queryKey: ['case', caseId],
     queryFn: () => api.getCase(caseId!),
     enabled: !!caseId,
+  });
+
+  const rerunMutation = useMutation({
+    mutationFn: () => api.runAnalysis(caseId!),
   });
 
   const { data: files } = useQuery({
@@ -56,6 +60,26 @@ export default function CaseOverview() {
         )}
       </div>
       <p className="text-gray-500 text-sm mb-6">{caseData.case_code} — {caseData.description || 'No description'}</p>
+
+      {ws?.analysis_stale && (
+        <div role="alert" className="flex items-center justify-between gap-4 bg-amber-50 border border-amber-300 rounded-lg px-4 py-3 mb-6">
+          <div>
+            <div className="flex items-center gap-2 text-sm font-semibold text-amber-800">
+              ⚠ Findings may be stale
+            </div>
+            <p className="text-xs text-amber-700 mt-0.5">
+              {ws.analysis_stale_reason || 'New evidence was imported after the latest analysis run.'}
+            </p>
+          </div>
+          <button
+            onClick={() => rerunMutation.mutate()}
+            disabled={rerunMutation.isPending}
+            className="shrink-0 text-xs px-3 py-1.5 rounded font-medium bg-amber-600 text-white hover:bg-amber-700 disabled:opacity-50"
+          >
+            {rerunMutation.isPending ? 'Running...' : 'Re-run analysis'}
+          </button>
+        </div>
+      )}
 
       <div className="grid grid-cols-5 gap-4 mb-6">
         {[
@@ -113,7 +137,18 @@ export default function CaseOverview() {
                 Run {latestRun.id?.slice(0, 8)} · v{latestRun.version} · {latestRun.created_at ? new Date(latestRun.created_at).toLocaleString() : ''}
               </p>
             </div>
-            <div className="flex gap-3 text-xs text-gray-600">
+            <div className="flex items-center gap-3 text-xs text-gray-600">
+              {ws?.analysis_stale !== undefined && (
+                <button
+                  onClick={() => rerunMutation.mutate()}
+                  className={`px-2 py-0.5 rounded font-medium ${
+                    ws.analysis_stale ? 'bg-amber-100 text-amber-800 hover:bg-amber-200' : 'bg-green-100 text-green-700'
+                  }`}
+                  title={ws.analysis_stale_reason || 'Analysis reflects all imported evidence'}
+                >
+                  {ws.analysis_stale ? 'STALE — re-run' : 'UP TO DATE'}
+                </button>
+              )}
               <span className="bg-green-100 text-green-700 px-2 py-0.5 rounded">{latestRun.hypothesis_count || 0} hypotheses</span>
               <span className="bg-violet-100 text-violet-700 px-2 py-0.5 rounded">{latestRun.signal_count || 0} signals</span>
               {latestRun.engine_error_count > 0 && (

@@ -25,7 +25,8 @@ async def analyze_device_continuity(db, case_id, analysis_run_id, records):
     id_map = await load_id_entity_map(db, case_id)
 
     # device → set of (phonenorm, sim/imsi) from device events + CDR rows
-    device_bindings = defaultdict(lambda: {"phones": set(), "sims": set(), "records": [], "times": []})
+    device_bindings = defaultdict(lambda: {"phones": set(), "sims": set(), "imeis": set(),
+                                           "records": [], "times": [], "entity": None})
     # Pairwise co-location registry: (entity_a, entity_b) -> list of (tower, time)
     co_travel = defaultdict(list)
 
@@ -45,6 +46,8 @@ async def analyze_device_continuity(db, case_id, analysis_run_id, records):
             dev_norm = device_raw.strip().upper()
             binding = device_bindings[dev_norm]
             binding["records"].append(str(r.id))
+            if binding["entity"] is None:
+                binding["entity"] = entity_matches(id_map, "device", device_raw)
             if phone_raw:
                 binding["phones"].add((entity_matches(id_map, "phone", phone_raw), str(phone_raw)))
             if sim_raw:
@@ -52,7 +55,7 @@ async def analyze_device_continuity(db, case_id, analysis_run_id, records):
             if imsi_raw and not sim_raw:
                 binding["sims"].add((entity_matches(id_map, "imsi", imsi_raw), str(imsi_raw)))
             if imei_raw:
-                binding["records"].append(str(r.id))
+                binding["imeis"].add(str(imei_raw).strip().upper())
             ts = parse_datetime(c.get("event_time") or c.get("_observed_at") or c.get("start_time"))
             if ts:
                 binding["times"].append(ts)
@@ -150,6 +153,54 @@ async def analyze_device_continuity(db, case_id, analysis_run_id, records):
                     explanation=(
                         f"Two subscriber identities share physical device {dev_norm} "
                         f"across {len(binding['records'])} records ({len(binding['times'])} events)."
+                    ),
+                ))
+
+    # ── Device hopping: the same IMEI used across two distinct handsets ─────
+    # A SIM swapped between devices, or a shared handset, appears as one IMEI
+    # registered against two different device identifiers. Pair the device
+    # entities that share an IMEI so investigators see the handover.
+    imei_to_devices = defaultdict(list)
+    for dev_norm, binding in device_bindings.items():
+        for imei in binding["imeis"]:
+            dev_entity = binding["entity"]
+            if dev_entity is not None:
+                imei_to_devices[imei].append((dev_norm, dev_entity))
+    seen_imei_pairs = set()
+    for imei, holders in imei_to_devices.items():
+        distinct = sorted({e for _, e in holders}, key=str)
+        if len(distinct) < 2:
+            continue
+        for i in range(len(distinct)):
+            for j in range(i + 1, len(distinct)):
+                a, b = distinct[i], distinct[j]
+                key = tuple(sorted((str(a), str(b))))
+                if key in seen_imei_pairs:
+                    continue
+                seen_imei_pairs.add(key)
+                dev_names = sorted({n for n, _ in holders if _ in (a, b)})
+                hop_records = [r for n, _ in holders for r in device_bindings[n]["records"]][:25]
+                signals.append(Signal(
+                    case_id=case_id,
+                    analysis_run_id=analysis_run_id,
+                    engine_name="device_sim",
+                    engine_version="v2.1",
+                    entity_pair=entity_pair_json(a, b),
+                    family="device_sim",
+                    contributing_record_ids=hop_records,
+                    numeric_value=score_round(clamp01(0.35 + len(holders) * 0.08)),
+                    quality_factor=round(clamp01(0.4 + len(holders) * 0.1), 4),
+                    feature_details={
+                        "pattern": "imei_reuse",
+                        "shared_imei": imei,
+                        "devices": dev_names,
+                        "holder_count": len(holders),
+                        "swap_kind": "device_hop",
+                    },
+                    explanation=(
+                        f"The same IMEI {imei} was registered against {len(holders)} distinct "
+                        f"handset(s) ({', '.join(dev_names)}) — handset hopping or shared device. "
+                        "Indicates SIM relocation between devices."
                     ),
                 ))
 

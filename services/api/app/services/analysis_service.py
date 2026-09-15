@@ -20,6 +20,7 @@ from analysis.engines.financial_engine import analyze_financial_flows
 from analysis.engines.infra_engine import analyze_infrastructure
 from analysis.engines.missing_entity_engine import analyze_missing_entities
 from analysis.scoring.hypothesis_engine import generate_hypotheses
+from app.services.workspace_generation import generate_workspace_from_run
 
 ENGINE_REGISTRY = [
     ("communication", "v2.1", analyze_communication),
@@ -93,6 +94,19 @@ async def run_analysis(db: AsyncSession, run: AnalysisRun, records: List) -> dic
     }
     run.completed_at = __import__("datetime").datetime.utcnow()
     run.status = "completed"
+
+    # Connect engine outputs to the investigation workspace (contradictions,
+    # leads, information gaps). Investigators still review every record.
+    workspace = {"created": {"contradictions": 0, "leads": 0, "gaps": 0},
+                 "updated": {"leads": 0, "gaps": 0}}
+    config = run.configuration or {}
+    if config.get("auto_workspace", True):
+        try:
+            workspace = await generate_workspace_from_run(
+                db, run.case_id, run, hypotheses, signals
+            )
+        except Exception as exc:  # never fail a run because of workspace provisioning
+            workspace["error"] = f"{type(exc).__name__}: {exc}"
     await db.flush()
 
     return {
@@ -100,6 +114,7 @@ async def run_analysis(db: AsyncSession, run: AnalysisRun, records: List) -> dic
         "hypotheses": len(hypotheses),
         "signal_links": len(hyps_signals),
         "recommendations": len(recommendations),
+        "workspace": workspace,
     }
 
 

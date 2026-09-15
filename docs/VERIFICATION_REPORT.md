@@ -1,8 +1,10 @@
 # SPYDEE Prototype - Verification Report
 
-Run date: 2026-09-14
+Run date: 2026-09-15
 Environment: PostgreSQL + SQLAlchemy(async), FastAPI :8000, Vite :5173
 Demo DB preserved; synthetic test cases untouched.
+This report supersedes the 2026-09-14 smoke pass: it adds the product-integration
+verification (automated test suite, freshness, demo scenarios) on top.
 
 ---
 
@@ -126,3 +128,31 @@ No data wiped. Re-runs delete only prior-run derived outputs (signals/hypotheses
 ## F. Conclusion
 
 All 18 API endpoints return 200 on live data. All 12 frontend pages compile clean. Three demo cases verified (positive + 2 negative controls). All 13 repairs from REPAIR_LOG verified end-to-end. Prototype is operationally complete for demo.
+
+---
+
+## G. Integration / unit test suite (2026-09-15 product-integration pass)
+
+Full suite run file-wise to avoid the known full-suite timeout:
+
+| File | Tests | Result |
+|---|---|---|
+| `tests/integration/test_rbac.py` + `test_contradiction.py` + `test_workspace.py` (baseline) | 24 | PASS |
+| `tests/integration/test_entity_review.py` | 3 | PASS — review history read; merge→revert restores identifiers/participants/relationships, entity reactivated, suggestion reused, `merge_reverted` audit; 409 guards |
+| `tests/integration/test_workspace_generation.py` | 4 | PASS — high-strength hypothesis→lead, missing family→gap, contradiction signal→record, idempotent re-run |
+| `tests/integration/test_freshness.py` | 2 | PASS — summary fresh with no new evidence; stale after evidence post-dates completed run |
+| `tests/integration/test_demo_scenarios.py` | 3 | PASS — supported connection (≥80 + lead), misleading busy-tower overlap (no hypothesis ≥50), conflicting/insufficient (contradiction record + stylometry abstention) |
+| `tests/unit/test_engine_limits.py` | 4 | PASS — stylo abstention + limitation, GhostTower busy penalty (score <0.25), device IMEI reuse, fusion notes transparency |
+| `tests/unit/test_hypothesis_fusion.py` | part of baseline | PASS |
+| **Total** | **43** | **PASS (0 failures)** |
+
+`python -m py_compile` clean on all changed backend files. Alembic migration `006_merge_revert_manifest` applied (DB at head 006).
+
+### Test-time diagnostics (calibrated from real runs)
+- Scenario 1: strongest hypothesis subversive_activity ≈ 92/100 (communication + device_sim fusion); lead auto-created.
+- Scenario 2: traffic tower busyness = 42 → background_multiplier = 0.51 → co-location signal ≈ 0.18; all A–B hypotheses < 50.
+- Scenario 3: impossible travel Delhi→Mumbai in 6 min → contradiction signal + open contradiction record; co-location pair re-flagged `contradicted`.
+
+### Frontend build
+- `npm run build` (`tsc && vite build`) exit 0; 96 modules; only chunk-size advisory.
+- New items verified at compile: stale banner, run-card freshness pill, graph edge classes/legend, hypothesis methodology disclosure, Esc-to-close, 404 route.

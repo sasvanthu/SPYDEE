@@ -17,7 +17,7 @@ from sqlalchemy import select, func
 from app.models.models import (
     Entity, Identifier, EntityIdentifierLink, EntityType, ReviewState,
     Event, EventParticipant, Relationship, RelationshipEvidence,
-    SourceRecord, MergeSuggestion, RelationshipDirection
+    SourceRecord, MergeSuggestion, RelationshipDirection, EntityReviewDecision,
 )
 
 # ─── Identifier type → Entity type ───────────────────────────────────────────
@@ -646,17 +646,21 @@ async def apply_merge_suggestion(
     if not primary or not secondary:
         raise ValueError("Entity not found")
 
+    # Record exactly what moves onto the primary so the merge can be reverted.
+    manifest = {"identifier_links": [], "event_participants": [], "relationships": []}
+
     link_result = await db.execute(
         select(EntityIdentifierLink).where(EntityIdentifierLink.entity_id == secondary.id)
     )
     for link in link_result.scalars().all():
+        manifest["identifier_links"].append(str(link.id))
         link.entity_id = primary.id
     await db.flush()
 
-    for model, fk in ((EventParticipant, "entity_id"),):
-        rows = await db.execute(select(model).where(model.entity_id == secondary.id))
-        for row in rows.scalars().all():
-            setattr(row, fk, primary.id)
+    rows = await db.execute(select(EventParticipant).where(EventParticipant.entity_id == secondary.id))
+    for row in rows.scalars().all():
+        manifest["event_participants"].append(str(row.id))
+        row.entity_id = primary.id
     await db.flush()
 
     rel_result = await db.execute(
@@ -666,17 +670,117 @@ async def apply_merge_suggestion(
         )
     )
     for rel in rel_result.scalars().all():
+        ends = []
         if rel.source_entity_id == secondary.id:
+            ends.append("source")
             rel.source_entity_id = primary.id
         if rel.target_entity_id == secondary.id:
+            ends.append("target")
             rel.target_entity_id = primary.id
+        manifest["relationships"].append({"id": str(rel.id), "ends": ends})
     await db.flush()
 
     secondary.review_state = ReviewState.ARCHIVED
     sug.review_state = ReviewState.SUPPORTED
     sug.resolved_at = datetime.utcnow()
+    sug.merge_manifest = manifest
     await db.flush()
     return primary
+
+
+async def revert_merge_suggestion(
+    db: AsyncSession, case_id: uuid.UUID, suggestion_id: uuid.UUID, reviewer_id: uuid.UUID
+) -> Entity:
+    """Reverse an investigator-approved merge using the stored manifest.
+
+    Identifier links, event participants and relationship endpoints recorded
+    as moved on to the primary entity are restored to the secondary entity, and
+    the archived entity is reactivated. The suggestion returns to NEW so it can
+    be re-evaluated and re-applied if warranted.
+    """
+    from app.services.case_service import log_audit_event
+
+    result = await db.execute(
+        select(MergeSuggestion).where(MergeSuggestion.id == suggestion_id,
+                                      MergeSuggestion.case_id == case_id)
+    )
+    sug = result.scalar_one_or_none()
+    if not sug:
+        raise ValueError("Merge suggestion not found")
+    if sug.review_state != ReviewState.SUPPORTED or sug.resolved_at is None:
+        raise ValueError("Merge suggestion is not currently applied")
+
+    primary = await db.get(Entity, sug.primary_entity_id)
+    secondary = await db.get(Entity, sug.secondary_entity_id)
+    if not primary or not secondary:
+        raise ValueError("Entity not found")
+
+    manifest = sug.merge_manifest or {
+        "identifier_links": [], "event_participants": [], "relationships": []
+    }
+
+    link_ids = [uuid.UUID(x) for x in manifest.get("identifier_links", [])]
+    if link_ids:
+        links = (await db.execute(
+            select(EntityIdentifierLink).where(EntityIdentifierLink.id.in_(link_ids))
+        )).scalars().all()
+        for link in links:
+            link.entity_id = secondary.id
+    await db.flush()
+
+    participant_ids = [uuid.UUID(x) for x in manifest.get("event_participants", [])]
+    if participant_ids:
+        participants = (await db.execute(
+            select(EventParticipant).where(EventParticipant.id.in_(participant_ids))
+        )).scalars().all()
+        for p in participants:
+            p.entity_id = secondary.id
+    await db.flush()
+
+    rel_ids = [uuid.UUID(x["id"]) for x in manifest.get("relationships", [])]
+    if rel_ids:
+        rels = (await db.execute(
+            select(Relationship).where(Relationship.id.in_(rel_ids))
+        )).scalars().all()
+        by_id = {str(r.id): r for r in rels}
+        for move in manifest.get("relationships", []):
+            rel = by_id.get(move["id"])
+            if rel is None:
+                continue
+            ends = move.get("ends", [])
+            if "source" in ends:
+                rel.source_entity_id = secondary.id
+            if "target" in ends:
+                rel.target_entity_id = secondary.id
+    await db.flush()
+
+    secondary.review_state = ReviewState.NEW
+    sug.review_state = ReviewState.NEW
+    sug.resolved_at = None
+    sug.merge_manifest = None
+    await log_audit_event(db, case_id, reviewer_id, "merge_reverted", "entity", secondary.id,
+                          {"primary": str(primary.id), "secondary": str(secondary.id)})
+    await db.flush()
+    return secondary
+
+
+async def get_entity_review_history(db: AsyncSession, entity_id: uuid.UUID) -> List[dict]:
+    """Return the recorded EntityReviewDecision rows for an entity."""
+    result = await db.execute(
+        select(EntityReviewDecision)
+        .where(EntityReviewDecision.entity_id == entity_id)
+        .order_by(EntityReviewDecision.created_at.desc())
+    )
+    return [
+        {
+            "id": str(d.id),
+            "reviewer_id": str(d.reviewer_id),
+            "decision": d.decision,
+            "note": d.note,
+            "created_at": d.created_at.isoformat() if d.created_at else None,
+        }
+        for d in result.scalars().all()
+    ]
 
 
 async def get_entity_profile(db: AsyncSession, entity_id: uuid.UUID) -> Optional[dict]:

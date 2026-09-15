@@ -24,6 +24,16 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+function NotFound() {
+  return (
+    <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center gap-4 text-center">
+      <div className="text-6xl font-bold text-gray-300">404</div>
+      <p className="text-gray-600">This page does not exist.</p>
+      <a href="/" className="text-azure-600 hover:underline text-sm">Back to cases</a>
+    </div>
+  );
+}
+
 export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
@@ -46,6 +56,7 @@ export default function App() {
             <Route path="cases/:caseId/copilot" element={<Copilot />} />
             <Route path="cases/:caseId/reports" element={<Reports />} />
           </Route>
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
     </QueryClientProvider>
