@@ -1,10 +1,11 @@
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useState } from 'react';
 import { api } from '../lib/api';
 
 export default function Copilot() {
   const { caseId } = useParams<{ caseId: string }>();
+  const navigate = useNavigate();
   const [query, setQuery] = useState('');
   const [messages, setMessages] = useState<any[]>([]);
 
@@ -71,9 +72,52 @@ export default function Copilot() {
               {m.role === 'assistant' ? (
                 <div>
                   <p className="whitespace-pre-wrap">{m.content.answer}</p>
+                  {m.content.links?.length > 0 && (
+                    <div className="mt-2 flex flex-wrap gap-1">
+                      {m.content.links.map((l: any, j: number) => {
+                        if (l.type === 'contradiction') return (
+                          <button key={j} onClick={() => navigate(`/cases/${caseId}/contradictions`)}
+                            className="text-[10px] bg-orange-50 text-orange-700 border border-orange-200 px-2 py-0.5 rounded-full">Contradiction</button>
+                        );
+                        if (l.type === 'lead') return (
+                          <button key={j} onClick={() => navigate(`/cases/${caseId}/leads`)}
+                            className="text-[10px] bg-blue-50 text-blue-700 border border-blue-200 px-2 py-0.5 rounded-full">Lead</button>
+                        );
+                        if (l.type === 'information_gap') return (
+                          <button key={j} onClick={() => navigate(`/cases/${caseId}/leads`)}
+                            className="text-[10px] bg-purple-50 text-purple-700 border border-purple-200 px-2 py-0.5 rounded-full">Info Gap</button>
+                        );
+                        if (l.type === 'entity') return (
+                          <button key={j} onClick={() => navigate(`/cases/${caseId}/entities`)}
+                            className="text-[10px] bg-cyan-50 text-cyan-700 border border-cyan-200 px-2 py-0.5 rounded-full">Entity</button>
+                        );
+                        if (l.type === 'hypothesis') return (
+                          <button key={j} onClick={() => navigate(`/cases/${caseId}/hypotheses`)}
+                            className="text-[10px] bg-violet-50 text-violet-700 border border-violet-200 px-2 py-0.5 rounded-full">Hypothesis</button>
+                        );
+                        return (
+                          <span key={j} className="text-[10px] bg-gray-100 text-gray-500 border border-gray-200 px-2 py-0.5 rounded-full">
+                            {l.type}
+                          </span>
+                        );
+                      })}
+                    </div>
+                  )}
                   {m.content.citations?.length > 0 && (
                     <div className="mt-2 pt-2 border-t text-xs text-navy-400">
-                      <strong>Citations:</strong> {m.content.citations.map((c: any) => c.type || c.id).join(', ')}
+                      <strong>Citations:</strong>
+                      <div className="mt-1 space-y-1">
+                        {m.content.citations.map((c: any, j: number) => (
+                          <div key={j} className="flex items-start gap-1.5">
+                            <span className="text-[10px] px-1.5 py-0.5 rounded bg-azure-50 text-azure-700 uppercase font-medium flex-shrink-0">{c.type}</span>
+                            <span className="text-navy-500">
+                              {c.title || c.label || c.id || (c.count != null ? `${c.count} records` : '') || ''}
+                              {c.evidence_file_id && <span className="text-navy-400"> · evidence #{c.evidence_file_id.slice(0, 8)}{c.page ? ` p.${c.page}` : ''}</span>}
+                              {c.hops != null && <span className="text-navy-400"> · {c.hops} hops</span>}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   )}
                   {m.content.follow_ups?.length > 0 && (

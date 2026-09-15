@@ -673,7 +673,7 @@ async def apply_merge_suggestion(
     await db.flush()
 
     secondary.review_state = ReviewState.ARCHIVED
-    sug.review_state = ReviewState.SUPPORTED_BY_REVIEWER
+    sug.review_state = ReviewState.SUPPORTED
     sug.resolved_at = datetime.utcnow()
     await db.flush()
     return primary

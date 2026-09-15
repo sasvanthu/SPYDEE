@@ -1,7 +1,8 @@
 # SPYDEE Prototype - Feature Audit
 
-Audit date: 2026-09-14
+Audit date: 2026-09-15
 Scope: existing prototype at repo root, repair + verification pass (SIH 2026, PS 26189).
+Investigation workspace extension: contradictions, leads, gaps, actions, evidence detail, manual events, merge review, copilot/report enrichment.
 
 ## Status legend
 - OK       - verified working end-to-end during this audit
@@ -131,7 +132,79 @@ Scope: existing prototype at repo root, repair + verification pass (SIH 2026, PS
 | Audit log | OK | `/audit/{case_id}` - 3 events on BRK |
 | Report listing | OK | 0 existing on BRK (none generated yet) |
 
-## 14. Cross-cutting
+## 14. Investigation workspace
+| Feature | Status | Notes |
+|---|---|---|
+| Workspace summary | OK | GET `/workspace/{case_id}/summary` — live counts of open contradictions/leads/gaps/actions, entity/evidence stats, recent activity |
+| Contradictions create | OK | POST `/workspace/{case_id}/contradictions` — 2+ statements required; created status `open` |
+| Contradictions list | OK | GET with `?status=open\|resolved\|...` filter |
+| Contradictions detail + review | OK | detail returns statements + full review history; review sets status (open/needs_clarification/resolved/dismissed) and records reviewer + timestamp |
+| Leads create | OK | POST — priority, origin_type, evidence refs stored |
+| Leads list / status filter | OK | GET with `?status=open\|in_progress\|...` filter |
+| Leads detail (linked gaps + actions) | OK | detail includes nested gaps + actions + review history |
+| Leads priority re-triage | OK | PATCH — change priority/priority_rationale |
+| Leads status transition | OK | review endpoint transitions (open → in_progress → resolved/dismissed) |
+| Information gaps create + list | OK | POST/GET — linked to optional lead_id |
+| Information gaps status transition | OK | PATCH — open → addressed/dismissed |
+| Investigation actions create + list | OK | POST/GET — linked to optional lead_id and gap_id |
+| Investigation actions status | OK | PATCH — proposed → in_progress → completed/failed, with outcome_notes |
+| Workspace enum storage | OK | native PG enums uppercase labels; SQLAlchemy coerces lowercase query values; empirically verified via direct DB probe |
+| Cross-case isolation | OK | non-members get 403; archived cases block writes for investigators |
+
+## 15. Evidence detail & text extraction
+| Feature | Status | Notes |
+|---|---|---|
+| Evidence file detail | OK | GET `/evidence/{case_id}/files/{file_id}` — metadata, extracted_text, extraction_error, retry_count, record_count, import history |
+| Retry extract (TXT/PDF) | OK | POST `/retry-extract` — re-reads file, re-chunks, clears extraction_error, increments retry_count |
+| TXT extraction on upload | OK | `save_uploaded_file` sets extracted_text + parser_version for txt/pdf; json without text extraction |
+| Non-document rejection | OK | retry-extract returns 400 for non-TXT/PDF files |
+| Frontend evidence detail drawer | OK | EvidenceRoom file rows clickable → detail modal showing stats, extraction error + retry button, extracted text toggle, import history |
+
+## 16. Manual timeline events
+| Feature | Status | Notes |
+|---|---|---|
+| Manual event creation | OK | POST `/timeline/{case_id}/events` — event_type, label, optional start_time, time_precision auto-set to `unknown` when no timestamp; `is_manual=True` |
+| Manual event label in timeline list | OK | `is_manual` field rendered; details.text/amount shown |
+| No timestamp fabrication | OK | start_time=None when not supplied; time_precision="unknown" |
+| Entity participant linking | OK | participant_entity_ids attached as EventParticipant records with role="manual" |
+
+## 17. Merge suggestions
+| Feature | Status | Notes |
+|---|---|---|
+| Generate candidates | OK | POST `/entities/{case_id}/merge/candidates` — deterministic pairwise identity/conflict scoring |
+| List suggestions | OK | GET `/entities/{case_id}/merge-suggestions` — ordered by confidence desc, shows review_state, basis |
+| Apply merge | OK | POST `/{suggestion_id}/apply` — relinks identifiers, participants, relationships; archives secondary; idempotent guard (409) |
+| Dismiss merge | OK | POST `/{suggestion_id}/dismiss` — sets review_state=rejected |
+| Route shadowing fix | REPAIRED | `GET /merge-suggestions` was shadowed by `GET /{entity_id}` (422); moved above generic route |
+
+## 18. Enhanced copilot (workspace-aware)
+| Feature | Status | Notes |
+|---|---|---|
+| Contradictions tool | OK | query "contradict/conflict/impossible" returns workspace contradictions + signals, with `type: "contradiction"` citations |
+| Information gaps tool | OK | query "gap/missing/insufficient" returns workspace gaps + hypothesis-derived gaps |
+| Open leads tool | OK | query "lead(s)" returns workspace leads with priority/status |
+| Open actions tool | OK | query "action/next step" returns proposed+in-progress actions |
+| Citation types | OK | contradictions, leads, information_gap, hypothesis, entity, signal, document_chunk |
+| Nav link rendering | OK | citation links rendered as colored pills navigating to contradictions/leads/hypothesis pages |
+
+## 19. Enhanced reports
+| Feature | Status | Notes |
+|---|---|---|
+| Workspace section in content | OK | report JSON includes contradictions[], leads[], information_gaps[], actions[] |
+| Summary counters | OK | open_contradictions, open_leads, open_gaps, open_actions in summary block |
+| Analysis run versioning | OK | analysis_run_id parameter; frontend shows run selector when >1 run exists |
+| HTML export | OK | contradictions, leads, gaps, actions sections rendered in HTML report |
+
+## 20. Frontend routing & navigation
+| Feature | Status | Notes |
+|---|---|---|
+| Contradictions page | OK | `/cases/:caseId/contradictions` — list with status filter, create modal, detail modal with review history |
+| Leads/Gaps/Actions page | OK | `/cases/:caseId/leads` — tabs for leads/gaps/actions, create forms, status transitions, detail modals with linked data |
+| Navigation grouped sections | OK | Layout nav grouped into Overview / Evidence & Site / Intelligence / Partner Tools / Output |
+| TypeScript compile | OK | `npx tsc --noEmit` exit 0 after workspace changes |
+| Vite build | OK | 96 modules, built in 28s, chunk-size warning only |
+
+## 21. Cross-cutting
 | Feature | Status | Notes |
 |---|---|---|
 | Layout / navigation | REPAIRED | dark workstation theme; active nav highlight; header shows real case title + case_code + section; sticky |
@@ -146,3 +219,5 @@ Scope: existing prototype at repo root, repair + verification pass (SIH 2026, PS
 - Pagination: timeline & records default to server limits (50/100); UI lacks pager.
 - Copilot: rule-based intent routing, not LLM; answers are assembly of engine outputs.
 - No Neo4j/Qdrant present in this prototype (PostgreSQL + NetworkX). ARCHITECTURE.md documents actual stack.
+- Hypotheses.review_state is VARCHAR (not native PG enum) — values stored lowercase; workspace summary filter relies on SQLAlchemy value coercion (empirically tested for other enums; reasoned correct for VARCHAR).
+- Analysis pipeline (ingest + full analysis) takes ~1.5–6 min on the local setup depending on dataset size; integration test suite should be run per-file with generous timeouts.

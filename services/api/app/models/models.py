@@ -174,6 +174,9 @@ class EvidenceFile(Base):
     uploaded_by = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
     parser_version = Column(String(50), nullable=True)
     status = Column(String(30), nullable=False, default="pending")
+    extracted_text = Column(Text, nullable=True)
+    extraction_error = Column(Text, nullable=True)
+    retry_count = Column(Integer, nullable=False, default=0)
     accepted_count = Column(Integer, nullable=False, default=0)
     rejected_count = Column(Integer, nullable=False, default=0)
     created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
@@ -324,6 +327,7 @@ class Event(Base):
     original_timestamp = Column(String(100), nullable=True)
     source_timezone = Column(String(50), nullable=True)
     time_precision = Column(String(20), nullable=True)
+    is_manual = Column(Boolean, nullable=False, default=False)
     location_id = Column(UUID(as_uuid=True), ForeignKey("entities.id"), nullable=True)
     location_precision = Column(String(30), nullable=True)
     source_record_id = Column(UUID(as_uuid=True), ForeignKey("source_records.id"), nullable=True)
@@ -574,3 +578,148 @@ class Job(Base):
     claim_expires_at = Column(DateTime, nullable=True)
     retry_count = Column(Integer, nullable=False, default=0)
     max_retries = Column(Integer, nullable=False, default=3)
+
+
+# ─── Investigation Workspace ────────────────────────────────────────
+
+class ContradictionStatus(str, enum.Enum):
+    OPEN = "open"
+    NEEDS_CLARIFICATION = "needs_clarification"
+    RESOLVED = "resolved"
+    DISMISSED = "dismissed"
+
+
+class LeadPriority(str, enum.Enum):
+    LOW = "low"
+    MEDIUM = "medium"
+    HIGH = "high"
+    CRITICAL = "critical"
+
+
+class LeadStatus(str, enum.Enum):
+    OPEN = "open"
+    IN_PROGRESS = "in_progress"
+    RESOLVED = "resolved"
+    DISMISSED = "dismissed"
+
+
+class GapStatus(str, enum.Enum):
+    OPEN = "open"
+    ADDRESSED = "addressed"
+    DISMISSED = "dismissed"
+
+
+class ActionStatus(str, enum.Enum):
+    PROPOSED = "proposed"
+    IN_PROGRESS = "in_progress"
+    COMPLETED = "completed"
+    FAILED = "failed"
+
+
+class Contradiction(Base):
+    __tablename__ = "contradictions"
+    id = Column(UUID(as_uuid=True), primary_key=True, default=gen_uuid)
+    case_id = Column(UUID(as_uuid=True), ForeignKey("cases.id"), nullable=False, index=True)
+    title = Column(String(300), nullable=False)
+    statements = Column(JSON, nullable=False, default=list)
+    entity_ids = Column(JSON, nullable=True, default=list)
+    time_context = Column(Text, nullable=True)
+    detection_method = Column(String(100), nullable=True)
+    explanation = Column(Text, nullable=True)
+    status = Column(SAEnum(ContradictionStatus), nullable=False, default=ContradictionStatus.OPEN)
+    resolution_note = Column(Text, nullable=True)
+    resolved_by = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
+    analysis_run_id = Column(UUID(as_uuid=True), ForeignKey("analysis_runs.id"), nullable=True)
+    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+    updated_at = Column(DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    case = relationship("Case")
+    review_history = relationship("ContradictionReview", back_populates="contradiction", cascade="all, delete-orphan")
+
+
+class ContradictionReview(Base):
+    __tablename__ = "contradiction_reviews"
+    id = Column(UUID(as_uuid=True), primary_key=True, default=gen_uuid)
+    contradiction_id = Column(UUID(as_uuid=True), ForeignKey("contradictions.id"), nullable=False, index=True)
+    reviewer_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    decision = Column(String(50), nullable=False)
+    note = Column(Text, nullable=True)
+    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+
+    contradiction = relationship("Contradiction", back_populates="review_history")
+
+
+class Lead(Base):
+    __tablename__ = "leads"
+    id = Column(UUID(as_uuid=True), primary_key=True, default=gen_uuid)
+    case_id = Column(UUID(as_uuid=True), ForeignKey("cases.id"), nullable=False, index=True)
+    title = Column(String(300), nullable=False)
+    description = Column(Text, nullable=True)
+    origin_type = Column(String(50), nullable=True)
+    origin_id = Column(UUID(as_uuid=True), nullable=True)
+    entity_ids = Column(JSON, nullable=True, default=list)
+    supporting_evidence_refs = Column(JSON, nullable=True, default=list)
+    conflicting_evidence_refs = Column(JSON, nullable=True, default=list)
+    priority = Column(SAEnum(LeadPriority), nullable=False, default=LeadPriority.MEDIUM)
+    priority_rationale = Column(Text, nullable=True)
+    status = Column(SAEnum(LeadStatus), nullable=False, default=LeadStatus.OPEN)
+    created_by = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
+    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+    updated_at = Column(DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    case = relationship("Case")
+    gaps = relationship("InformationGap", back_populates="lead", cascade="all, delete-orphan")
+    actions = relationship("InvestigationAction", back_populates="lead")
+    review_history = relationship("LeadReview", back_populates="lead", cascade="all, delete-orphan")
+
+
+class LeadReview(Base):
+    __tablename__ = "lead_reviews"
+    id = Column(UUID(as_uuid=True), primary_key=True, default=gen_uuid)
+    lead_id = Column(UUID(as_uuid=True), ForeignKey("leads.id"), nullable=False, index=True)
+    reviewer_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    decision = Column(String(50), nullable=False)
+    note = Column(Text, nullable=True)
+    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+
+    lead = relationship("Lead", back_populates="review_history")
+
+
+class InformationGap(Base):
+    __tablename__ = "information_gaps"
+    id = Column(UUID(as_uuid=True), primary_key=True, default=gen_uuid)
+    case_id = Column(UUID(as_uuid=True), ForeignKey("cases.id"), nullable=False, index=True)
+    lead_id = Column(UUID(as_uuid=True), ForeignKey("leads.id"), nullable=True, index=True)
+    title = Column(String(300), nullable=False)
+    description = Column(Text, nullable=True)
+    related_entity_ids = Column(JSON, nullable=True, default=list)
+    related_evidence_refs = Column(JSON, nullable=True, default=list)
+    status = Column(SAEnum(GapStatus), nullable=False, default=GapStatus.OPEN)
+    resolution_note = Column(Text, nullable=True)
+    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+    updated_at = Column(DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    case = relationship("Case")
+    lead = relationship("Lead", back_populates="gaps")
+    actions = relationship("InvestigationAction", back_populates="gap")
+
+
+class InvestigationAction(Base):
+    __tablename__ = "investigation_actions"
+    id = Column(UUID(as_uuid=True), primary_key=True, default=gen_uuid)
+    case_id = Column(UUID(as_uuid=True), ForeignKey("cases.id"), nullable=False, index=True)
+    gap_id = Column(UUID(as_uuid=True), ForeignKey("information_gaps.id"), nullable=True, index=True)
+    lead_id = Column(UUID(as_uuid=True), ForeignKey("leads.id"), nullable=True, index=True)
+    title = Column(String(300), nullable=False)
+    description = Column(Text, nullable=True)
+    proposed_step = Column(Text, nullable=True)
+    expected_information = Column(Text, nullable=True)
+    source_refs = Column(JSON, nullable=True, default=list)
+    status = Column(SAEnum(ActionStatus), nullable=False, default=ActionStatus.PROPOSED)
+    outcome_notes = Column(Text, nullable=True)
+    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+    updated_at = Column(DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    case = relationship("Case")
+    gap = relationship("InformationGap", back_populates="actions")
+    lead = relationship("Lead", back_populates="actions")

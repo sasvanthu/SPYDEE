@@ -21,6 +21,15 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   return res.json();
 }
 
+function q(params?: Record<string, string | undefined | null | number>) {
+  const p = new URLSearchParams();
+  Object.entries(params || {}).forEach(([k, v]) => {
+    if (v !== undefined && v !== null && v !== '') p.set(k, String(v));
+  });
+  const s = p.toString();
+  return s ? `?${s}` : '';
+}
+
 export const api = {
   login: (username: string, password: string) =>
     request<{ access_token: string; user: any }>('/auth/login', {
@@ -50,6 +59,13 @@ export const api = {
   getEntity: (caseId: string, entityId: string) => request<any>(`/entities/${caseId}/${entityId}`),
   reviewEntity: (caseId: string, entityId: string, data: any) =>
     request<any>(`/entities/${caseId}/${entityId}/review`, { method: 'POST', body: JSON.stringify(data) }),
+  getMergeSuggestions: (caseId: string) => request<any[]>(`/entities/${caseId}/merge-suggestions`),
+  generateMergeCandidates: (caseId: string) =>
+    request<any>(`/entities/${caseId}/merge/candidates`, { method: 'POST' }),
+  applyMergeSuggestion: (caseId: string, suggestionId: string) =>
+    request<any>(`/entities/${caseId}/merge-suggestions/${suggestionId}/apply`, { method: 'POST' }),
+  dismissMergeSuggestion: (caseId: string, suggestionId: string) =>
+    request<any>(`/entities/${caseId}/merge-suggestions/${suggestionId}/dismiss`, { method: 'POST' }),
 
   uploadEvidence: (caseId: string, file: File, sourceType: string) => {
     const form = new FormData();
@@ -60,6 +76,9 @@ export const api = {
   importEvidence: (caseId: string, fileId: string) =>
     request<any>(`/evidence/${caseId}/upload/${fileId}/import`, { method: 'POST' }),
   getFiles: (caseId: string) => request<any[]>(`/evidence/${caseId}/files`),
+  getEvidenceDetail: (caseId: string, fileId: string) => request<any>(`/evidence/${caseId}/files/${fileId}`),
+  retryExtract: (caseId: string, fileId: string) =>
+    request<any>(`/evidence/${caseId}/files/${fileId}/retry-extract`, { method: 'POST' }),
   getImports: (caseId: string) => request<any[]>(`/evidence/${caseId}/imports`),
   getRecords: (caseId: string, importId?: string) => {
     const params = importId ? `?import_id=${importId}` : '';
@@ -76,12 +95,20 @@ export const api = {
     request<any>(`/graph/${caseId}/relationship/${relId}/evidence`),
 
   getTimeline: (caseId: string, params?: any) => {
-    const p = new URLSearchParams();
-    if (params?.event_type) p.set('event_type', params.event_type);
-    if (params?.date_from) p.set('date_from', params.date_from);
-    if (params?.date_to) p.set('date_to', params.date_to);
-    return request<any[]>(`/timeline/${caseId}?${p}`);
+    const url = `/timeline/${caseId}${q({
+      event_type: params?.event_type,
+      date_from: params?.date_from,
+      date_to: params?.date_to,
+      entity_id: params?.entity_id,
+      entity_label: params?.entity_label,
+      source: params?.source,
+      page: params?.page,
+      page_size: params?.page_size,
+    })}`;
+    return request<{ items: any[]; total: number; page: number; page_size: number }>(url);
   },
+  createManualEvent: (caseId: string, data: any) =>
+    request<any>(`/timeline/${caseId}/events`, { method: 'POST', body: JSON.stringify(data) }),
 
   runAnalysis: (caseId: string) =>
     request<any>(`/analysis/${caseId}/run`, { method: 'POST' }),
@@ -109,4 +136,40 @@ export const api = {
 
   getAuditLog: (caseId: string) => request<any[]>(`/audit/${caseId}`),
   getJobs: (caseId: string) => request<any[]>(`/jobs/${caseId}`),
+
+  // ── Investigation workspace ──────────────────────────────────────────
+  getWorkspaceSummary: (caseId: string) => request<any>(`/workspace/${caseId}/summary`),
+
+  getContradictions: (caseId: string, status?: string) =>
+    request<any[]>(`/workspace/${caseId}/contradictions${q({ status })}`),
+  getContradiction: (caseId: string, id: string) => request<any>(`/workspace/${caseId}/contradictions/${id}`),
+  createContradiction: (caseId: string, data: any) =>
+    request<any>(`/workspace/${caseId}/contradictions`, { method: 'POST', body: JSON.stringify(data) }),
+  reviewContradiction: (caseId: string, id: string, data: any) =>
+    request<any>(`/workspace/${caseId}/contradictions/${id}/review`, { method: 'POST', body: JSON.stringify(data) }),
+
+  getLeads: (caseId: string, status?: string) =>
+    request<any[]>(`/workspace/${caseId}/leads${q({ status })}`),
+  getLead: (caseId: string, id: string) => request<any>(`/workspace/${caseId}/leads/${id}`),
+  createLead: (caseId: string, data: any) =>
+    request<any>(`/workspace/${caseId}/leads`, { method: 'POST', body: JSON.stringify(data) }),
+  updateLead: (caseId: string, id: string, data: any) =>
+    request<any>(`/workspace/${caseId}/leads/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+  reviewLead: (caseId: string, id: string, data: any) =>
+    request<any>(`/workspace/${caseId}/leads/${id}/review`, { method: 'POST', body: JSON.stringify(data) }),
+
+  getGaps: (caseId: string, status?: string, leadId?: string) =>
+    request<any[]>(`/workspace/${caseId}/gaps${q({ status, lead_id: leadId })}`),
+  getGap: (caseId: string, id: string) => request<any>(`/workspace/${caseId}/gaps/${id}`),
+  createGap: (caseId: string, data: any) =>
+    request<any>(`/workspace/${caseId}/gaps`, { method: 'POST', body: JSON.stringify(data) }),
+  updateGap: (caseId: string, id: string, data: any) =>
+    request<any>(`/workspace/${caseId}/gaps/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+
+  getActions: (caseId: string, status?: string) =>
+    request<any[]>(`/workspace/${caseId}/actions${q({ status })}`),
+  createAction: (caseId: string, data: any) =>
+    request<any>(`/workspace/${caseId}/actions`, { method: 'POST', body: JSON.stringify(data) }),
+  updateAction: (caseId: string, id: string, data: any) =>
+    request<any>(`/workspace/${caseId}/actions/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
 };

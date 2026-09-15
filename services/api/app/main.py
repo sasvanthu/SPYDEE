@@ -14,7 +14,8 @@ from app.config import get_settings
 from app.routers import (
     auth_router, case_router, evidence_router, entity_router,
     graph_router, timeline_router, analysis_router, hypothesis_router,
-    copilot_router, report_router, audit_router, job_router, users_router
+    copilot_router, report_router, audit_router, job_router, users_router,
+    workspace_router,
 )
 
 settings = get_settings()
@@ -49,6 +50,7 @@ app.include_router(report_router.router)
 app.include_router(audit_router.router)
 app.include_router(job_router.router)
 app.include_router(users_router.router)
+app.include_router(workspace_router.router)
 
 
 @app.get("/")

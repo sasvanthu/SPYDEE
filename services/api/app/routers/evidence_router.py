@@ -1,14 +1,14 @@
 import uuid
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, func
 from app.database import get_db
 from app.models.models import (
-    EvidenceFile, Import, SourceRecord, User
+    EvidenceFile, Import, SourceRecord, User, Entity, Event, EventParticipant
 )
 from app.auth.auth import get_current_user
 from app.schemas.schemas import (
-    EvidenceUploadResponse, ImportResponse, SourceRecordResponse
+    EvidenceUploadResponse, ImportResponse, SourceRecordResponse, EvidenceDetailResponse
 )
 from app.services.case_service import check_case_membership, check_case_write_access, log_audit_event
 from app.services.evidence_service import (
@@ -141,6 +141,122 @@ async def list_records(
     query = select(SourceRecord).where(SourceRecord.case_id == case_id)
     if import_id:
         query = query.where(SourceRecord.import_id == import_id)
+    query = query.order_by(SourceRecord.created_at.desc())
     query = query.offset((page - 1) * page_size).limit(page_size)
     result = await db.execute(query)
     return [SourceRecordResponse.model_validate(r) for r in result.scalars().all()]
+
+
+@router.get("/{case_id}/files/{file_id}", response_model=EvidenceDetailResponse)
+async def get_evidence_detail(
+    case_id: uuid.UUID,
+    file_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    """Detailed view of one evidence item: metadata, extracted text, import
+    history, parsed record count and links to derived entities/events/signals."""
+    await check_case_membership(db, user.id, case_id)
+    result = await db.execute(
+        select(EvidenceFile).where(EvidenceFile.id == file_id, EvidenceFile.case_id == case_id)
+    )
+    ev = result.scalar_one_or_none()
+    if not ev:
+        raise HTTPException(status_code=404, detail="Evidence file not found")
+
+    imports = (await db.execute(
+        select(Import).where(Import.evidence_file_id == ev.id).order_by(Import.created_at.desc())
+    )).scalars().all()
+
+    record_count = (await db.execute(
+        select(func.count()).select_from(SourceRecord).where(SourceRecord.evidence_file_id == ev.id)
+    )).scalar() or 0
+
+    file_record_ids = select(SourceRecord.id).where(SourceRecord.evidence_file_id == ev.id)
+
+    entity_count = (await db.execute(
+        select(func.count()).select_from(Entity)
+        .join(EventParticipant, EventParticipant.entity_id == Entity.id)
+        .join(Event, Event.id == EventParticipant.event_id)
+        .where(Event.case_id == case_id, Event.source_record_id.in_(file_record_ids))
+    )).scalar() or 0
+
+    event_count = (await db.execute(
+        select(func.count()).select_from(Event).where(
+            Event.case_id == case_id,
+            Event.source_record_id.in_(select(SourceRecord.id).where(SourceRecord.evidence_file_id == ev.id)),
+        )
+    )).scalar() or 0
+
+    return EvidenceDetailResponse(
+        id=str(ev.id), case_id=str(ev.case_id), original_filename=ev.original_filename,
+        media_type=ev.media_type, byte_size=ev.byte_size, sha256=ev.sha256,
+        source_type=ev.source_type, source_description=ev.source_description,
+        uploaded_by=str(ev.uploaded_by), parser_version=ev.parser_version,
+        status=ev.status, extracted_text=ev.extracted_text,
+        extraction_error=ev.extraction_error, retry_count=ev.retry_count,
+        accepted_count=ev.accepted_count, rejected_count=ev.rejected_count,
+        created_at=ev.created_at, record_count=record_count,
+        import_history=[
+            {
+                "id": str(i.id), "status": str(i.status.value) if hasattr(i.status, "value") else str(i.status),
+                "accepted_count": i.accepted_count, "rejected_count": i.rejected_count,
+                "error_details": i.error_details, "created_at": i.created_at,
+                "completed_at": i.completed_at,
+            }
+            for i in imports
+        ],
+        derived_links={
+            "entity_count": entity_count,
+            "event_count": event_count,
+            "record_count": record_count,
+        },
+    )
+
+
+@router.post("/{case_id}/files/{file_id}/retry-extract", response_model=EvidenceDetailResponse)
+async def retry_extract(
+    case_id: uuid.UUID,
+    file_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    """Re-run text extraction for a failed/corrupt text or PDF document."""
+    await check_case_write_access(db, user, case_id)
+    result = await db.execute(
+        select(EvidenceFile).where(EvidenceFile.id == file_id, EvidenceFile.case_id == case_id)
+    )
+    ev = result.scalar_one_or_none()
+    if not ev:
+        raise HTTPException(status_code=404, detail="Evidence file not found")
+    ext = ev.original_filename.rsplit(".", 1)[-1].lower() if "." in ev.original_filename else ""
+    if ext not in ("txt", "pdf"):
+        raise HTTPException(status_code=400, detail="Text extraction is only available for TXT/PDF documents")
+
+    from app.services.evidence_service import extract_document_text, chunk_document_text
+    from app.models.models import DocumentChunk
+    try:
+        extracted = extract_document_text(ev.storage_path, ev.media_type)
+        ev.extracted_text = extracted
+        ev.extraction_error = None
+        ev.retry_count = (ev.retry_count or 0) + 1
+        ev.status = "ready"
+        await db.flush()
+        chunk_result = await db.execute(
+            select(DocumentChunk).where(DocumentChunk.evidence_file_id == ev.id)
+        )
+        for old in chunk_result.scalars().all():
+            await db.delete(old)
+        await db.flush()
+        chunk_count = chunk_document_text(db, case_id, ev)
+        ev.parser_version = f"text_extractor_v1/{chunk_count}chunks"
+    except ValueError as exc:
+        ev.extraction_error = str(exc)
+        ev.status = "failed"
+        await db.commit()
+        raise HTTPException(status_code=422, detail=str(exc))
+
+    await log_audit_event(db, case_id, user.id, "evidence_extraction_retried", "evidence_file", ev.id,
+                          {"retry_count": ev.retry_count})
+    await db.commit()
+    return await get_evidence_detail(case_id, file_id, db, user)

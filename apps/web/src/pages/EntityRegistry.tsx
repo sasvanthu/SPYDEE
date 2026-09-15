@@ -17,6 +17,29 @@ export default function EntityRegistry() {
     enabled: !!caseId,
   });
 
+  const { data: mergeSuggestions } = useQuery({
+    queryKey: ['merge-suggestions', caseId],
+    queryFn: () => api.getMergeSuggestions(caseId!),
+    enabled: !!caseId,
+  });
+
+  const generateMerges = useMutation({
+    mutationFn: () => api.generateMergeCandidates(caseId!),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['merge-suggestions', caseId] }),
+  });
+
+  const mergeDecision = useMutation({
+    mutationFn: ({ id, decision }: any) =>
+      decision === 'apply' ? api.applyMergeSuggestion(caseId!, id) : api.dismissMergeSuggestion(caseId!, id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['merge-suggestions', caseId] });
+      queryClient.invalidateQueries({ queryKey: ['entities', caseId] });
+      queryClient.invalidateQueries({ queryKey: ['workspace-summary', caseId] });
+    },
+  });
+
+  const pendingMerges = (mergeSuggestions || []).filter((m: any) => m.review_state === 'new');
+
   const reviewMutation = useMutation({
     mutationFn: ({ entityId, decision }: any) => api.reviewEntity(caseId!, entityId, { decision, note: reviewNote }),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['entities', caseId] }); setSelectedEntity(null); setReviewNote(''); },
@@ -46,6 +69,58 @@ export default function EntityRegistry() {
           </select>
           <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search entities..."
             className="px-3 py-2 border rounded-md text-sm flex-1" />
+        </div>
+
+        <div className="bg-white border border-orange-200 rounded-lg p-4 mb-6">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="font-semibold text-gray-900">Entity Merge Suggestions</h2>
+            <div className="flex items-center gap-3">
+              <span className="text-xs text-gray-500 font-medium">{pendingMerges.length} pending</span>
+              <button onClick={() => generateMerges.mutate()} disabled={generateMerges.isPending}
+                className="text-xs bg-orange-100 text-orange-700 border border-orange-200 px-3 py-1.5 rounded font-medium hover:bg-orange-200 disabled:opacity-50">
+                {generateMerges.isPending ? 'Generating...' : 'Generate Candidates'}
+              </button>
+            </div>
+          </div>
+          <p className="text-xs text-gray-500 mb-3">Review confidence-scored candidate merges. Applying a merge relinks identifiers, participants and relationships to the primary entity and archives the secondary.</p>
+          {pendingMerges.length > 0 ? (
+            <div className="space-y-2">
+              {pendingMerges.map((m: any) => (
+                <div key={m.id} className="border border-gray-200 rounded-lg p-3 flex items-center justify-between gap-4">
+                  <div className="min-w-0">
+                    <div className="text-sm text-gray-800">
+                      <span className="font-mono text-xs">{m.primary_entity_id?.slice(0, 8)}</span>
+                      <span className="mx-2 text-gray-400">→</span>
+                      <span className="font-mono text-xs">{m.secondary_entity_id?.slice(0, 8)}</span>
+                      <span className="ml-2 font-medium">merge into</span>
+                      <span className="mx-2 text-gray-400">←</span>
+                      <span className="font-mono text-xs">{m.primary_entity_id?.slice(0, 8)}</span>
+                    </div>
+                    {m.reason && <div className="text-xs text-gray-500 mt-1">{m.reason}</div>}
+                    {m.basis && <div className="text-[11px] text-gray-400 mt-1">Basis: {m.basis} · {m.evidence_record_ids?.length || 0} supporting records</div>}
+                  </div>
+                  <div className="flex items-center gap-3 flex-shrink-0">
+                    <span className={`text-xs px-2 py-0.5 rounded font-medium ${
+                      m.confidence >= 0.8 ? 'bg-green-100 text-green-700' :
+                      m.confidence >= 0.5 ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-600'
+                    }`}>{Math.round((m.confidence || 0) * 100)}%</span>
+                    <button onClick={() => mergeDecision.mutate({ id: m.id, decision: 'apply' })}
+                      disabled={mergeDecision.isPending}
+                      className="text-xs bg-green-500 text-white px-3 py-1.5 rounded font-medium hover:bg-green-600 disabled:opacity-50">
+                      Apply
+                    </button>
+                    <button onClick={() => mergeDecision.mutate({ id: m.id, decision: 'dismiss' })}
+                      disabled={mergeDecision.isPending}
+                      className="text-xs bg-gray-100 text-gray-600 px-3 py-1.5 rounded font-medium hover:bg-gray-200 disabled:opacity-50">
+                      Dismiss
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-sm text-gray-400">No pending merge suggestions. Generate candidates to scan for duplicate entities.</div>
+          )}
         </div>
         <div className="bg-white border rounded-lg overflow-hidden">
           {entities && entities.length > 0 ? (

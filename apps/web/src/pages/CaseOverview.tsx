@@ -30,10 +30,16 @@ export default function CaseOverview() {
     enabled: !!caseId,
   });
 
+  const { data: ws } = useQuery({
+    queryKey: ['workspace-summary', caseId],
+    queryFn: () => api.getWorkspaceSummary(caseId!),
+    enabled: !!caseId,
+  });
+
   if (isLoading) return <div className="text-center py-12 text-gray-400">Loading...</div>;
   if (!caseData) return <div className="text-center py-12 text-gray-400">Case not found</div>;
 
-  const latestRun = runs?.[runs.length - 1];
+  const latestRun = runs?.[runs.length - 1] || ws?.latest_run;
 
   return (
     <div className="max-w-5xl mx-auto">
@@ -51,13 +57,13 @@ export default function CaseOverview() {
       </div>
       <p className="text-gray-500 text-sm mb-6">{caseData.case_code} — {caseData.description || 'No description'}</p>
 
-      <div className="grid grid-cols-5 gap-4 mb-8">
+      <div className="grid grid-cols-5 gap-4 mb-6">
         {[
-          { label: 'Entities', value: caseData.entity_count || 0, color: 'bg-cyan-50 border-cyan-200 text-cyan-800' },
-          { label: 'Relations', value: caseData.relationship_count || 0, color: 'bg-blue-50 border-blue-200 text-blue-800' },
-          { label: 'Events', value: caseData.event_count || 0, color: 'bg-amber-50 border-amber-200 text-amber-800' },
-          { label: 'Signals', value: latestRun?.signal_count ?? caseData.signal_count ?? 0, color: 'bg-violet-50 border-violet-200 text-violet-800' },
-          { label: 'Hypotheses', value: caseData.hypothesis_count || 0, color: 'bg-red-50 border-red-200 text-red-800' },
+          { label: 'Entities', value: ws?.entity_count ?? (caseData.entity_count || 0), color: 'bg-cyan-50 border-cyan-200 text-cyan-800' },
+          { label: 'Relations', value: ws?.relationship_count ?? (caseData.relationship_count || 0), color: 'bg-blue-50 border-blue-200 text-blue-800' },
+          { label: 'Events', value: ws?.event_count ?? (caseData.event_count || 0), color: 'bg-amber-50 border-amber-200 text-amber-800' },
+          { label: 'Signals', value: ws?.signal_count ?? (latestRun?.signal_count ?? (caseData.signal_count || 0)), color: 'bg-violet-50 border-violet-200 text-violet-800' },
+          { label: 'Hypotheses', value: ws?.hypothesis_count ?? (caseData.hypothesis_count || 0), color: 'bg-red-50 border-red-200 text-red-800' },
         ].map(stat => (
           <div key={stat.label} className={`${stat.color} border rounded-lg p-4 text-center`}>
             <div className="text-2xl font-bold">{stat.value}</div>
@@ -65,6 +71,38 @@ export default function CaseOverview() {
           </div>
         ))}
       </div>
+
+      <div className="grid grid-cols-4 gap-4 mb-8">
+        {[
+          { label: 'Open Contradictions', value: ws?.open_contradictions ?? 0, path: `/cases/${caseId}/contradictions`, color: 'bg-orange-50 border-orange-200 text-orange-800' },
+          { label: 'Open Leads', value: ws?.open_leads ?? 0, path: `/cases/${caseId}/leads`, color: 'bg-blue-50 border-blue-200 text-blue-800' },
+          { label: 'Open Gaps', value: ws?.open_gaps ?? 0, path: `/cases/${caseId}/leads`, color: 'bg-purple-50 border-purple-200 text-purple-800' },
+          { label: 'Pending Actions', value: ws?.open_actions ?? 0, path: `/cases/${caseId}/leads`, color: 'bg-teal-50 border-teal-200 text-teal-800' },
+        ].map(stat => (
+          <button key={stat.label} onClick={() => navigate(stat.path)}
+            className={`${stat.color} border rounded-lg p-4 text-center hover:shadow-md transition`}>
+            <div className="text-2xl font-bold">{stat.value}</div>
+            <div className="text-xs opacity-80">{stat.label}</div>
+          </button>
+        ))}
+      </div>
+
+      {ws?.recent_activity && ws.recent_activity.length > 0 && (
+        <div className="bg-white border border-gray-200 rounded-lg p-4 mb-6">
+          <h3 className="font-medium text-gray-900 text-sm mb-3">Recent Activity</h3>
+          <div className="space-y-1.5">
+            {ws.recent_activity.map((a: any) => (
+              <div key={a.id} className="flex items-center justify-between text-xs">
+                <div className="flex items-center gap-2">
+                  <span className={`px-1.5 py-0.5 rounded text-[10px] uppercase ${a.kind === 'job' ? 'bg-violet-100 text-violet-700' : 'bg-gray-100 text-gray-600'}`}>{a.kind}</span>
+                  <span className="text-gray-600">{a.action}{a.status ? ` — ${a.status}` : ''}</span>
+                </div>
+                <span className="text-gray-400">{a.created_at ? new Date(a.created_at).toLocaleString() : ''}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {latestRun && (
         <div className="bg-white border border-gray-200 rounded-lg p-4 mb-6">
@@ -100,10 +138,15 @@ export default function CaseOverview() {
               <span className="bg-blue-100 p-2 rounded text-blue-700 font-bold text-sm">◈</span>
               <div><div className="font-medium text-gray-900">Open Graph</div><div className="text-xs text-gray-500">Explore entity relationships</div></div>
             </button>
-            <button onClick={() => navigate(`/cases/${caseId}/hypotheses`)}
+            <button onClick={() => navigate(`/cases/${caseId}/leads`)}
               className="w-full text-left bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition flex items-center gap-3">
-              <span className="bg-amber-100 p-2 rounded text-amber-700 font-bold text-sm">◇</span>
-              <div><div className="font-medium text-gray-900">Review Leads</div><div className="text-xs text-gray-500">Inspect hypotheses and evidence</div></div>
+              <span className="bg-orange-100 p-2 rounded text-orange-700 font-bold text-sm">↦</span>
+              <div><div className="font-medium text-gray-900">Leads, Gaps & Actions</div><div className="text-xs text-gray-500">Prioritise leads, track open questions and next steps</div></div>
+            </button>
+            <button onClick={() => navigate(`/cases/${caseId}/contradictions`)}
+              className="w-full text-left bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition flex items-center gap-3">
+              <span className="bg-orange-100 p-2 rounded text-orange-700 font-bold text-sm">≠</span>
+              <div><div className="font-medium text-gray-900">Contradictions</div><div className="text-xs text-gray-500">Review conflicting evidence</div></div>
             </button>
             <button onClick={() => navigate(`/cases/${caseId}/workbench`)}
               className="w-full text-left bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition flex items-center gap-3">

@@ -9,6 +9,7 @@ export default function Reports() {
   const [title, setTitle] = useState('');
   const [generating, setGenerating] = useState(false);
   const [selectedReport, setSelectedReport] = useState<any>(null);
+  const [analysisRunId, setAnalysisRunId] = useState('');
 
   const { data: reports } = useQuery({
     queryKey: ['reports', caseId],
@@ -22,8 +23,18 @@ export default function Reports() {
     enabled: !!caseId,
   });
 
+  const { data: runs } = useQuery({
+    queryKey: ['analysis-runs', caseId],
+    queryFn: () => api.getAnalysisRuns(caseId!),
+    enabled: !!caseId,
+  });
+
   const generateMutation = useMutation({
-    mutationFn: () => api.createReport(caseId!, { title: title || `Report - ${new Date().toLocaleDateString()}`, include_unresolved: true }),
+    mutationFn: () => api.createReport(caseId!, {
+      title: title || `Report - ${new Date().toLocaleDateString()}`,
+      include_unresolved: true,
+      analysis_run_id: analysisRunId || undefined,
+    }),
     onSuccess: (data) => { queryClient.invalidateQueries({ queryKey: ['reports', caseId] }); setSelectedReport(data); setGenerating(false); },
   });
 
@@ -37,6 +48,15 @@ export default function Reports() {
           <div className="flex items-center gap-4">
             <input type="text" value={title} onChange={e => setTitle(e.target.value)}
               placeholder="Report title..." className="flex-1 px-3 py-2 border rounded-md text-sm" />
+            {runs && runs.length > 1 && (
+              <select value={analysisRunId} onChange={e => setAnalysisRunId(e.target.value)}
+                className="px-3 py-2 border rounded-md text-sm bg-gray-50">
+                <option value="">Latest analysis run</option>
+                {[...runs].reverse().map((r: any) => (
+                  <option key={r.id} value={r.id}>v{r.version} — {r.created_at ? new Date(r.created_at).toLocaleString() : r.id.slice(0, 8)}</option>
+                ))}
+              </select>
+            )}
             <button onClick={() => { setGenerating(true); generateMutation.mutate(); }} disabled={generating}
               className="bg-azure-500 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-azure-600 disabled:opacity-50">
               {generating ? 'Generating...' : 'Generate Report'}
@@ -94,14 +114,101 @@ export default function Reports() {
             <div><span className="text-navy-400">Generated:</span> {new Date(selectedReport.created_at).toLocaleString()}</div>
             {selectedReport.content?.summary && (
               <div className="bg-gray-50 p-3 rounded">
-                <div>Entities: {selectedReport.content.summary.total_entities}</div>
-                <div>Relationships: {selectedReport.content.summary.total_relationships}</div>
-                <div>Hypotheses: {selectedReport.content.summary.total_hypotheses}</div>
+                <div className="font-medium text-navy-700 text-xs mb-1">Summary</div>
+                <div className="grid grid-cols-3 gap-x-2 gap-y-1 text-xs text-navy-600">
+                  <div>Entities: {selectedReport.content.summary.total_entities}</div>
+                  <div>Relations: {selectedReport.content.summary.total_relationships}</div>
+                  <div>Hypotheses: {selectedReport.content.summary.total_hypotheses}</div>
+                  <div>Signals: {selectedReport.content.summary.total_signals ?? '-'}</div>
+                  <div>Evidence files: {selectedReport.content.summary.total_evidence_files}</div>
+                  <div>Source records: {selectedReport.content.summary.total_source_records}</div>
+                  <div>Open contradictions: {selectedReport.content.summary.open_contradictions ?? 0}</div>
+                  <div>Open leads: {selectedReport.content.summary.open_leads ?? 0}</div>
+                  <div>Open gaps: {selectedReport.content.summary.open_gaps ?? 0}</div>
+                  <div>Pending actions: {selectedReport.content.summary.open_actions ?? 0}</div>
+                </div>
+                {selectedReport.content.analysis_version != null && (
+                  <div className="text-[11px] text-navy-400 mt-2">Analysis run: v{selectedReport.content.analysis_version}{selectedReport.content.analysis_run_id ? ` (${selectedReport.content.analysis_run_id.slice(0, 8)})` : ''}</div>
+                )}
               </div>
             )}
+
+            {selectedReport.content?.evidence?.length > 0 && (
+              <div className="mt-2">
+                <strong className="text-xs">Evidence ({selectedReport.content.evidence.length})</strong>
+                {selectedReport.content.evidence.slice(0, 8).map((e: any) => (
+                  <div key={e.id} className="text-[11px] bg-gray-50 p-2 rounded mt-1 text-navy-600">
+                    <span className="font-medium">{e.filename}</span>
+                    <span className="ml-2 text-navy-400">{e.source_type}</span>
+                    <span className={`ml-2 px-1 rounded ${e.status === 'failed' ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'}`}>{e.status}</span>
+                    <span className="ml-2 text-navy-400">{e.accepted_count} accepted</span>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {selectedReport.content?.contradictions?.length > 0 && (
+              <div className="mt-2">
+                <strong className="text-xs">Contradictions ({selectedReport.content.contradictions.length})</strong>
+                {selectedReport.content.contradictions.map((c: any) => (
+                  <div key={c.id} className="text-[11px] bg-orange-50 border border-orange-200 p-2 rounded mt-1 text-navy-600">
+                    <span className="font-medium">{c.title}</span>
+                    <span className={`ml-2 px-1 rounded ${c.status === 'resolved' ? 'bg-green-100 text-green-600' : c.status === 'dismissed' ? 'bg-gray-100 text-gray-500' : 'bg-orange-100 text-orange-600'}`}>{c.status}</span>
+                    {c.explanation && <div className="text-[10px] text-navy-400 mt-1">{c.explanation}</div>}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {selectedReport.content?.leads?.length > 0 && (
+              <div className="mt-2">
+                <strong className="text-xs">Leads ({selectedReport.content.leads.length})</strong>
+                {selectedReport.content.leads.map((l: any) => (
+                  <div key={l.id} className="text-[11px] bg-blue-50 border border-blue-200 p-2 rounded mt-1 text-navy-600">
+                    <span className="font-medium">{l.title}</span>
+                    <span className={`ml-2 px-1 rounded ${
+                      l.priority === 'critical' ? 'bg-red-100 text-red-600' :
+                      l.priority === 'high' ? 'bg-orange-100 text-orange-600' : 'bg-gray-100 text-gray-600'
+                    }`}>{l.priority}</span>
+                    <span className={`ml-2 text-navy-400`}>{l.status}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {selectedReport.content?.information_gaps?.length > 0 && (
+              <div className="mt-2">
+                <strong className="text-xs">Information Gaps ({selectedReport.content.information_gaps.length})</strong>
+                {selectedReport.content.information_gaps.map((g: any) => (
+                  <div key={g.id} className="text-[11px] bg-purple-50 border border-purple-200 p-2 rounded mt-1 text-navy-600">
+                    <span className="font-medium">{g.title}</span>
+                    <span className={`ml-2 px-1 rounded ${g.status === 'addressed' ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-600'}`}>{g.status}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {selectedReport.content?.actions?.length > 0 && (
+              <div className="mt-2">
+                <strong className="text-xs">Investigation Actions ({selectedReport.content.actions.length})</strong>
+                {selectedReport.content.actions.map((a: any) => (
+                  <div key={a.id} className="text-[11px] bg-teal-50 border border-teal-200 p-2 rounded mt-1 text-navy-600">
+                    <span className="font-medium">{a.title}</span>
+                    <span className={`ml-2 px-1 rounded ${
+                      a.status === 'completed' ? 'bg-green-100 text-green-600' :
+                      a.status === 'failed' ? 'bg-red-100 text-red-600' :
+                      a.status === 'in_progress' ? 'bg-blue-100 text-blue-600' :
+                      'bg-gray-100 text-gray-600'
+                    }`}>{a.status}</span>
+                    {a.proposed_step && <div className="text-[10px] text-navy-400 mt-1">{a.proposed_step}</div>}
+                  </div>
+                ))}
+              </div>
+            )}
+
             {selectedReport.content?.hypotheses?.length > 0 && (
-              <div>
-                <strong>Waterfall</strong>
+              <div className="mt-2">
+                <strong className="text-xs">Hypotheses ({selectedReport.content.hypotheses.length})</strong>
                 <div className="mt-1 space-y-1">
                   {[...selectedReport.content.hypotheses]
                     .sort((a: any, b: any) => (b.numeric_value || 0) - (a.numeric_value || 0))
@@ -117,25 +224,6 @@ export default function Reports() {
                       </div>
                     ))}
                 </div>
-              </div>
-            )}
-            {selectedReport.content?.hypotheses?.length > 0 && (
-              <div>
-                <strong>Hypotheses:</strong>
-                {[...selectedReport.content.hypotheses]
-                  .sort((a: any, b: any) => (b.numeric_value || 0) - (a.numeric_value || 0))
-                  .map((h: any, i: number) => (
-                    <div key={h.id || i} className="bg-gray-50 p-2 rounded mt-1">
-                      <div className="flex justify-between">
-                        <span>Strength: {h.numeric_value}/100</span>
-                        <span>{h.review_state || h.state || 'pending'}</span>
-                      </div>
-                      <div className="text-navy-400 mt-1 overflow-hidden text-ellipsis">
-                        {h.entity_pair_name || h.stable_key || h.hypothesis_type}
-                      </div>
-                      {h.notes && <div className="text-navy-600 mt-1">{h.notes}</div>}
-                    </div>
-                  ))}
               </div>
             )}
             {selectedReport.content?.review_decisions?.length > 0 && (

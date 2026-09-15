@@ -17,7 +17,7 @@ from app.config import get_settings
 from app.models.models import (
     Entity, Identifier, EntityIdentifierLink, Relationship, Hypothesis, Signal,
     SourceRecord, Event, DocumentChunk, EntityType, EventParticipant,
-    HypothesisRecommendation,
+    HypothesisRecommendation, Contradiction, Lead, InformationGap, InvestigationAction,
 )
 
 FORBIDDEN_SQL = re.compile(r"\b(insert|update|delete|drop|alter|truncate|grant|revoke|create)\b", re.I)
@@ -44,9 +44,10 @@ def _describe_tools() -> str:
         "entity_dossier(entity_id): relationships + signals + timeline for one entity",
         "shortest_path(src_name, dst_name): path between two identified entities",
         "timeline(entity_id): chronological events involving an entity",
-        "contradictions: hypotheses flagged with contradicting evidence (impossible travel, conflicts)",
-        "info_gaps: hypotheses missing data families with recommended actions",
-        "rag_search(term): retrieve text chunks from uploaded documents",
+        "contradictions: evidence conflicts recorded in the workspace (signals + structured)",
+        "info_gaps: information gaps and next-best actions for hypotheses and leads",
+        "open_leads: investigation leads awaiting review, with priority",
+        "rag_search(term): retrieve text chunks from uploaded documents (all citations link to sources)",
         "sql_query(sql): read-only SQL restricted to the case tables; MUST include case_id = '<uuid>'",
     ])
 
@@ -161,12 +162,30 @@ async def _tool_contradictions(db, case_id) -> list:
     sigs = (await db.execute(
         select(Signal).where(Signal.case_id == case_id, Signal.contradiction == True)  # noqa: E712
     )).scalars().all()
-    return [{
+    out = [{
+        "kind": "signal",
         "id": str(s.id),
         "family": s.family,
         "reason": s.contradiction_reason if hasattr(s, "contradiction_reason") else s.explanation,
         "numeric_value": s.numeric_value,
     } for s in sigs]
+    crows = (await db.execute(
+        select(Contradiction).where(
+            Contradiction.case_id == case_id,
+            Contradiction.status.in_(["OPEN", "NEEDS_CLARIFICATION"]),
+        ).order_by(Contradiction.created_at.desc())
+    )).scalars().all()
+    for c in crows:
+        statements = c.statements or []
+        out.append({
+            "kind": "workspace",
+            "id": str(c.id),
+            "family": c.detection_method or "workspace",
+            "reason": c.explanation or c.title,
+            "title": c.title,
+            "statements": [s.get("text") if isinstance(s, dict) else str(s) for s in statements[:4]],
+        })
+    return out
 
 
 async def _tool_info_gaps(db, case_id) -> list:
@@ -191,7 +210,55 @@ async def _tool_info_gaps(db, case_id) -> list:
             "notes": (h.notes or "")[:200],
             "recommendation": rec.rationale if rec else None,
         })
+    gaps = (await db.execute(
+        select(InformationGap).where(InformationGap.case_id == case_id, InformationGap.status == "OPEN")
+        .order_by(InformationGap.created_at.desc()).limit(8)
+    )).scalars().all()
+    for g in gaps:
+        rows.append({
+            "gap_id": str(g.id),
+            "type": "information_gap",
+            "numeric_value": None,
+            "notes": (g.description or g.title)[:200],
+            "recommendation": None,
+        })
     return rows
+
+
+async def _tool_open_leads(db, case_id) -> list:
+    leads = (await db.execute(
+        select(Lead).where(Lead.case_id == case_id, Lead.status.in_(["OPEN", "IN_PROGRESS"]))
+        .order_by(Lead.updated_at.desc()).limit(10)
+    )).scalars().all()
+    out = []
+    for l in leads:
+        out.append({
+            "lead_id": str(l.id),
+            "title": l.title,
+            "description": (l.description or "")[:200],
+            "priority": l.priority.value if l.priority else "medium",
+            "priority_rationale": l.priority_rationale,
+            "status": l.status.value if l.status else "open",
+            "origin_type": l.origin_type,
+        })
+    return out
+
+
+async def _tool_open_actions(db, case_id) -> list:
+    actions = (await db.execute(
+        select(InvestigationAction).where(
+            InvestigationAction.case_id == case_id,
+            InvestigationAction.status.in_(["PROPOSED", "IN_PROGRESS"]),
+        ).order_by(InvestigationAction.created_at.desc()).limit(10)
+    )).scalars().all()
+    return [{
+        "action_id": str(a.id),
+        "title": a.title,
+        "proposed_step": a.proposed_step,
+        "expected_information": a.expected_information,
+        "status": a.status.value if a.status else "proposed",
+        "gap_id": str(a.gap_id) if a.gap_id else None,
+    } for a in actions]
 
 
 async def _tool_rag(db, case_id, term: str) -> list:
@@ -211,6 +278,7 @@ async def _tool_rag(db, case_id, term: str) -> list:
     scored.sort(key=lambda x: x[0], reverse=True)
     return [{
         "id": str(c.id),
+        "evidence_file_id": str(c.evidence_file_id) if c.evidence_file_id else None,
         "page": c.page_number,
         "text": (c.text_content or "")[:400],
     } for _, c in scored[:5]]
@@ -255,6 +323,8 @@ TOOL_REGISTRY = {
     "timeline": _tool_timeline,
     "contradictions": _tool_contradictions,
     "info_gaps": _tool_info_gaps,
+    "open_leads": _tool_open_leads,
+    "open_actions": _tool_open_actions,
     "rag_search": _tool_rag,
     "sql_query": _tool_sql,
     "run_analysis": _tool_run_analysis,
@@ -352,36 +422,51 @@ async def answer_copilot_query(
         chunks = await _tool_rag(db, case_id, term)
         if chunks:
             draft = "Relevant document excerpts:\n" + "\n".join(
-                f"- [{c['page']}] {c['text']}" for c in chunks
+                f"- [{'page ' + str(c['page']) if c['page'] else 'no page'}] "
+                f"{' '.join(str(c['text']).split())[:280]}" for c in chunks
             )
-            citations.extend({"type": "document_chunk", "id": c["id"], "page": c["page"]} for c in chunks)
+            for c in chunks:
+                if c.get("evidence_file_id"):
+                    citations.append({"type": "document_chunk", "id": c["id"], "evidence_file_id": c["evidence_file_id"], "page": c["page"]})
+                else:
+                    citations.append({"type": "document_chunk", "id": c["id"]})
         else:
-            draft = "No document chunks matched that topic in this case."
-        follow_ups = ["List uploaded documents", "Search another term"]
+            draft = "No document chunks matched that topic in this case. You can upload TXT/PDF evidence to make it searchable."
+        follow_ups = ["List uploaded evidence", "What are the open contradictions?"]
 
     elif "contradict" in q or "conflict" in q or "impossible" in q:
         contras = await _tool_contradictions(db, case_id)
         if contras:
             draft = "Contradicting/conflicting evidence:\n" + "\n".join(
-                f"- [{c['family']}] {c['reason']}" for c in contras[:6]
+                f"- {c['reason']}" for c in contras[:6]
             )
-            citations.extend({"type": "signal", "id": c["id"]} for c in contras[:6])
-            links = [{"type": "signal", "id": c["id"]} for c in contras[:3]]
+            for c in contras[:8]:
+                if c["kind"] == "workspace":
+                    citations.append({"type": "contradiction", "id": c["id"], "title": c.get("title")})
+                    links.append({"type": "contradiction", "id": c["id"]})
+                else:
+                    citations.append({"type": "signal", "id": c["id"]})
         else:
             draft = "No contradicting evidence detected in the current analysis run."
-        follow_ups = ["Show info gaps", "Run analysis again with more data"]
+        follow_ups = ["What are the open information gaps?", "Run analysis again with more data"]
 
     elif "gap" in q or "missing" in q or "insufficient" in q:
         gaps = await _tool_info_gaps(db, case_id)
         if gaps:
-            draft = "Information gaps and recommended actions:\n" + "\n".join(
-                f"- [{g['type']} {g['numeric_value']}/100] {g['notes']} -> {g['recommendation'] or 'n/a'}"
+            draft = "Information gaps and next-best actions:\n" + "\n".join(
+                f"- [{g['type']}] {g['notes']} {'-> ' + str(g['recommendation']) if g.get('recommendation') else ''}"
+                .rstrip()
                 for g in gaps[:6]
             )
-            citations.extend({"type": "hypothesis", "id": g["hypothesis_id"]} for g in gaps[:6])
+            for g in gaps[:6]:
+                if g.get("gap_id"):
+                    citations.append({"type": "information_gap", "id": g["gap_id"]})
+                    links.append({"type": "information_gap", "id": g["gap_id"]})
+                elif g.get("hypothesis_id"):
+                    citations.append({"type": "hypothesis", "id": g["hypothesis_id"]})
         else:
-            draft = "No info-gap hypotheses recorded yet."
-        follow_ups = ["List all hypotheses", "Show contradictions"]
+            draft = "No open information gaps recorded for this case."
+        follow_ups = ["What should we do next?", "Show open leads"]
 
     elif "path" in q or ("connect" in q and len(entity_hits) >= 2):
         if len(entity_hits) >= 2:
@@ -465,7 +550,32 @@ async def answer_copilot_query(
         citations.append({"type": "identifier", "value": id_hits[0][1]})
         links.append({"type": "identifier", "value": id_hits[0][1]})
 
-    elif "hypothes" in q or "strength" in q or "score" in q or "strongest" in q or "leads" in q or "lead" in q:
+    elif "action" in q or "next step" in q or "what to do" in q or "should we" in q:
+        acts = await _tool_open_actions(db, case_id)
+        if acts:
+            draft = "Proposed next-best actions:\n" + "\n".join(
+                f"- [{a['status']}] {a['title']}: {a['proposed_step'] or 'n/a'} "
+                f"(expects: {a['expected_information'] or 'n/a'})" for a in acts[:6]
+            )
+        else:
+            draft = "No open proposed actions. Ask about information gaps to find next steps, or record a lead."
+        follow_ups = ["Show open information gaps", "Show open leads", "Generate a report"]
+
+    elif "leads" in q or "lead" in q:
+        leads = await _tool_open_leads(db, case_id)
+        if leads:
+            draft = "Open investigation leads:\n" + "\n".join(
+                f"- [{l['priority']}, {l['status']}] {l['title']} — {(l['description'] or '')[:140]}"
+                for l in leads[:8]
+            )
+            for l in leads[:6]:
+                citations.append({"type": "lead", "id": l["lead_id"], "title": l["title"]})
+                links.append({"type": "lead", "id": l["lead_id"]})
+        else:
+            draft = "No open leads recorded yet. Leads can be created from findings or an investigator note."
+        follow_ups = ["What are the information gaps?", "What should we do next?", "Show contradictions"]
+
+    elif "hypothes" in q or "strength" in q or "score" in q or "strongest" in q:
         hyps = (await db.execute(
             select(Hypothesis).where(Hypothesis.case_id == case_id).order_by(Hypothesis.numeric_value.desc())
         )).scalars().all()
@@ -520,9 +630,10 @@ async def answer_copilot_query(
             f"SPYDEE copilot ready for case {case_id}. "
             f"{len(all_entities)} entities, {rec_count} source records. "
             "Ask to: explain an entity, trace a path between two entities, "
-            "search uploaded documents, or inspect contradictions/info gaps."
+            "search uploaded documents, inspect contradictions/info gaps, "
+            "or list open leads and proposed actions."
         )
-        follow_ups = ["List all entities", "Show all hypotheses", "Run analysis"]
+        follow_ups = ["List all entities", "Show open leads", "What are the information gaps?"]
 
     answer = await _maybe_llm_polish(query, draft, citations)
     return {

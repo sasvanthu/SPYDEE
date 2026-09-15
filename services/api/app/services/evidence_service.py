@@ -19,7 +19,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
 from app.config import get_settings
-from app.models.models import EvidenceFile, Import, SourceRecord, JobStatus
+from app.models.models import EvidenceFile, Import, SourceRecord, DocumentChunk, JobStatus
 from app.services.entity_service import (
     normalize_identifier, canonical_hash, persist_derived_structure,
     _load_identifier_map,
@@ -329,6 +329,111 @@ def compute_row_hash(normalized: dict) -> str:
 
 # ─── Upload ──────────────────────────────────────────────────────────────────
 
+def extract_document_text(storage_path: str, media_type: str = None) -> str:
+    """Extract plain text from an uploaded document (txt or pdf).
+
+    Returns the extracted text or raises ValueError with a useful message.
+    Text extraction is best-effort: PDFs that yield no extractable text are
+    reported honestly rather than fabricating content."""
+    full_path = os.path.join(settings.UPLOAD_DIR, storage_path)
+    ext = os.path.splitext(full_path)[1].lower()
+    if not os.path.exists(full_path):
+        raise ValueError("Stored file missing from upload volume")
+    if ext == ".txt":
+        with open(full_path, "r", encoding="utf-8", errors="replace") as f:
+            return f.read(settings.MAX_DOCUMENT_TEXT_CHARS)
+    if ext == ".pdf":
+        try:
+            from pypdf import PdfReader
+        except ImportError:
+            raise ValueError("PDF text extraction dependency (pypdf) is unavailable")
+        try:
+            reader = PdfReader(full_path)
+        except Exception as exc:
+            raise ValueError(f"Could not parse PDF: {str(exc)[:200]}")
+        pages = []
+        for i, page in enumerate(reader.pages):
+            try:
+                text = page.extract_text() or ""
+            except Exception as exc:
+                text = ""
+                logger.warning("pdf page %s extraction failed: %s", i, str(exc)[:120])
+            if text:
+                pages.append(f"[page {i + 1}]\n{text.strip()}")
+        joined = "\n\n".join(pages)
+        if not joined.strip():
+            raise ValueError("PDF contained no extractable text")
+        return joined[: settings.MAX_DOCUMENT_TEXT_CHARS]
+    return ""
+
+
+def chunk_document_text(db: AsyncSession, case_id: uuid.UUID, evidence_file: EvidenceFile) -> int:
+    """Split extracted document text into searchable chunks (paragraph-aware).
+
+    Uses the LLM-RAG style of chunking: window of ~1600 characters, split on
+    paragraph breaks, retaining page markers. Never fabricates page numbers or
+    character offsets."""
+    text = evidence_file.extracted_text or ""
+    if not text.strip():
+        return 0
+    CHUNK_SIZE = 1600
+    chunks = []
+    current_page = None
+    buffer = []
+    buffer_len = 0
+
+    for line in text.split("\n"):
+        page_match = False
+        stripped = line.strip()
+        if stripped.startswith("[page ") and stripped.endswith("]"):
+            try:
+                current_page = int(stripped[6:-1])
+                page_match = True
+            except ValueError:
+                page_match = False
+        if current_page is not None and buffer:
+            if page_match:
+                buffer.append("")
+        buffer.append(stripped if stripped else "")
+        buffer_len += max(1, len(stripped))
+        if buffer_len >= CHUNK_SIZE and "\n\n" in "\n".join(buffer):
+            joined = "\n".join(buffer).strip()
+            while len(joined) > CHUNK_SIZE:
+                split_at = joined.rfind("\n\n", 0, CHUNK_SIZE)
+                if split_at <= 0:
+                    split_at = CHUNK_SIZE
+                chunks.append(joined[:split_at].strip())
+                joined = joined[split_at:].strip()
+            if joined:
+                chunks.append(joined)
+            buffer = []
+            buffer_len = 0
+    if buffer:
+        joined = "\n".join(buffer).strip()
+        if joined:
+            chunks.append(joined)
+
+    for i, chunk_text in enumerate(chunks):
+        if not chunk_text.strip():
+            continue
+        page_number = None
+        first_line = chunk_text.split("\n")[0].strip()
+        if first_line.startswith("[page ") and first_line.endswith("]"):
+            try:
+                page_number = int(first_line[6:-1])
+            except ValueError:
+                page_number = None
+        db.add(DocumentChunk(
+            case_id=case_id,
+            evidence_file_id=evidence_file.id,
+            page_number=page_number,
+            line_start=None,
+            line_end=None,
+            text_content=chunk_text,
+        ))
+    return len(chunks)
+
+
 async def save_uploaded_file(
     db: AsyncSession,
     case_id: uuid.UUID,
@@ -362,6 +467,15 @@ async def save_uploaded_file(
     with open(full_path, "wb") as f:
         f.write(content)
 
+    # For TXT/PDF documents, attempt honest text extraction.
+    extracted_text = None
+    extraction_error = None
+    if ext.lower() in (".txt", ".pdf"):
+        try:
+            extracted_text = extract_document_text(storage_path, file.content_type)
+        except ValueError as exc:
+            extraction_error = str(exc)
+
     ev = EvidenceFile(
         case_id=case_id,
         original_filename=file.filename or "unknown",
@@ -373,9 +487,16 @@ async def save_uploaded_file(
         source_description=source_description,
         uploaded_by=user_id,
         status="uploaded",
+        extracted_text=extracted_text,
+        extraction_error=extraction_error,
     )
     db.add(ev)
     await db.flush()
+    if extracted_text and ext.lower() in (".txt", ".pdf"):
+        chunk_count = chunk_document_text(db, case_id, ev)
+        if chunk_count:
+            ev.status = "ready"
+            ev.parser_version = f"text_extractor_v1/{chunk_count}chunks"
     return ev
 
 

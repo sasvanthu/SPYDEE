@@ -13,9 +13,26 @@ export default function EvidenceRoom() {
   const [importingId, setImportingId] = useState<string | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [importError, setImportError] = useState<string | null>(null);
+  const [detailFile, setDetailFile] = useState<any>(null);
+  const [showExtracted, setShowExtracted] = useState(false);
 
   const { data: files } = useQuery({ queryKey: ['files', caseId], queryFn: () => api.getFiles(caseId!), enabled: !!caseId });
   const { data: imports } = useQuery({ queryKey: ['imports', caseId], queryFn: () => api.getImports(caseId!), enabled: !!caseId });
+
+  const { data: detail } = useQuery({
+    queryKey: ['evidence-detail', caseId, detailFile?.id],
+    queryFn: () => api.getEvidenceDetail(caseId!, detailFile!.id),
+    enabled: !!caseId && !!detailFile?.id,
+  });
+
+  const retryMutation = useMutation({
+    mutationFn: () => api.retryExtract(caseId!, detailFile!.id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['evidence-detail', caseId] });
+      queryClient.invalidateQueries({ queryKey: ['files', caseId] });
+      queryClient.invalidateQueries({ queryKey: ['workspace-summary', caseId] });
+    },
+  });
 
   const uploadMutation = useMutation({
     mutationFn: async () => {
@@ -116,7 +133,7 @@ export default function EvidenceRoom() {
             </tr></thead>
             <tbody>
               {files.map((f: any) => (
-                <tr key={f.id} className="border-b border-gray-100 hover:bg-gray-50">
+                <tr key={f.id} className="border-b border-gray-100 hover:bg-gray-50 cursor-pointer" onClick={() => setDetailFile(f)}>
                   <td className="px-6 py-3 font-medium text-gray-900">{f.original_filename}</td>
                   <td className="px-6 py-3 text-gray-600">{f.source_type}</td>
                   <td className="px-6 py-3 text-gray-600">{(f.byte_size / 1024).toFixed(1)} KB</td>
@@ -175,6 +192,82 @@ export default function EvidenceRoom() {
           <div className="p-8 text-center text-gray-500 text-sm">No imports yet</div>
         )}
       </div>
+
+      {detailFile && detail && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-6" onClick={() => setDetailFile(null)}>
+          <div className="bg-white rounded-lg max-w-3xl w-full max-h-[85vh] overflow-y-auto p-6" onClick={e => e.stopPropagation()}>
+            <div className="flex items-start justify-between mb-4">
+              <div>
+                <h2 className="text-lg font-bold text-gray-900">{detail.original_filename}</h2>
+                <p className="text-xs text-gray-500 mt-1">
+                  <span className="font-mono">{detail.sha256?.substring(0, 24)}...</span> · {detail.source_type} · {(detail.byte_size / 1024).toFixed(1)} KB
+                </p>
+                <span className={`inline-block mt-2 text-xs px-2 py-0.5 rounded ${
+                  detail.status === 'failed' ? 'bg-red-100 text-red-700' :
+                  detail.status === 'imported' || detail.status === 'ready' ? 'bg-green-100 text-green-700' :
+                  'bg-amber-100 text-amber-700'
+                }`}>{detail.status}</span>
+              </div>
+              <button onClick={() => setDetailFile(null)} className="text-sm text-gray-400 hover:text-gray-600">✕</button>
+            </div>
+
+            <div className="grid grid-cols-4 gap-3 mb-4">
+              {[
+                { label: 'Parsed Records', value: detail.record_count ?? 0 },
+                { label: 'Accepted', value: detail.accepted_count ?? 0 },
+                { label: 'Rejected', value: detail.rejected_count ?? 0 },
+                { label: 'Derived Events', value: detail.derived_links?.event_count ?? 0 },
+              ].map(s => (
+                <div key={s.label} className="bg-gray-50 rounded-lg p-3 text-center">
+                  <div className="text-xl font-bold text-gray-900">{s.value}</div>
+                  <div className="text-[11px] text-gray-500">{s.label}</div>
+                </div>
+              ))}
+            </div>
+
+            {(detail.extraction_error || detail.status === 'failed') && (
+              <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-4 text-sm text-red-700">
+                <div className="font-medium mb-1">Extraction issue</div>
+                <div className="text-xs">{detail.extraction_error || 'Text extraction failed for this document.'}</div>
+                {detail.retry_count > 0 && <div className="text-xs mt-1">Retried {detail.retry_count} time(s)</div>}
+                <button onClick={() => retryMutation.mutate()} disabled={retryMutation.isPending}
+                  className="mt-2 bg-red-600 text-white px-3 py-1 rounded text-xs font-medium hover:bg-red-700 disabled:opacity-50">
+                  {retryMutation.isPending ? 'Retrying...' : 'Retry Extraction'}
+                </button>
+              </div>
+            )}
+
+            {detail.extracted_text && (
+              <div className="mb-4">
+                <button onClick={() => setShowExtracted(v => !v)}
+                  className="text-xs text-cyan-700 bg-cyan-50 border border-cyan-200 px-3 py-1.5 rounded font-medium hover:bg-cyan-100">
+                  {showExtracted ? 'Hide' : 'Show'} Extracted Text ({detail.extracted_text.length.toLocaleString()} chars)
+                </button>
+                {showExtracted && (
+                  <pre className="mt-3 p-4 bg-gray-50 border border-gray-200 rounded-lg text-xs whitespace-pre-wrap max-h-80 overflow-y-auto text-gray-700">
+                    {detail.extracted_text}
+                  </pre>
+                )}
+              </div>
+            )}
+
+            {detail.import_history?.length > 0 && (
+              <div className="mb-4">
+                <h3 className="font-medium text-gray-700 text-sm mb-2">Import History</h3>
+                {detail.import_history.map((i: any) => (
+                  <div key={i.id} className="flex items-center justify-between text-xs bg-gray-50 p-2 rounded mb-1">
+                    <span className={`font-medium ${i.status === 'completed' ? 'text-green-600' : i.status === 'failed' ? 'text-red-600' : 'text-amber-600'}`}>{i.status}</span>
+                    <span className="text-gray-500">{i.accepted_count} accepted · {i.rejected_count} rejected</span>
+                    <span className="text-gray-400">{i.created_at ? new Date(i.created_at).toLocaleString() : ''}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <button onClick={() => setDetailFile(null)} className="text-xs text-gray-500 hover:underline">Close</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

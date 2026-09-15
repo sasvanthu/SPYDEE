@@ -30,19 +30,41 @@ export default function Layout() {
     navigate('/login');
   };
 
-  const caseNav = caseId ? [
-    { label: 'Overview', path: `/cases/${caseId}`, icon: '○' },
-    { label: 'Evidence', path: `/cases/${caseId}/evidence`, icon: '▣' },
-    { label: 'Entities', path: `/cases/${caseId}/entities`, icon: '●' },
-    { label: 'Graph', path: `/cases/${caseId}/graph`, icon: '◈' },
-    { label: 'Map', path: `/cases/${caseId}/map`, icon: '◎' },
-    { label: 'Timeline', path: `/cases/${caseId}/timeline`, icon: '▷' },
-    { label: 'Workbench', path: `/cases/${caseId}/workbench`, icon: '◆' },
-    { label: 'Hypotheses', path: `/cases/${caseId}/hypotheses`, icon: '◇' },
-    { label: 'Copilot', path: `/cases/${caseId}/copilot`, icon: '▹' },
-    { label: 'Reports', path: `/cases/${caseId}/reports`, icon: '▤' },
+  const navSections = caseId ? [
+    {
+      heading: 'Overview',
+      items: [{ label: 'Case Overview', path: `/cases/${caseId}`, icon: '○' }],
+    },
+    {
+      heading: 'Evidence & Site',
+      items: [
+        { label: 'Evidence', path: `/cases/${caseId}/evidence`, icon: '▣' },
+        { label: 'Entities', path: `/cases/${caseId}/entities`, icon: '●' },
+        { label: 'Graph', path: `/cases/${caseId}/graph`, icon: '◈' },
+        { label: 'Map', path: `/cases/${caseId}/map`, icon: '◎' },
+        { label: 'Timeline', path: `/cases/${caseId}/timeline`, icon: '▷' },
+      ],
+    },
+    {
+      heading: 'Intelligence',
+      items: [
+        { label: 'Workbench', path: `/cases/${caseId}/workbench`, icon: '◆' },
+        { label: 'Contradictions', path: `/cases/${caseId}/contradictions`, icon: '≠' },
+        { label: 'Hypotheses & Leads', path: `/cases/${caseId}/hypotheses`, icon: '◇' },
+        { label: 'Leads, Gaps & Actions', path: `/cases/${caseId}/leads`, icon: '↦' },
+      ],
+    },
+    {
+      heading: 'Partner Tools',
+      items: [{ label: 'Copilot', path: `/cases/${caseId}/copilot`, icon: '▹' }],
+    },
+    {
+      heading: 'Output',
+      items: [{ label: 'Reports', path: `/cases/${caseId}/reports`, icon: '▤' }],
+    },
   ] : [];
 
+  const caseNav = (navSections || []).flatMap(s => s.items);
   const currentSection = caseNav.find(n => location.pathname === n.path)?.label || '';
 
   return (
@@ -67,20 +89,25 @@ export default function Layout() {
             Cases
           </button>
           {caseId && (
-            <div className="mt-2 mb-2 px-3">
+            <div className="mt-1 mb-1 px-3">
               <div className="text-[10px] uppercase tracking-wider text-gray-500 mb-1">Case Menu</div>
             </div>
           )}
-          {caseNav.map(item => (
-            <button key={item.path} onClick={() => navigate(item.path)}
-              className={`w-full text-left px-3 py-1.5 rounded flex items-center gap-2 transition-colors ${
-                location.pathname === item.path
-                  ? 'bg-[#22d3ee] text-[#0f172a] font-semibold'
-                  : 'hover:bg-[#1e293b] text-gray-400 hover:text-gray-200'
-              }`}>
-              <span className="text-[10px] opacity-60">{item.icon}</span>
-              {item.label}
-            </button>
+          {navSections.map(section => (
+            <div key={section.heading} className="mb-3">
+              <div className="px-3 text-[10px] uppercase tracking-wider text-gray-600 mb-1">{section.heading}</div>
+              {section.items.map(item => (
+                <button key={item.path} onClick={() => navigate(item.path)}
+                  className={`w-full text-left px-3 py-1.5 rounded flex items-center gap-2 transition-colors ${
+                    location.pathname === item.path
+                      ? 'bg-[#22d3ee] text-[#0f172a] font-semibold'
+                      : 'hover:bg-[#1e293b] text-gray-400 hover:text-gray-200'
+                  }`}>
+                  <span className="text-[10px] opacity-60">{item.icon}</span>
+                  {item.label}
+                </button>
+              ))}
+            </div>
           ))}
         </nav>
         <div className="p-3 border-t border-[#1e293b]">

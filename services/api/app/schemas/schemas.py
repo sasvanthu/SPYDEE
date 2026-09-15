@@ -382,4 +382,251 @@ class PaginatedResponse(BaseModel):
     page_size: int
 
 
+class SourceRef(BaseModel):
+    case_id: Optional[str] = None
+    evidence_id: Optional[str] = None
+    record_id: Optional[str] = None
+    locator: Optional[str] = None
+    excerpt: Optional[str] = None
+    extraction_method: Optional[str] = None
+    analysis_run_id: Optional[str] = None
+    finding_id: Optional[str] = None
+    source_type: Optional[str] = None
+
+
+# ─── Investigation workspace schemas ────────────────────────────────
+
+class ContradictionStatement(BaseModel):
+    text: str
+    source_ref: Optional[SourceRef] = None
+    entity_id: Optional[str] = None
+
+
+class ContradictionCreate(BaseModel):
+    title: str
+    statements: List[ContradictionStatement]
+    entity_ids: Optional[List[str]] = None
+    time_context: Optional[str] = None
+    detection_method: Optional[str] = None
+    explanation: Optional[str] = None
+    analysis_run_id: Optional[str] = None
+
+
+class ContradictionResponse(BaseModel):
+    id: str
+    case_id: str
+    title: str
+    statements: List[dict]
+    entity_ids: Optional[List]
+    time_context: Optional[str]
+    detection_method: Optional[str]
+    explanation: Optional[str]
+    status: str
+    resolution_note: Optional[str]
+    resolved_by: Optional[str]
+    analysis_run_id: Optional[str]
+    created_at: Optional[datetime]
+    updated_at: Optional[datetime]
+
+    class Config:
+        from_attributes = True
+
+
+class ContradictionReview(BaseModel):
+    decision: str
+    note: Optional[str] = None
+
+
+class ContradictionReviewHistory(BaseModel):
+    id: str
+    reviewer_id: str
+    decision: str
+    note: Optional[str]
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class ContradictionDetail(BaseModel):
+    contradiction: ContradictionResponse
+    review_history: List[ContradictionReviewHistory] = []
+
+
+class LeadCreate(BaseModel):
+    title: str
+    description: Optional[str] = None
+    origin_type: Optional[str] = None
+    origin_id: Optional[str] = None
+    entity_ids: Optional[List[str]] = None
+    supporting_evidence_refs: Optional[List[SourceRef]] = None
+    conflicting_evidence_refs: Optional[List[SourceRef]] = None
+    priority: str = "medium"
+    priority_rationale: Optional[str] = None
+
+
+class LeadUpdate(BaseModel):
+    status: Optional[str] = None
+    priority: Optional[str] = None
+    priority_rationale: Optional[str] = None
+    description: Optional[str] = None
+
+
+class LeadResponse(BaseModel):
+    id: str
+    case_id: str
+    title: str
+    description: Optional[str]
+    origin_type: Optional[str]
+    origin_id: Optional[str]
+    entity_ids: Optional[List]
+    supporting_evidence_refs: Optional[List]
+    conflicting_evidence_refs: Optional[List]
+    priority: str
+    priority_rationale: Optional[str]
+    status: str
+    created_by: Optional[str]
+    created_at: Optional[datetime]
+    updated_at: Optional[datetime]
+
+    class Config:
+        from_attributes = True
+
+
+class LeadReview(BaseModel):
+    decision: str
+    note: Optional[str] = None
+
+
+class LeadDetail(BaseModel):
+    lead: LeadResponse
+    gaps: List["GapResponse"] = []
+    actions: List["ActionResponse"] = []
+    review_history: List[dict] = []
+
+
+class GapCreate(BaseModel):
+    lead_id: Optional[str] = None
+    title: str
+    description: Optional[str] = None
+    related_entity_ids: Optional[List[str]] = None
+    related_evidence_refs: Optional[List[SourceRef]] = None
+
+
+class GapUpdate(BaseModel):
+    status: Optional[str] = None
+    resolution_note: Optional[str] = None
+
+
+class GapResponse(BaseModel):
+    id: str
+    case_id: str
+    lead_id: Optional[str]
+    title: str
+    description: Optional[str]
+    related_entity_ids: Optional[List]
+    related_evidence_refs: Optional[List]
+    status: str
+    resolution_note: Optional[str]
+    created_at: Optional[datetime]
+    updated_at: Optional[datetime]
+
+    class Config:
+        from_attributes = True
+
+
+class GapDetail(BaseModel):
+    gap: GapResponse
+    actions: List["ActionResponse"] = []
+
+
+class ActionCreate(BaseModel):
+    gap_id: Optional[str] = None
+    lead_id: Optional[str] = None
+    title: str
+    description: Optional[str] = None
+    proposed_step: Optional[str] = None
+    expected_information: Optional[str] = None
+    source_refs: Optional[List[SourceRef]] = None
+
+
+class ActionUpdate(BaseModel):
+    status: Optional[str] = None
+    outcome_notes: Optional[str] = None
+
+
+class ActionResponse(BaseModel):
+    id: str
+    case_id: str
+    gap_id: Optional[str]
+    lead_id: Optional[str]
+    title: str
+    description: Optional[str]
+    proposed_step: Optional[str]
+    expected_information: Optional[str]
+    source_refs: Optional[List]
+    status: str
+    outcome_notes: Optional[str]
+    created_at: Optional[datetime]
+    updated_at: Optional[datetime]
+
+    class Config:
+        from_attributes = True
+
+
+class ManualEventCreate(BaseModel):
+    event_type: str
+    label: str
+    start_time: Optional[str] = None
+    end_time: Optional[str] = None
+    time_precision: Optional[str] = None
+    details: Optional[dict] = None
+    participant_entity_ids: Optional[List[str]] = None
+
+
+class CaseWorkspaceSummary(BaseModel):
+    case: CaseResponse
+    evidence_processing: dict = {}
+    entity_count: int = 0
+    relationship_count: int = 0
+    event_count: int = 0
+    signal_count: int = 0
+    hypothesis_count: int = 0
+    open_contradictions: int = 0
+    open_leads: int = 0
+    open_gaps: int = 0
+    open_actions: int = 0
+    findings_awaiting_review: int = 0
+    recent_evidence: List[dict] = []
+    recent_activity: List[dict] = []
+    latest_run: Optional[dict] = None
+
+
+class EvidenceDetailResponse(BaseModel):
+    id: str
+    case_id: str
+    original_filename: str
+    media_type: str
+    byte_size: int
+    sha256: str
+    source_type: str
+    source_description: Optional[str]
+    uploaded_by: str
+    parser_version: Optional[str]
+    status: str
+    extracted_text: Optional[str]
+    extraction_error: Optional[str]
+    retry_count: int
+    accepted_count: int
+    rejected_count: int
+    created_at: datetime
+    record_count: int = 0
+    import_history: List[dict] = []
+    derived_links: dict = {}
+
+    class Config:
+        from_attributes = True
+
+
+LeadDetail.model_rebuild()
 TokenResponse.model_rebuild()

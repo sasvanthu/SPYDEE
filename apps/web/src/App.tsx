@@ -10,6 +10,8 @@ import NetworkMap from './pages/NetworkMap';
 import Timeline from './pages/Timeline';
 import IntelligenceWorkbench from './pages/IntelligenceWorkbench';
 import HypothesisList from './pages/HypothesisList';
+import Contradictions from './pages/Contradictions';
+import LeadsPage from './pages/LeadsPage';
 import Copilot from './pages/Copilot';
 import Reports from './pages/Reports';
 import Layout from './components/Layout';
@@ -38,7 +40,9 @@ export default function App() {
             <Route path="cases/:caseId/map" element={<NetworkMap />} />
             <Route path="cases/:caseId/timeline" element={<Timeline />} />
             <Route path="cases/:caseId/workbench" element={<IntelligenceWorkbench />} />
+            <Route path="cases/:caseId/contradictions" element={<Contradictions />} />
             <Route path="cases/:caseId/hypotheses" element={<HypothesisList />} />
+            <Route path="cases/:caseId/leads" element={<LeadsPage />} />
             <Route path="cases/:caseId/copilot" element={<Copilot />} />
             <Route path="cases/:caseId/reports" element={<Reports />} />
           </Route>
