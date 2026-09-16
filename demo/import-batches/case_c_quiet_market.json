@@ -6,8 +6,8 @@
     "start_time": "2026-08-14T06:00:00",
     "duration_seconds": 98,
     "direction": "outgoing",
-    "caller_device_id": "DEV-FA1D3360",
-    "caller_tower_id": "3ba3a7ce-b12b-4ef7-9e2e-87feeba0e0d6"
+    "caller_device_id": "DEV-C47B8AA8",
+    "caller_tower_id": "094ae341-2cc9-432f-aa3a-6d5f84c36832"
   },
   {
     "record_id": "CDR-Q-7260",
@@ -16,8 +16,8 @@
     "start_time": "2026-08-04T05:00:00",
     "duration_seconds": 45,
     "direction": "outgoing",
-    "caller_device_id": "DEV-F4017882",
-    "caller_tower_id": "e3e48f54-c441-4266-bcc0-756248381a11"
+    "caller_device_id": "DEV-13A3072B",
+    "caller_tower_id": "05a9fa3f-f145-401b-b160-054d50617931"
   },
   {
     "record_id": "CDR-Q-2910",
@@ -26,8 +26,8 @@
     "start_time": "2026-08-01T18:00:00",
     "duration_seconds": 20,
     "direction": "outgoing",
-    "caller_device_id": "DEV-A0100663",
-    "caller_tower_id": "7484d28e-a5fd-44d5-92a2-d3518f8829c8"
+    "caller_device_id": "DEV-C0EFE9CC",
+    "caller_tower_id": "09eeb264-f114-4f1e-99b1-95e10032f751"
   },
   {
     "record_id": "CDR-Q-4685",
@@ -36,8 +36,8 @@
     "start_time": "2026-08-22T07:00:00",
     "duration_seconds": 12,
     "direction": "outgoing",
-    "caller_device_id": "DEV-EE68ADFB",
-    "caller_tower_id": "e3e48f54-c441-4266-bcc0-756248381a11"
+    "caller_device_id": "DEV-333465FB",
+    "caller_tower_id": "05a9fa3f-f145-401b-b160-054d50617931"
   },
   {
     "record_id": "CDR-Q-7290",
@@ -46,8 +46,8 @@
     "start_time": "2026-08-19T20:00:00",
     "duration_seconds": 71,
     "direction": "outgoing",
-    "caller_device_id": "DEV-1B74E09F",
-    "caller_tower_id": "d9be46de-eef5-40f2-a9c6-bb2834fff540"
+    "caller_device_id": "DEV-94BA039F",
+    "caller_tower_id": "1a73fa26-f2d9-4951-9c8c-3f3050ab715f"
   },
   {
     "record_id": "CDR-Q-2629",
@@ -56,8 +56,8 @@
     "start_time": "2026-08-19T19:00:00",
     "duration_seconds": 51,
     "direction": "outgoing",
-    "caller_device_id": "DEV-0C56C52D",
-    "caller_tower_id": "7484d28e-a5fd-44d5-92a2-d3518f8829c8"
+    "caller_device_id": "DEV-DDFA19C1",
+    "caller_tower_id": "09eeb264-f114-4f1e-99b1-95e10032f751"
   },
   {
     "record_id": "CDR-Q-7451",
@@ -66,8 +66,8 @@
     "start_time": "2026-08-13T15:00:00",
     "duration_seconds": 81,
     "direction": "outgoing",
-    "caller_device_id": "DEV-44C13CF8",
-    "caller_tower_id": "e3e48f54-c441-4266-bcc0-756248381a11"
+    "caller_device_id": "DEV-67F05F2C",
+    "caller_tower_id": "05a9fa3f-f145-401b-b160-054d50617931"
   },
   {
     "record_id": "CDR-Q-4399",
@@ -76,8 +76,8 @@
     "start_time": "2026-08-17T18:00:00",
     "duration_seconds": 94,
     "direction": "outgoing",
-    "caller_device_id": "DEV-CDCE2FDC",
-    "caller_tower_id": "7484d28e-a5fd-44d5-92a2-d3518f8829c8"
+    "caller_device_id": "DEV-F156BC4F",
+    "caller_tower_id": "09eeb264-f114-4f1e-99b1-95e10032f751"
   },
   {
     "record_id": "CDR-Q-1087",
@@ -86,8 +86,8 @@
     "start_time": "2026-08-20T20:00:00",
     "duration_seconds": 81,
     "direction": "outgoing",
-    "caller_device_id": "DEV-D320EC6A",
-    "caller_tower_id": "e3e48f54-c441-4266-bcc0-756248381a11"
+    "caller_device_id": "DEV-407C89C7",
+    "caller_tower_id": "05a9fa3f-f145-401b-b160-054d50617931"
   },
   {
     "record_id": "CDR-Q-4378",
@@ -96,8 +96,8 @@
     "start_time": "2026-08-02T19:00:00",
     "duration_seconds": 93,
     "direction": "outgoing",
-    "caller_device_id": "DEV-E450673B",
-    "caller_tower_id": "3ba3a7ce-b12b-4ef7-9e2e-87feeba0e0d6"
+    "caller_device_id": "DEV-CE97EAB8",
+    "caller_tower_id": "094ae341-2cc9-432f-aa3a-6d5f84c36832"
   },
   {
     "record_id": "CDR-Q-1573",
@@ -106,8 +106,8 @@
     "start_time": "2026-08-18T23:00:00",
     "duration_seconds": 20,
     "direction": "outgoing",
-    "caller_device_id": "DEV-CFACD75C",
-    "caller_tower_id": "7484d28e-a5fd-44d5-92a2-d3518f8829c8"
+    "caller_device_id": "DEV-48CDB23A",
+    "caller_tower_id": "09eeb264-f114-4f1e-99b1-95e10032f751"
   },
   {
     "record_id": "CDR-Q-7931",
@@ -116,8 +116,8 @@
     "start_time": "2026-08-12T20:00:00",
     "duration_seconds": 94,
     "direction": "outgoing",
-    "caller_device_id": "DEV-8C2E4314",
-    "caller_tower_id": "42c52f1d-993b-4167-8aa9-bc6d941831c9"
+    "caller_device_id": "DEV-9CC885F5",
+    "caller_tower_id": "4c908ea0-1526-49cc-835c-ffc6463baa49"
   },
   {
     "record_id": "CDR-Q-9510",
@@ -126,8 +126,8 @@
     "start_time": "2026-08-10T16:00:00",
     "duration_seconds": 110,
     "direction": "outgoing",
-    "caller_device_id": "DEV-8A71B8FE",
-    "caller_tower_id": "5a1ea53f-1198-402f-843b-5cd828104f0c"
+    "caller_device_id": "DEV-EF6CD8E7",
+    "caller_tower_id": "ea5396fe-e95b-461c-b782-a9d47b4b362d"
   },
   {
     "record_id": "CDR-Q-6127",
@@ -136,8 +136,8 @@
     "start_time": "2026-08-06T06:00:00",
     "duration_seconds": 76,
     "direction": "outgoing",
-    "caller_device_id": "DEV-DC4B1409",
-    "caller_tower_id": "3cfb7d5d-cda9-4015-9166-7f3d9dfc6687"
+    "caller_device_id": "DEV-EE70F20A",
+    "caller_tower_id": "e09de481-dff2-441a-8f74-9cf7cf1f6d50"
   },
   {
     "record_id": "CDR-Q-4884",
@@ -146,8 +146,8 @@
     "start_time": "2026-08-04T16:00:00",
     "duration_seconds": 14,
     "direction": "outgoing",
-    "caller_device_id": "DEV-FE1F592C",
-    "caller_tower_id": "c1da8e5c-c4a2-4475-83cb-730bc86916a3"
+    "caller_device_id": "DEV-3CE2D692",
+    "caller_tower_id": "921a057c-3ebd-498a-ba71-d6f57d321142"
   },
   {
     "record_id": "CDR-Q-3198",
@@ -156,8 +156,8 @@
     "start_time": "2026-08-10T21:00:00",
     "duration_seconds": 87,
     "direction": "outgoing",
-    "caller_device_id": "DEV-F7D2E056",
-    "caller_tower_id": "c1da8e5c-c4a2-4475-83cb-730bc86916a3"
+    "caller_device_id": "DEV-43F795E8",
+    "caller_tower_id": "921a057c-3ebd-498a-ba71-d6f57d321142"
   },
   {
     "record_id": "CDR-Q-7914",
@@ -166,7 +166,7 @@
     "start_time": "2026-08-09T19:00:00",
     "duration_seconds": 19,
     "direction": "outgoing",
-    "caller_device_id": "DEV-903C5055",
-    "caller_tower_id": "5a1ea53f-1198-402f-843b-5cd828104f0c"
+    "caller_device_id": "DEV-F830D21A",
+    "caller_tower_id": "ea5396fe-e95b-461c-b782-a9d47b4b362d"
   }
 ]
