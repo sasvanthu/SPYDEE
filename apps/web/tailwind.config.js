@@ -4,12 +4,19 @@ export default {
   theme: {
     extend: {
       colors: {
-        navy: { 50: '#f0f1f5', 100: '#d9dce6', 200: '#b3b9cd', 300: '#8d96b4', 400: '#67739b', 500: '#415082', 600: '#16213e', 700: '#0f1a30', 800: '#0a1122', 900: '#050914' },
-        azure: { 50: '#e6f2ff', 100: '#cce5ff', 200: '#99cbff', 300: '#66b0ff', 400: '#3396ff', 500: '#007bff', 600: '#0062cc', 700: '#004a99', 800: '#003166', 900: '#001933' },
-        cyan: { 400: '#22d3ee', 500: '#06b6d4', 600: '#0891b2' },
-        amber: { 400: '#fbbf24', 500: '#f59e0b', 600: '#d97706' },
-        danger: { 400: '#f87171', 500: '#ef4444', 600: '#dc2626' },
-        success: { 400: '#4ade80', 500: '#22c55e', 600: '#16a34a' },
+        terminal: {
+          bg: '#080c08',
+          panel: '#0b100b',
+          surface: '#0a0f0a',
+          dark: '#070b07',
+          amber: '#f59e0b',
+          amberBright: '#fbbf24',
+          amberDim: '#92400e',
+        },
+      },
+      fontFamily: {
+        mono: ['"JetBrains Mono"', '"Share Tech Mono"', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'monospace'],
+        display: ['"Chakra Petch"', 'sans-serif'],
       },
     },
   },

@@ -26,10 +26,19 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 
 function NotFound() {
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center gap-4 text-center">
-      <div className="text-6xl font-bold text-gray-300">404</div>
-      <p className="text-gray-600">This page does not exist.</p>
-      <a href="/" className="text-azure-600 hover:underline text-sm">Back to cases</a>
+    <div className="min-h-screen bg-[#080705] text-[#FFBA42] font-mono flex flex-col items-center justify-center gap-4 text-center p-6 crt-screen">
+      <div className="text-6xl font-bold text-[#FF9E1B] tracking-widest [text-shadow:0_0_12px_rgba(255,158,27,0.4)]">
+        404 // NOT FOUND
+      </div>
+      <p className="text-xs text-[#A6732E] tracking-wider uppercase">
+        SPECIFIED CLASSIFIED NODE OR JURISDICTIONAL ROUTE DOES NOT EXIST.
+      </p>
+      <a
+        href="/"
+        className="px-4 py-2 bg-[#14110C] hover:bg-[#1A140B] text-[#FF9E1B] border border-[#3D2A12] hover:border-[#FF9E1B] rounded-xs text-xs tracking-wider transition-colors"
+      >
+        [ RETURN TO ACTIVE CASES CONSOLE ]
+      </a>
     </div>
   );
 }

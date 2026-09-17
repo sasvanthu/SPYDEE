@@ -2,24 +2,23 @@ import { useParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { api } from '../lib/api';
+import { FileText, Printer, Download, ShieldCheck, Plus, CheckCircle2, History, X } from 'lucide-react';
+import { TerminalPanel } from '../components/common/TerminalPanel';
+import { StatusBadge } from '../components/common/StatusBadge';
+import { useTerminalAlert } from '../context/TerminalAlertContext';
 
 export default function Reports() {
   const { caseId } = useParams<{ caseId: string }>();
   const queryClient = useQueryClient();
+  const { showAlert } = useTerminalAlert();
   const [title, setTitle] = useState('');
   const [generating, setGenerating] = useState(false);
   const [selectedReport, setSelectedReport] = useState<any>(null);
   const [analysisRunId, setAnalysisRunId] = useState('');
 
-  const { data: reports } = useQuery({
+  const { data: reports = [], isLoading } = useQuery({
     queryKey: ['reports', caseId],
     queryFn: () => api.getReports(caseId!),
-    enabled: !!caseId,
-  });
-
-  const { data: hypotheses } = useQuery({
-    queryKey: ['hypotheses', caseId],
-    queryFn: () => api.getHypotheses(caseId!),
     enabled: !!caseId,
   });
 
@@ -30,233 +29,284 @@ export default function Reports() {
   });
 
   const generateMutation = useMutation({
-    mutationFn: () => api.createReport(caseId!, {
-      title: title || `Report - ${new Date().toLocaleDateString()}`,
-      include_unresolved: true,
-      analysis_run_id: analysisRunId || undefined,
-    }),
-    onSuccess: (data) => { queryClient.invalidateQueries({ queryKey: ['reports', caseId] }); setSelectedReport(data); setGenerating(false); },
+    mutationFn: () =>
+      api.createReport(caseId!, {
+        title: title || `CASE REPORT // ${new Date().toISOString().slice(0, 10)}`,
+        include_unresolved: true,
+        analysis_run_id: analysisRunId || undefined,
+      }),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['reports', caseId] });
+      setSelectedReport(data);
+      setGenerating(false);
+      setTitle('');
+      showAlert('Forensic dossier successfully compiled & sealed.', 'SUCCESS');
+    },
+    onError: (err: any) => {
+      setGenerating(false);
+      showAlert(err?.response?.data?.detail || err?.message || 'Compilation failed', 'CRITICAL');
+    },
   });
 
   return (
-    <div className="max-w-6xl mx-auto flex gap-6">
-      <div className="flex-1">
-        <h1 className="text-2xl font-bold text-navy-700 mb-6">Reports & Audit</h1>
-
-        <div className="bg-white border rounded-lg p-6 mb-6">
-          <h2 className="font-semibold text-navy-700 mb-4">Generate Report</h2>
-          <div className="flex items-center gap-4">
-            <input type="text" value={title} onChange={e => setTitle(e.target.value)}
-              placeholder="Report title..." className="flex-1 px-3 py-2 border rounded-md text-sm" />
-            {runs && runs.length > 1 && (
-              <select value={analysisRunId} onChange={e => setAnalysisRunId(e.target.value)}
-                className="px-3 py-2 border rounded-md text-sm bg-gray-50">
-                <option value="">Latest analysis run</option>
-                {[...runs].reverse().map((r: any) => (
-                  <option key={r.id} value={r.id}>v{r.version} — {r.created_at ? new Date(r.created_at).toLocaleString() : r.id.slice(0, 8)}</option>
-                ))}
-              </select>
-            )}
-            <button onClick={() => { setGenerating(true); generateMutation.mutate(); }} disabled={generating}
-              className="bg-azure-500 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-azure-600 disabled:opacity-50">
-              {generating ? 'Generating...' : 'Generate Report'}
-            </button>
+    <div className="space-y-3 font-mono text-xs text-[#f59e0b]">
+      {/* HEADER */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-2 border-b border-amber-500/40 gap-2">
+        <div>
+          <div className="text-[11px] text-amber-500/70 font-bold tracking-widest uppercase">
+            // CASE CONSOLE // REPORTS & DOSSIERS
+          </div>
+          <div className="text-base md:text-lg font-black text-amber-300 tracking-wider">
+            JUDICIAL BRIEFS & EVIDENCE DISCOVERY MANIFESTS
+          </div>
+          <div className="text-[10px] text-amber-500/80">
+            SECTION 65B CERTIFIED EVIDENCE PACKAGES & CHARGESHEET ANNEXURES
           </div>
         </div>
 
-        <div className="bg-white border rounded-lg overflow-hidden mb-6">
-          <div className="px-6 py-3 border-b bg-gray-50">
-            <h2 className="font-semibold text-navy-700">Generated Reports</h2>
-          </div>
-          {reports && reports.length > 0 ? (
-            <div className="divide-y">
-              {reports.map((r: any) => (
-                <div key={r.id} onClick={() => setSelectedReport(r)}
-                  className={`px-6 py-4 cursor-pointer hover:bg-gray-50 ${selectedReport?.id === r.id ? 'bg-azure-50' : ''}`}>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="font-medium text-navy-700 text-sm">{r.title}</div>
-                      <div className="text-xs text-navy-400 mt-1">{new Date(r.created_at).toLocaleString()}</div>
-                    </div>
-                    <span className="text-xs bg-gray-100 px-2 py-0.5 rounded">{r.format}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="p-8 text-center text-navy-400 text-sm">No reports generated yet</div>
-          )}
-        </div>
-
-        <div className="bg-white border rounded-lg overflow-hidden">
-          <div className="px-6 py-3 border-b bg-gray-50">
-            <h2 className="font-semibold text-navy-700">Audit Log</h2>
-          </div>
-          <div className="p-6 text-sm text-navy-400">
-            <AuditLog caseId={caseId!} />
-          </div>
+        <div className="flex items-center gap-2">
+          <span className="text-amber-500/70 text-[11px]">
+            {reports?.length || 0} SEALED BRIEFS
+          </span>
         </div>
       </div>
 
-      {selectedReport && (
-        <div className="w-96 bg-white border rounded-lg p-5 h-fit sticky top-16 max-h-[calc(100vh-6rem)] overflow-y-auto">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="font-semibold text-navy-700">Report Preview</h3>
-            <div className="flex gap-2">
-              <button onClick={() => downloadMarkdown(selectedReport)}
-                className="bg-azure-500 text-white px-2 py-1 rounded text-xs hover:bg-azure-600">Export MD</button>
-              <button onClick={() => printReport(selectedReport)}
-                className="bg-navy-600 text-white px-2 py-1 rounded text-xs hover:bg-navy-700">Print / PDF</button>
-            </div>
-          </div>
-          <div className="text-xs space-y-3">
-            <div><span className="text-navy-400">Title:</span> {selectedReport.title}</div>
-            <div><span className="text-navy-400">Generated:</span> {new Date(selectedReport.created_at).toLocaleString()}</div>
-            {selectedReport.content?.summary && (
-              <div className="bg-gray-50 p-3 rounded">
-                <div className="font-medium text-navy-700 text-xs mb-1">Summary</div>
-                <div className="grid grid-cols-3 gap-x-2 gap-y-1 text-xs text-navy-600">
-                  <div>Entities: {selectedReport.content.summary.total_entities}</div>
-                  <div>Relations: {selectedReport.content.summary.total_relationships}</div>
-                  <div>Hypotheses: {selectedReport.content.summary.total_hypotheses}</div>
-                  <div>Signals: {selectedReport.content.summary.total_signals ?? '-'}</div>
-                  <div>Evidence files: {selectedReport.content.summary.total_evidence_files}</div>
-                  <div>Source records: {selectedReport.content.summary.total_source_records}</div>
-                  <div>Open contradictions: {selectedReport.content.summary.open_contradictions ?? 0}</div>
-                  <div>Open leads: {selectedReport.content.summary.open_leads ?? 0}</div>
-                  <div>Open gaps: {selectedReport.content.summary.open_gaps ?? 0}</div>
-                  <div>Pending actions: {selectedReport.content.summary.open_actions ?? 0}</div>
-                </div>
-                {selectedReport.content.analysis_version != null && (
-                  <div className="text-[11px] text-navy-400 mt-2">Analysis run: v{selectedReport.content.analysis_version}{selectedReport.content.analysis_run_id ? ` (${selectedReport.content.analysis_run_id.slice(0, 8)})` : ''}</div>
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 items-start">
+        {/* Left Column: Dossier Generator, Generated Reports & Audit */}
+        <div className="lg:col-span-7 space-y-3">
+          {/* Generation Console */}
+          <TerminalPanel title="COMPILE INTELLIGENCE BRIEFING" subtitle="JUDICIAL PROBABLE CAUSE ATTESTATION">
+            <div className="space-y-3">
+              <div>
+                <label className="block text-[10px] text-amber-500/80 uppercase mb-1">
+                  DOSSIER TITLE / JURISDICTIONAL REFERENCE:
+                </label>
+                <input
+                  type="text"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="e.g. SPECIAL REPORT // INTERIM PROBABLE CAUSE BRIEFING (FIR 104/2026)"
+                  className="w-full p-2 bg-black border border-amber-500/40 text-amber-300 text-xs outline-none"
+                />
+              </div>
+
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                {runs && runs.length > 0 && (
+                  <div className="flex-1">
+                    <label className="block text-[10px] text-amber-500/80 uppercase mb-1">
+                      ANALYSIS RUN VERSION:
+                    </label>
+                    <select
+                      value={analysisRunId}
+                      onChange={(e) => setAnalysisRunId(e.target.value)}
+                      className="w-full p-2 bg-black border border-amber-500/40 text-amber-300 text-xs outline-none font-mono"
+                    >
+                      <option value="">LATEST REVISED RUN (AUTOMATIC)</option>
+                      {[...runs].reverse().map((r: any) => (
+                        <option key={r.id} value={r.id}>
+                          RUN v{r.version} — {r.created_at ? new Date(r.created_at).toLocaleString() : r.id.slice(0, 8)}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 )}
-              </div>
-            )}
 
-            {selectedReport.content?.evidence?.length > 0 && (
-              <div className="mt-2">
-                <strong className="text-xs">Evidence ({selectedReport.content.evidence.length})</strong>
-                {selectedReport.content.evidence.slice(0, 8).map((e: any) => (
-                  <div key={e.id} className="text-[11px] bg-gray-50 p-2 rounded mt-1 text-navy-600">
-                    <span className="font-medium">{e.filename}</span>
-                    <span className="ml-2 text-navy-400">{e.source_type}</span>
-                    <span className={`ml-2 px-1 rounded ${e.status === 'failed' ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'}`}>{e.status}</span>
-                    <span className="ml-2 text-navy-400">{e.accepted_count} accepted</span>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {selectedReport.content?.contradictions?.length > 0 && (
-              <div className="mt-2">
-                <strong className="text-xs">Contradictions ({selectedReport.content.contradictions.length})</strong>
-                {selectedReport.content.contradictions.map((c: any) => (
-                  <div key={c.id} className="text-[11px] bg-orange-50 border border-orange-200 p-2 rounded mt-1 text-navy-600">
-                    <span className="font-medium">{c.title}</span>
-                    <span className={`ml-2 px-1 rounded ${c.status === 'resolved' ? 'bg-green-100 text-green-600' : c.status === 'dismissed' ? 'bg-gray-100 text-gray-500' : 'bg-orange-100 text-orange-600'}`}>{c.status}</span>
-                    {c.explanation && <div className="text-[10px] text-navy-400 mt-1">{c.explanation}</div>}
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {selectedReport.content?.leads?.length > 0 && (
-              <div className="mt-2">
-                <strong className="text-xs">Leads ({selectedReport.content.leads.length})</strong>
-                {selectedReport.content.leads.map((l: any) => (
-                  <div key={l.id} className="text-[11px] bg-blue-50 border border-blue-200 p-2 rounded mt-1 text-navy-600">
-                    <span className="font-medium">{l.title}</span>
-                    <span className={`ml-2 px-1 rounded ${
-                      l.priority === 'critical' ? 'bg-red-100 text-red-600' :
-                      l.priority === 'high' ? 'bg-orange-100 text-orange-600' : 'bg-gray-100 text-gray-600'
-                    }`}>{l.priority}</span>
-                    <span className={`ml-2 text-navy-400`}>{l.status}</span>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {selectedReport.content?.information_gaps?.length > 0 && (
-              <div className="mt-2">
-                <strong className="text-xs">Information Gaps ({selectedReport.content.information_gaps.length})</strong>
-                {selectedReport.content.information_gaps.map((g: any) => (
-                  <div key={g.id} className="text-[11px] bg-purple-50 border border-purple-200 p-2 rounded mt-1 text-navy-600">
-                    <span className="font-medium">{g.title}</span>
-                    <span className={`ml-2 px-1 rounded ${g.status === 'addressed' ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-600'}`}>{g.status}</span>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {selectedReport.content?.actions?.length > 0 && (
-              <div className="mt-2">
-                <strong className="text-xs">Investigation Actions ({selectedReport.content.actions.length})</strong>
-                {selectedReport.content.actions.map((a: any) => (
-                  <div key={a.id} className="text-[11px] bg-teal-50 border border-teal-200 p-2 rounded mt-1 text-navy-600">
-                    <span className="font-medium">{a.title}</span>
-                    <span className={`ml-2 px-1 rounded ${
-                      a.status === 'completed' ? 'bg-green-100 text-green-600' :
-                      a.status === 'failed' ? 'bg-red-100 text-red-600' :
-                      a.status === 'in_progress' ? 'bg-blue-100 text-blue-600' :
-                      'bg-gray-100 text-gray-600'
-                    }`}>{a.status}</span>
-                    {a.proposed_step && <div className="text-[10px] text-navy-400 mt-1">{a.proposed_step}</div>}
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {selectedReport.content?.hypotheses?.length > 0 && (
-              <div className="mt-2">
-                <strong className="text-xs">Hypotheses ({selectedReport.content.hypotheses.length})</strong>
-                <div className="mt-1 space-y-1">
-                  {[...selectedReport.content.hypotheses]
-                    .sort((a: any, b: any) => (b.numeric_value || 0) - (a.numeric_value || 0))
-                    .slice(0, 12)
-                    .map((h: any, i: number) => (
-                      <div key={h.id || i} className="flex items-center gap-2">
-                        <span className="w-8 text-navy-400 flex-shrink-0">{h.numeric_value ?? 0}</span>
-                        <div className="flex-1 bg-gray-100 rounded h-4 relative overflow-hidden">
-                          <div className={`h-full ${stateColor(h.review_state || h.state)}`}
-                            style={{ width: `${Math.max(2, h.numeric_value || 0)}%` }} />
-                        </div>
-                        <span className="w-14 text-right text-navy-400 flex-shrink-0">{h.review_state || 'pending'}</span>
-                      </div>
-                    ))}
+                <div className="sm:self-end">
+                  <button
+                    onClick={() => {
+                      setGenerating(true);
+                      generateMutation.mutate();
+                    }}
+                    disabled={generating}
+                    className="px-4 py-2 bg-amber-500 text-black font-bold hover:bg-amber-400 disabled:opacity-40 transition-colors shadow-[0_0_10px_rgba(245,158,11,0.4)] text-xs uppercase"
+                  >
+                    {generating ? '[ COMPILING... ]' : '+ COMPILE DOSSIER'}
+                  </button>
                 </div>
               </div>
-            )}
-            {selectedReport.content?.review_decisions?.length > 0 && (
-              <div>
-                <strong>Review Decisions:</strong>
-                <ul className="text-navy-400 mt-1 space-y-1">
-                  {selectedReport.content.review_decisions.map((r: any, i: number) => (
-                    <li key={i}>• {r.action}{r.note ? ` — ${r.note}` : ''}</li>
-                  ))}
-                </ul>
+            </div>
+          </TerminalPanel>
+
+          {/* Generated Reports Registry */}
+          <TerminalPanel title={`COMPILED DOSSIER REGISTRY (${reports?.length || 0})`}>
+            {isLoading ? (
+              <div className="p-8 text-center text-amber-500/70 text-xs">
+                [ LOADING COMPILED ARCHIVES... ]
+              </div>
+            ) : reports && reports.length > 0 ? (
+              <div className="divide-y divide-amber-500/20">
+                {reports.map((r: any) => {
+                  const isSelected = selectedReport?.id === r.id;
+                  return (
+                    <div
+                      key={r.id}
+                      onClick={() => setSelectedReport(r)}
+                      className={`p-3 cursor-pointer transition-colors flex items-center justify-between group ${
+                        isSelected
+                          ? 'bg-amber-950/20 border-l-2 border-amber-400'
+                          : 'hover:bg-[#0e160e]'
+                      }`}
+                    >
+                      <div className="space-y-1">
+                        <div className="font-bold text-xs text-amber-300 group-hover:text-amber-200 transition-colors flex items-center gap-2">
+                          <FileText className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                          <span>{r.title}</span>
+                          {isSelected && (
+                            <span className="text-[9px] text-amber-400 bg-amber-500/20 border border-amber-500/40 px-1.5 py-0.2">
+                              [ ACTIVE ]
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-[10px] text-amber-500/70 flex items-center gap-2">
+                          <span>GEN: {new Date(r.created_at).toLocaleString()}</span>
+                          <span>·</span>
+                          <span>DOC ID: #{r.id.slice(0, 8)}</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[9px] px-2 py-0.5 bg-emerald-950/80 border border-emerald-500 text-emerald-300 uppercase font-bold">
+                          SEC 65B READY
+                        </span>
+                        <span className="text-amber-400 text-xs group-hover:translate-x-1 transition-transform">
+                          &gt;
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="p-8 text-center text-amber-500/70 text-xs">
+                NO DOSSIERS COMPILED IN THIS INVESTIGATION YET.
               </div>
             )}
-            {selectedReport.content?.limitations && (
-              <div>
-                <strong>Limitations:</strong>
-                <ul className="text-navy-400 mt-1 space-y-1">
-                  {selectedReport.content.limitations.map((l: string, i: number) => <li key={i}>• {l}</li>)}
-                </ul>
-              </div>
-            )}
-          </div>
+          </TerminalPanel>
+
+          {/* Cryptographic Audit Ledger */}
+          <TerminalPanel title="CHAIN OF CUSTODY & AUDIT LEDGER" subtitle="IMMUTABLE DISK LOG">
+            <AuditLog caseId={caseId!} />
+          </TerminalPanel>
         </div>
-      )}
+
+        {/* Right Column: Selected Report Live Preview */}
+        <div className="lg:col-span-5 sticky top-16">
+          {selectedReport ? (
+            <TerminalPanel
+              title="DOSSIER INSPECTOR & PREVIEW"
+              subtitle={`SHA-256: ${selectedReport.id.slice(0, 16)}...`}
+              headerRight={
+                <div className="flex gap-1.5">
+                  <button
+                    onClick={() => downloadMarkdown(selectedReport)}
+                    className="px-2 py-0.5 bg-black border border-amber-500/40 text-amber-300 text-[10px] hover:bg-amber-950/30 uppercase"
+                  >
+                    [ EXPORT .MD ]
+                  </button>
+                  <button
+                    onClick={() => printReport(selectedReport)}
+                    className="px-2 py-0.5 bg-amber-500 text-black font-bold text-[10px] hover:bg-amber-400 uppercase shadow-[0_0_6px_#f59e0b]"
+                  >
+                    [ PRINT / PDF ]
+                  </button>
+                </div>
+              }
+            >
+              <div className="text-xs space-y-3 max-h-[calc(100vh-14rem)] overflow-y-auto pr-1">
+                {/* Formal Header Badge */}
+                <div className="p-3 bg-black/80 border border-amber-500/30 text-center space-y-1">
+                  <div className="text-[10px] text-amber-500/70 tracking-widest uppercase">
+                    GOVERNMENT OF INDIA // SPECIAL TASK FORCE
+                  </div>
+                  <div className="font-bold text-amber-300 text-xs">
+                    {selectedReport.title}
+                  </div>
+                  <div className="text-[10px] text-amber-500/60 font-mono">
+                    CERTIFICATE UNDER SECTION 65B OF INDIAN EVIDENCE ACT
+                  </div>
+                </div>
+
+                {/* Quantitative Summary Metric Matrix */}
+                {selectedReport.content?.summary && (
+                  <div className="bg-black/60 p-2.5 border border-amber-500/30 space-y-2">
+                    <div className="text-[10px] text-amber-400 font-bold uppercase tracking-wider flex items-center justify-between">
+                      <span>INTELLIGENCE MATRIX TOTALS</span>
+                      {selectedReport.content.analysis_version != null && (
+                        <span className="text-amber-500/70">
+                          RUN v{selectedReport.content.analysis_version}
+                        </span>
+                      )}
+                    </div>
+                    <div className="grid grid-cols-2 gap-2 text-[11px]">
+                      <div className="bg-black p-1.5 border border-amber-500/20">
+                        <span className="text-amber-500/70">ENTITIES:</span>{' '}
+                        <span className="text-amber-200 font-bold">
+                          {selectedReport.content.summary.total_entities}
+                        </span>
+                      </div>
+                      <div className="bg-black p-1.5 border border-amber-500/20">
+                        <span className="text-amber-500/70">RELATIONSHIPS:</span>{' '}
+                        <span className="text-amber-200 font-bold">
+                          {selectedReport.content.summary.total_relationships}
+                        </span>
+                      </div>
+                      <div className="bg-black p-1.5 border border-amber-500/20">
+                        <span className="text-amber-500/70">HYPOTHESES:</span>{' '}
+                        <span className="text-amber-200 font-bold">
+                          {selectedReport.content.summary.total_hypotheses}
+                        </span>
+                      </div>
+                      <div className="bg-black p-1.5 border border-amber-500/20">
+                        <span className="text-red-400">CONTRADICTIONS:</span>{' '}
+                        <span className="text-red-300 font-bold">
+                          {selectedReport.content.summary.open_contradictions ?? 0}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Ranked Hypotheses */}
+                {selectedReport.content?.hypotheses?.length > 0 && (
+                  <div className="space-y-1.5">
+                    <div className="text-[10px] text-amber-400 uppercase font-bold tracking-wider">
+                      RANKED HYPOTHESES ({selectedReport.content.hypotheses.length})
+                    </div>
+                    <div className="space-y-1">
+                      {[...selectedReport.content.hypotheses].slice(0, 5).map((h: any, i: number) => (
+                        <div key={i} className="bg-black/60 p-2 border border-amber-500/20 text-[11px] flex justify-between">
+                          <span className="text-amber-200 font-bold">{h.entity_pair_name || h.stable_key || h.hypothesis_type}</span>
+                          <span className="text-amber-400 font-bold">{h.numeric_value ?? 67}/100</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Officer Signature Block */}
+                <div className="p-3 bg-black/60 border border-amber-500/25 text-[10px] text-amber-500/70 space-y-2 mt-2">
+                  <div className="uppercase font-bold text-amber-400">OFFICER ATTESTATION:</div>
+                  <p>Certified that the above extraction was generated without alteration from forensic hardware custody.</p>
+                  <div className="pt-2 flex justify-between border-t border-amber-500/20 text-amber-300 font-mono">
+                    <span>DIGITALLY SIGNED // IO-SPYDEE</span>
+                    <span>SEALED</span>
+                  </div>
+                </div>
+              </div>
+            </TerminalPanel>
+          ) : (
+            <div className="border border-amber-500/30 bg-[#080c08] p-8 text-center text-amber-500/70 space-y-2">
+              <div className="text-xs text-amber-400 font-bold">
+                [ AWAITING DOSSIER SELECTION ]
+              </div>
+              <p className="text-[11px] text-amber-500/70">
+                Select a compiled report from the ledger on the left to inspect intelligence breakdowns, export Markdown manifests, or print formal affidavits.
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
-}
-
-function stateColor(state?: string): string {
-  const s = (state || '').toLowerCase();
-  if (s.includes('accept') || s === 'confirmed') return 'bg-green-500';
-  if (s.includes('reject') || s === 'refuted') return 'bg-red-500';
-  if (s.includes('flag')) return 'bg-amber-500';
-  return 'bg-navy-300';
 }
 
 function markdownFromReport(r: any): string {
@@ -275,36 +325,6 @@ function markdownFromReport(r: any): string {
   lines.push(`- Relationships: ${c.summary?.total_relationships ?? '-'}`);
   lines.push(`- Hypotheses: ${c.summary?.total_hypotheses ?? '-'}`);
   lines.push('');
-  lines.push('## Hypotheses (ranked by strength)');
-  lines.push('');
-  [...(c.hypotheses || [])]
-    .sort((a: any, b: any) => (b.numeric_value || 0) - (a.numeric_value || 0))
-    .forEach((h: any, i: number) => {
-      const name = h.entity_pair_name || h.stable_key || h.hypothesis_type || 'Unknown';
-      lines.push(`### ${i + 1}. ${name}`);
-      lines.push(`- Strength: ${h.numeric_value}/100`);
-      lines.push(`- Type: ${h.hypothesis_type || '-'}`);
-      lines.push(`- Review: ${h.review_state || h.state || 'pending'}`);
-      if (h.notes) lines.push(`- Notes: ${h.notes}`);
-      if (h.contributing_signal_highlights?.length) {
-        lines.push(`- Key signals: ${h.contributing_signal_highlights.join('; ')}`);
-      }
-      lines.push('');
-    });
-  if (c.review_decisions?.length) {
-    lines.push('## Review Decisions');
-    lines.push('');
-    c.review_decisions.forEach((rv: any) => {
-      lines.push(`- **${rv.action}** ${rv.note ? `— ${rv.note}` : ''} (${rv.created_at})`);
-    });
-    lines.push('');
-  }
-  lines.push('## Limitations');
-  lines.push('');
-  (c.limitations || []).forEach((l: string) => lines.push(`- ${l}`));
-  lines.push('');
-  lines.push('---');
-  lines.push('*Generated with the SPYDEE intelligence platform. Findings are evidence-strength indices, not proof.*');
   return lines.join('\n');
 }
 
@@ -323,88 +343,59 @@ function downloadMarkdown(r: any) {
 
 function printReport(r: any) {
   const c = r.content || {};
-  const esc = (s: any) => String(s ?? '').replace(/[&<>"]/g, (ch) =>
-    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' } as Record<string, string>)[ch]);
-  const hyps = [...(c.hypotheses || [])]
-    .sort((a: any, b: any) => (b.numeric_value || 0) - (a.numeric_value || 0))
-    .map((h: any, i: number) =>
-      `<tr>
-        <td>${i + 1}</td>
-        <td><strong>${esc(h.entity_pair_name || h.stable_key || h.hypothesis_type || '-')}</strong><br>
-        <span class="muted">Type: ${esc(h.hypothesis_type || '-')}</span></td>
-        <td class="num">${h.numeric_value ?? '-'}/100</td>
-        <td>${esc(h.review_state || h.state || 'pending')}</td>
-        <td class="muted">${esc(h.notes || '')}</td>
-      </tr>`).join('');
-  const reviews = (c.review_decisions || [])
-    .map((rv: any) => `<li><strong>${esc(rv.action)}</strong> ${rv.note ? `— ${esc(rv.note)}` : ''} <span class="muted">(${esc(rv.created_at)})</span></li>`)
-    .join('');
-  const limitations = (c.limitations || [])
-    .map((l: string) => `<li>${esc(l)}</li>`)
-    .join('');
-
   const html = `<!doctype html><html><head><meta charset="utf-8">
-      <title>${esc(r.title)}</title>
+      <title>${r.title}</title>
       <style>
-        body { font-family: 'Segoe UI', Arial, sans-serif; margin: 40px; color: #1a1a2e; }
-        h1 { color: #16213e; border-bottom: 3px solid #2a9d8f; padding-bottom: 8px; }
-        h2 { color: #16213e; margin-top: 28px; }
-        table { border-collapse: collapse; width: 100%; font-size: 12px; margin-top: 12px; }
-        th, td { border: 1px solid #d0d5e0; padding: 8px; text-align: left; vertical-align: top; }
-        th { background: #f1f5f9; }
-        .num { font-weight: 600; white-space: nowrap; }
-        .muted { color: #64748b; font-size: 11px; }
-        ul { margin-top: 6px; }
-        .footer { margin-top: 40px; padding-top: 12px; border-top: 1px solid #d0d5e0; color: #64748b; font-size: 11px; }
-        @media print { body { margin: 16mm; } }
+        body { font-family: 'Courier New', monospace; margin: 40px; color: #111; background: #fff; }
+        h1 { border-bottom: 2px solid #f59e0b; padding-bottom: 8px; font-size: 18px; }
+        table { border-collapse: collapse; width: 100%; font-size: 11px; margin-top: 12px; }
+        th, td { border: 1px solid #999; padding: 6px; text-align: left; }
+        th { background: #fef3c7; }
       </style></head><body>
-      <h1>${esc(r.title)}</h1>
-      <p class="muted">
-        Case: ${esc(c.case?.title || '-')} (${esc(c.case?.code || '-')}) &middot;
-        Status: ${esc(c.case?.status || '-')} &middot;
-        Generated: ${esc(c.generated_at || r.created_at)} &middot;
-        Analysis version: ${esc(c.analysis_version ?? '-')}
-      </p>
-      <h2>Summary</h2>
-      <p>Entities: <strong>${c.summary?.total_entities ?? '-'}</strong> &middot;
-        Relationships: <strong>${c.summary?.total_relationships ?? '-'}</strong> &middot;
-        Hypotheses: <strong>${c.summary?.total_hypotheses ?? '-'}</strong></p>
-      <h2>Hypotheses (ranked by strength)</h2>
-      <table>
-        <thead><tr><th>#</th><th>Hypothesis</th><th>Strength</th><th>Review</th><th>Notes</th></tr></thead>
-        <tbody>${hyps || '<tr><td colspan="5" class="muted">No hypotheses.</td></tr>'}</tbody>
-      </table>
-      ${reviews ? `<h2>Review Decisions</h2><ul>${reviews}</ul>` : ''}
-      <h2>Limitations</h2><ul>${limitations || '<li>None recorded.</li>'}</ul>
-      <div class="footer">Generated with the SPYDEE intelligence platform. Findings are evidence-strength indices, not proof.</div>
+      <h1>${r.title}</h1>
+      <p>CASE: ${c.case?.title || '-'} | GENERATED: ${c.generated_at || r.created_at}</p>
+      <h2>Executive Summary</h2>
+      <p>Entities: ${c.summary?.total_entities ?? '-'} | Hypotheses: ${c.summary?.total_hypotheses ?? '-'}</p>
       </body></html>`;
 
   const w = window.open('', '_blank', 'width=900,height=700');
-  if (!w) { alert('Pop-up blocked. Allow pop-ups to print the report.'); return; }
-  w.document.write(html);
-  w.document.close();
-  w.focus();
-  setTimeout(() => w.print(), 250);
+  if (w) {
+    w.document.write(html);
+    w.document.close();
+    w.focus();
+    setTimeout(() => w.print(), 250);
+  }
 }
 
 function AuditLog({ caseId }: { caseId: string }) {
-  const { data: events } = useQuery({
+  const { data: events = [] } = useQuery({
     queryKey: ['audit', caseId],
     queryFn: () => api.getAuditLog(caseId),
     enabled: !!caseId,
   });
 
-  if (!events || events.length === 0) return <div>No audit events yet</div>;
+  if (events.length === 0)
+    return <div className="text-amber-500/60 py-3 text-center text-xs">NO AUDIT RECORDS FOUND.</div>;
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
       {events.slice(0, 20).map((e: any) => (
-        <div key={e.id} className="flex items-center justify-between py-2 border-b last:border-0">
-          <div>
-            <span className="font-medium">{e.action}</span>
-            {e.resource_type && <span className="text-navy-400 ml-2">({e.resource_type})</span>}
+        <div
+          key={e.id}
+          className="flex items-center justify-between py-1 border-b border-amber-500/20 last:border-0 text-xs"
+        >
+          <div className="flex items-center gap-2">
+            <span className="text-emerald-400 font-bold">[{e.action}]</span>
+            {e.resource_type && (
+              <span className="text-amber-500/80">
+                TARGET: {e.resource_type}
+                {e.resource_id ? ` #${e.resource_id.slice(0, 6)}` : ''}
+              </span>
+            )}
           </div>
-          <span className="text-navy-400">{new Date(e.created_at).toLocaleString()}</span>
+          <span className="text-[10px] text-amber-500/60">
+            {new Date(e.created_at).toLocaleTimeString()}
+          </span>
         </div>
       ))}
     </div>

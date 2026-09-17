@@ -2,28 +2,27 @@ import { useParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { api } from '../lib/api';
+import { Zap, Radio, AlertTriangle, Layers, Play, CheckCircle2 } from 'lucide-react';
+import { TerminalPanel } from '../components/common/TerminalPanel';
+import { StatusBadge } from '../components/common/StatusBadge';
+import { useTerminalAlert } from '../context/TerminalAlertContext';
 
 const FAMILY_META: Record<string, { label: string; weight: string; color: string }> = {
-  communication: { label: 'Communication', weight: '0.20', color: 'border-azure-200 bg-azure-50' },
-  device_sim: { label: 'Device/SIM', weight: '0.20', color: 'border-cyan-200 bg-cyan-50' },
-  spatial_temporal: { label: 'Spatial/Temporal', weight: '0.15', color: 'border-amber-200 bg-amber-50' },
-  writing_style: { label: 'Writing Style', weight: '0.15', color: 'border-purple-200 bg-purple-50' },
-  financial: { label: 'Financial', weight: '0.10', color: 'border-green-200 bg-green-50' },
-  infrastructure: { label: 'Infrastructure', weight: '0.10', color: 'border-gray-200 bg-gray-50' },
-  network_topology: { label: 'Network Topology', weight: '0.10', color: 'border-indigo-200 bg-indigo-50 border-dashed' },
+  communication: { label: 'COMMUNICATION', weight: '0.20', color: '#f59e0b' },
+  device_sim: { label: 'DEVICE/SIM', weight: '0.20', color: '#fbbf24' },
+  spatial_temporal: { label: 'SPATIAL/TEMPORAL', weight: '0.15', color: '#fde68a' },
+  writing_style: { label: 'WRITING STYLE', weight: '0.15', color: '#d97706' },
+  financial: { label: 'FINANCIAL', weight: '0.10', color: '#34d399' },
+  infrastructure: { label: 'INFRASTRUCTURE', weight: '0.10', color: '#fbbf24' },
+  network_topology: { label: 'TOPOLOGY', weight: '0.10', color: '#f59e0b' },
 };
 
 const FAMILY_ORDER = ['communication', 'device_sim', 'spatial_temporal', 'writing_style', 'financial', 'infrastructure', 'network_topology'];
 
-function scoreColor(v: number) {
-  if (v >= 0.7) return 'bg-red-100 text-red-700';
-  if (v >= 0.4) return 'bg-amber-100 text-amber-700';
-  return 'bg-gray-100 text-gray-500';
-}
-
 export default function IntelligenceWorkbench() {
   const { caseId } = useParams<{ caseId: string }>();
   const queryClient = useQueryClient();
+  const { showAlert } = useTerminalAlert();
   const [activeFamily, setActiveFamily] = useState<string>('all');
   const [running, setRunning] = useState(false);
 
@@ -51,149 +50,246 @@ export default function IntelligenceWorkbench() {
       queryClient.invalidateQueries({ queryKey: ['analysis', caseId] });
       queryClient.invalidateQueries({ queryKey: ['hypotheses', caseId] });
       queryClient.invalidateQueries({ queryKey: ['signals', caseId] });
+      queryClient.invalidateQueries({ queryKey: ['workspace-summary', caseId] });
       setRunning(false);
+      showAlert('Deterministic signal analysis completed. Model graph updated.', 'SUCCESS');
+    },
+    onError: (err: any) => {
+      setRunning(false);
+      showAlert(err?.message || 'Signal analysis pipeline error', 'CRITICAL');
     },
   });
 
   const latestRun = runs && runs.length > 0 ? runs[0] : null;
-  const counts = signals?.counts_by_family || {};
+  const counts: Record<string, number> = (signals?.counts_by_family as Record<string, number>) || {};
   const families = FAMILY_ORDER.filter(f => counts[f] !== undefined);
   const hasEngineErrors = Object.keys(counts).length === 0 && latestRun && latestRun.status === 'completed';
 
   return (
-    <div className="max-w-6xl mx-auto">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-navy-700">Intelligence Workbench</h1>
-        <button onClick={() => { setRunning(true); runMutation.mutate(); }} disabled={running}
-          className="bg-azure-500 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-azure-600 disabled:opacity-50">
-          {running ? 'Running Analysis...' : 'Run Analysis'}
+    <div className="space-y-3 font-mono text-xs text-[#f59e0b]">
+      {/* HEADER */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-2 border-b border-amber-500/40 gap-2">
+        <div>
+          <div className="text-[11px] text-amber-500/70 font-bold tracking-widest uppercase">
+            // CASE CONSOLE // ANALYSIS PIPELINE
+          </div>
+          <div className="text-base md:text-lg font-black text-amber-300 tracking-wider">
+            DETERMINISTIC INTELLIGENCE SIGNAL MATRIX
+          </div>
+          <div className="text-[10px] text-amber-500/80">
+            MULTI-VECTOR HEURISTIC ENGINES // TELECOMMUNICATIONS, SPATIAL PROXIMITY & BEHAVIORAL CO-OCCURRENCES
+          </div>
+        </div>
+
+        <button
+          onClick={() => {
+            setRunning(true);
+            runMutation.mutate();
+          }}
+          disabled={running}
+          className="px-3 py-1.5 bg-amber-500 text-black font-bold hover:bg-amber-400 transition-colors flex items-center gap-1.5 text-xs shadow-[0_0_10px_rgba(245,158,11,0.4)] disabled:opacity-50 uppercase"
+        >
+          <Zap className="w-3.5 h-3.5 fill-black" />
+          <span>{running ? '[ EXECUTING ENGINE SUITE... ]' : '⚡ RUN SIGNAL ANALYSIS'}</span>
         </button>
       </div>
 
+      {/* LATEST RUN TELEMETRY */}
       {latestRun && (
-        <div className="bg-white border rounded-lg p-4 mb-6">
-          <h3 className="font-medium text-navy-700 text-sm mb-2">Latest Analysis Run</h3>
-          <div className="flex items-center gap-4 text-sm">
-            <span className="flex items-center gap-2">
-              <span className={`w-2 h-2 rounded-full ${latestRun.status === 'completed' ? 'bg-green-500' : latestRun.status === 'running' ? 'bg-amber-500' : 'bg-gray-400'}`}></span>
-              <span>v{latestRun.version} — {latestRun.status}</span>
-            </span>
-            {latestRun.completed_at && <span className="text-navy-400">{new Date(latestRun.completed_at).toLocaleString()}</span>}
-            <span className="text-navy-400">
-              {Object.entries(counts).map(([f, c]) => `${(FAMILY_META[f]?.label || f)}: ${c}`).join(' · ')}
-            </span>
+        <TerminalPanel
+          title="ACTIVE RUN TELEMETRY"
+          subtitle={`VERSION v${latestRun.version || '1.0'}`}
+        >
+          <div className="flex flex-wrap items-center justify-between gap-3 text-xs">
+            <div className="flex items-center gap-3">
+              <StatusBadge status={latestRun.status} size="sm" />
+              <span className="text-amber-500/80 font-bold">
+                HASH: #{latestRun.id.slice(0, 10)}
+              </span>
+              {latestRun.completed_at && (
+                <span className="text-amber-500/60 text-[11px]">
+                  COMPLETED: {new Date(latestRun.completed_at).toLocaleString()}
+                </span>
+              )}
+            </div>
+
+            <div className="text-[11px] text-amber-300 flex flex-wrap gap-1.5">
+              {Object.entries(counts).map(([f, c]) => (
+                <span
+                  key={f}
+                  className="px-2 py-0.5 bg-black border border-amber-500/30 font-bold"
+                >
+                  <span className="text-amber-500/70">{FAMILY_META[f]?.label || f}:</span>{' '}
+                  <span className="text-amber-300">{c}</span>
+                </span>
+              ))}
+            </div>
           </div>
-        </div>
+        </TerminalPanel>
       )}
 
       {!latestRun && (
-        <div className="bg-white border border-dashed rounded-lg p-8 text-center text-navy-400 text-sm mb-6">
-          No analysis has been run for this case yet. Run the analysis pipeline to generate intelligence signals.
+        <div className="border border-dashed border-amber-500/30 bg-[#0a0f0a] p-8 text-center text-amber-500/70 text-xs">
+          NO ANALYSIS PIPELINE HAS RUN FOR THIS INVESTIGATION. TRIGGER SIGNAL ANALYSIS TO POPULATE THE MATRIX.
         </div>
       )}
 
       {latestRun && hasEngineErrors && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6 text-sm text-red-700">
-          The analysis completed but produced no signals. This usually means one of the analysis engines failed
-          or the case data does not match any engine signature. Check the server log for details.
+        <div className="border border-red-500/50 bg-red-950/20 p-3 text-xs text-red-400">
+          ANALYSIS EXECUTED WITH ZERO DERIVED SIGNALS. VERIFY RAW EVIDENCE INGESTION AND INGESTION SCHEMA COMPATIBILITY.
         </div>
       )}
 
-      <div className="grid grid-cols-7 gap-3 mb-6">
+      {/* FAMILY FILTER BUTTONS */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-1.5">
         <button
           onClick={() => setActiveFamily('all')}
-          className={`border rounded-lg p-3 text-center transition-colors ${activeFamily === 'all' ? 'border-azure-500 bg-azure-50 shadow-sm' : 'border-gray-200 bg-white hover:border-azure-300'}`}>
-          <div className="text-sm font-medium text-navy-700">All Families</div>
-          <div className="text-xs text-navy-400">{families.reduce((a, f) => a + (counts[f] || 0), 0)} signals</div>
+          className={`p-2.5 text-left border transition-colors ${
+            activeFamily === 'all'
+              ? 'bg-amber-500 text-black border-amber-400 font-bold shadow-[0_0_8px_#f59e0b]'
+              : 'bg-[#0b100b] border-amber-500/30 text-amber-400 hover:bg-amber-500/10'
+          }`}
+        >
+          <div className={`text-[9px] uppercase ${activeFamily === 'all' ? 'text-black/80' : 'text-amber-500/70'}`}>
+            ALL DOMAINS
+          </div>
+          <div className="font-bold text-sm mt-0.5">
+            {families.reduce((a, f) => a + (counts[f] || 0), 0)}
+          </div>
+          <div className={`text-[9px] ${activeFamily === 'all' ? 'text-black/80' : 'text-amber-500/60'}`}>
+            SIGNALS
+          </div>
         </button>
-        {families.map(f => (
+
+        {families.map((f) => (
           <button
             key={f}
             onClick={() => setActiveFamily(f)}
-            className={`border rounded-lg p-3 text-center transition-colors ${activeFamily === f ? 'border-azure-500 bg-azure-50 shadow-sm' : 'border-gray-200 bg-white hover:border-azure-300'}`}>
-            <div className="text-sm font-medium text-navy-700">{FAMILY_META[f]?.label || f}</div>
-            <div className="text-xs text-navy-400">{counts[f]} signals</div>
-            {FAMILY_META[f] && <div className="text-[10px] text-navy-300 mt-0.5">weight {FAMILY_META[f].weight}</div>}
+            className={`p-2.5 text-left border transition-colors ${
+              activeFamily === f
+                ? 'bg-amber-500 text-black border-amber-400 font-bold shadow-[0_0_8px_#f59e0b]'
+                : 'bg-[#0b100b] border-amber-500/30 text-amber-400 hover:bg-amber-500/10'
+            }`}
+          >
+            <div className={`text-[9px] uppercase truncate ${activeFamily === f ? 'text-black/80' : 'text-amber-500/70'}`}>
+              {FAMILY_META[f]?.label || f}
+            </div>
+            <div className="font-bold text-sm mt-0.5">{counts[f]}</div>
+            <div className={`text-[9px] ${activeFamily === f ? 'text-black/80' : 'text-amber-500/60'}`}>
+              WT: {FAMILY_META[f]?.weight || '0.10'}
+            </div>
           </button>
         ))}
       </div>
 
-      <div className="bg-white border rounded-lg p-6">
-        {activeFamily !== 'all' && FAMILY_META[activeFamily] && (
-          <div className="mb-4 flex items-center justify-between">
-            <h3 className="font-semibold text-navy-700">{FAMILY_META[activeFamily].label} Pattern Analysis</h3>
-            <span className="text-xs text-navy-400">
-              Fusion weight {FAMILY_META[activeFamily].weight} · prototype score
-            </span>
-          </div>
-        )}
-
+      {/* RAW SIGNAL FEED */}
+      <TerminalPanel
+        title={
+          activeFamily === 'all'
+            ? `RAW DETECTED SIGNALS (${signals?.signals?.length || 0})`
+            : `${FAMILY_META[activeFamily]?.label || activeFamily} SIGNAL FEED (${signals?.signals?.length || 0})`
+        }
+        subtitle="HEURISTIC EVIDENCE CORROBORATIONS"
+      >
         {signals && signals.signals.length > 0 ? (
-          <div className="space-y-3">
-            {signals.signals.slice(0, 20).map((s: any) => (
-              <div key={s.id} className="border rounded-lg p-4">
-                <div className="flex items-center justify-between mb-1">
+          <div className="space-y-2">
+            {signals.signals.slice(0, 30).map((s: any) => (
+              <div
+                key={s.id}
+                className="bg-black/60 border border-amber-500/30 p-2.5 space-y-1.5 hover:border-amber-400 transition-colors"
+              >
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-1 border-b border-amber-500/20">
                   <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-navy-700">
-                      {[s.entity_pair?.source, s.entity_pair?.target].filter(Boolean).join(' ↔ ') || '(no entity pair)'}
+                    <span className="font-bold text-xs text-amber-300">
+                      {[s.entity_pair?.source, s.entity_pair?.target].filter(Boolean).join(' ↔ ') || '(UNPAIRED VECTOR)'}
                     </span>
-                    <span className="text-[10px] text-navy-300 uppercase tracking-wide">sources: {s.contributing_record_count}</span>
-                    {s.engine_version && <span className="text-[10px] text-navy-300">engine {s.engine_name} {s.engine_version}</span>}
-                  </div>
-                  <span className={`text-xs px-2 py-0.5 rounded ${scoreColor(s.numeric_value)}`}>
-                    {Math.round(s.numeric_value * 100)}/100
-                  </span>
-                </div>
-                <p className="text-sm text-navy-500">{s.explanation || 'No description'}</p>
-                {s.contradiction && (
-                  <p className="text-xs text-amber-600 mt-1">Contradiction: {s.contradiction_reason || 'conflicting evidence'}</p>
-                )}
-                {s.feature_details && (
-                  <div className="mt-2 flex flex-wrap gap-1.5">
-                    {Object.entries(s.feature_details).filter(([k]) => !['cycle'].includes(k)).slice(0, 6).map(([k, v]) => (
-                      <span key={k} className="text-[10px] bg-gray-50 border border-gray-200 rounded px-1.5 py-0.5 text-navy-500">
-                        {k}={typeof v === 'string' ? (v.length > 24 ? v.slice(0, 24) + '…' : v) : JSON.stringify(v)}
+                    <span className="text-[10px] px-1.5 py-0.2 bg-black border border-amber-500/40 text-amber-400">
+                      {s.contributing_record_count} SOURCES
+                    </span>
+                    {s.engine_name && (
+                      <span className="text-[10px] text-amber-500/60">
+                        ENG: {s.engine_name} {s.engine_version || ''}
                       </span>
-                    ))}
+                    )}
+                  </div>
+                  <div>
+                    <span className="text-[11px] font-bold px-2 py-0.5 bg-amber-500/20 border border-amber-400 text-amber-300">
+                      INDEX: {Math.round(s.numeric_value * 100)}/100
+                    </span>
+                  </div>
+                </div>
+
+                <p className="text-xs text-amber-200/90 leading-relaxed">
+                  {s.explanation || 'No heuristic annotation.'}
+                </p>
+
+                {s.contradiction && (
+                  <div className="text-[11px] text-red-400 bg-red-950/30 border border-red-500/40 p-1.5">
+                    [ CONTRADICTION DETECTED ] {s.contradiction_reason || 'Incompatible physical or timeline parameters'}
+                  </div>
+                )}
+
+                {s.feature_details && (
+                  <div className="flex flex-wrap gap-1 pt-1">
+                    {Object.entries(s.feature_details)
+                      .filter(([k]) => !['cycle'].includes(k))
+                      .slice(0, 8)
+                      .map(([k, v]) => (
+                        <span
+                          key={k}
+                          className="text-[10px] bg-black border border-amber-500/20 px-1.5 py-0.5 text-amber-500/70"
+                        >
+                          <span className="text-amber-400">{k}:</span>{' '}
+                          {typeof v === 'string'
+                            ? v.length > 28
+                              ? v.slice(0, 28) + '…'
+                              : v
+                            : JSON.stringify(v)}
+                        </span>
+                      ))}
                   </div>
                 )}
               </div>
             ))}
           </div>
         ) : (
-          <p className="text-navy-400 text-sm">
+          <div className="p-8 text-center text-amber-500/70 text-xs">
             {activeFamily === 'all'
-              ? 'Run analysis to generate intelligence signals'
-              : `No signals in the ${FAMILY_META[activeFamily]?.label || activeFamily} family for this case`}
-          </p>
+              ? 'RUN SIGNAL ANALYSIS TO GENERATE INTELLIGENCE FEEDS.'
+              : `NO SIGNALS LOGGED FOR ${FAMILY_META[activeFamily]?.label || activeFamily}.`}
+          </div>
         )}
-      </div>
+      </TerminalPanel>
 
-      {activeFamily === 'all' && (
-        <div className="bg-white border rounded-lg p-6 mt-6">
-          <h3 className="font-semibold text-navy-700 mb-3">Evidence → Signal → Hypothesis Pipeline</h3>
-          <div className="flex items-center gap-2 text-sm text-navy-500">
-            <span className="px-3 py-1.5 bg-azure-50 border border-azure-200 rounded-md">Source Records</span>
-            <span>→</span>
-            <span className="px-3 py-1.5 bg-cyan-50 border border-cyan-200 rounded-md">Signals ({signals?.signals.length || 0})</span>
-            <span>→</span>
-            <span className="px-3 py-1.5 bg-purple-50 border border-purple-200 rounded-md">Fused Hypotheses ({hypotheses?.length || 0})</span>
-            <span>→</span>
-            <span className="px-3 py-1.5 bg-amber-50 border border-amber-200 rounded-md">Gap/Countermeasure Actions</span>
+      {/* FORENSIC PIPELINE VISUALIZER */}
+      <TerminalPanel title="INTELLIGENCE FUSION SEQUENCE" subtitle="4-TIER PIPELINE FLOW">
+        <div className="grid grid-cols-1 sm:grid-cols-4 gap-2 text-xs">
+          <div className="p-2.5 bg-black/60 border border-amber-500/30">
+            <div className="text-[10px] text-amber-500/70 uppercase">STAGE 01</div>
+            <div className="font-bold text-amber-300 mt-1">SOURCE RECORDS</div>
+            <div className="text-[10px] text-amber-500/60 mt-0.5">CDRs, chats, logs, filings</div>
+          </div>
+          <div className="p-2.5 bg-black/60 border border-amber-500/30">
+            <div className="text-[10px] text-amber-500/70 uppercase">STAGE 02</div>
+            <div className="font-bold text-amber-400 mt-1">
+              SIGNALS ({signals?.signals?.length || 0})
+            </div>
+            <div className="text-[10px] text-amber-500/60 mt-0.5">Mathematical vectors</div>
+          </div>
+          <div className="p-2.5 bg-black/60 border border-amber-500/30">
+            <div className="text-[10px] text-amber-500/70 uppercase">STAGE 03</div>
+            <div className="font-bold text-amber-200 mt-1">
+              HYPOTHESES ({hypotheses?.length || 0})
+            </div>
+            <div className="text-[10px] text-amber-500/60 mt-0.5">Weighted network assertions</div>
+          </div>
+          <div className="p-2.5 bg-black/60 border border-amber-500/30">
+            <div className="text-[10px] text-amber-500/70 uppercase">STAGE 04</div>
+            <div className="font-bold text-emerald-400 mt-1">GAP / ACTIONS</div>
+            <div className="text-[10px] text-amber-500/60 mt-0.5">Subpoenas, warrants, field leads</div>
           </div>
         </div>
-      )}
-
-      {activeFamily === 'all' && (
-        <div className="bg-white border rounded-lg p-6 mt-6">
-          <h3 className="font-semibold text-navy-700 mb-3">Analysis Disclaimer</h3>
-          <p className="text-xs text-navy-400 leading-relaxed">
-            Scores are prototype evidence scores derived from deterministic signal fusion, not calibrated
-            probabilities. Every number shown is traceable to specific source records listed under
-            each signal. Review signal provenance in the Evidence Room before acting.
-          </p>
-        </div>
-      )}
+      </TerminalPanel>
     </div>
   );
 }

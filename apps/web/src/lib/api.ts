@@ -57,6 +57,8 @@ export const api = {
     return request<any[]>(`/entities/${caseId}?${params}`);
   },
   getEntity: (caseId: string, entityId: string) => request<any>(`/entities/${caseId}/${entityId}`),
+  createEntity: (caseId: string, data: any) =>
+    request<any>(`/entities/${caseId}`, { method: 'POST', body: JSON.stringify(data) }),
   reviewEntity: (caseId: string, entityId: string, data: any) =>
     request<any>(`/entities/${caseId}/${entityId}/review`, { method: 'POST', body: JSON.stringify(data) }),
   getMergeSuggestions: (caseId: string) => request<any[]>(`/entities/${caseId}/merge-suggestions`),

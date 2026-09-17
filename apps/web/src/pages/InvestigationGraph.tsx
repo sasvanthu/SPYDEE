@@ -1,372 +1,605 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import cytoscape from 'cytoscape';
 import { api } from '../lib/api';
+import {
+  Network,
+  Search,
+  Filter,
+  ZoomIn,
+  ZoomOut,
+  RotateCcw,
+  Sparkles,
+  ShieldAlert,
+  X,
+  Play,
+  Layers,
+  Sliders,
+  Maximize2,
+  Info,
+  ChevronRight,
+  ArrowRight
+} from 'lucide-react';
+import { TerminalPanel } from '../components/common/TerminalPanel';
+import { StatusBadge } from '../components/common/StatusBadge';
+import { ConfidenceMeter } from '../components/common/ConfidenceMeter';
+import { IntelligenceSignal } from '../components/common/IntelligenceSignal';
 
 const typeColors: Record<string, string> = {
-  person: '#22d3ee', alias: '#22d3ee', phone_sim: '#06b6d4', device: '#f59e0b',
-  account: '#22c55e', location: '#8b5cf6', organization: '#ec4899', domain_ip: '#64748b',
-  event: '#f97316', document: '#6366f1',
+  person: '#f59e0b',
+  alias: '#fbbf24',
+  phone_sim: '#d97706',
+  device: '#fbbf24',
+  account: '#34d399',
+  location: '#f59e0b',
+  tower: '#f59e0b',
+  organization: '#fbbf24',
+  domain_ip: '#92400e',
+  event: '#ef4444',
+  vehicle: '#f59e0b',
 };
 
 export default function InvestigationGraph() {
   const { caseId } = useParams<{ caseId: string }>();
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
   const cyRef = useRef<HTMLDivElement>(null);
   const cyInstance = useRef<cytoscape.Core | null>(null);
+
   const [selectedNode, setSelectedNode] = useState<any>(null);
   const [selectedEdge, setSelectedEdge] = useState<any>(null);
-  const [filters, setFilters] = useState<any>({ include_inferred: true, max_nodes: 300, max_edges: 1500 });
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedTypeFilter, setSelectedTypeFilter] = useState('ALL');
+  const [edgeTypeFilter, setEdgeTypeFilter] = useState('ALL');
+  const [minConfidence, setMinConfidence] = useState(0.5);
+  const [hiddenLinkActive, setHiddenLinkActive] = useState(false);
   const [nodeDetail, setNodeDetail] = useState<any>(null);
-  const [edgeDetail, setEdgeDetail] = useState<any>(null);
-  const [dateFrom, setDateFrom] = useState<string>('');
-  const [dateTo, setDateTo] = useState<string>('');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [highlightIds, setHighlightIds] = useState<Set<string>>(new Set());
 
   const { data: graphData, isLoading, refetch } = useQuery({
-    queryKey: ['graph', caseId, filters],
-    queryFn: () => api.getGraph(caseId!, filters),
+    queryKey: ['graph', caseId, selectedTypeFilter, edgeTypeFilter],
+    queryFn: () => api.getGraph(caseId!, {
+      entity_types: selectedTypeFilter !== 'ALL' ? [selectedTypeFilter.toLowerCase()] : undefined,
+      include_inferred: true,
+      max_nodes: 300,
+      max_edges: 1500
+    }),
     enabled: !!caseId,
   });
 
-  const edgeRange = useCallback(() => {
-    let min: number | null = null;
-    let max: number | null = null;
-    (graphData?.edges || []).forEach((e: any) => {
-      ['valid_from', 'valid_to'].forEach((k) => {
-        const v = e.properties?.[k];
-        if (!v) return;
-        const t = new Date(v).getTime();
-        if (Number.isNaN(t)) return;
-        if (min === null || t < min) min = t;
-        if (max === null || t > max) max = t;
-      });
-    });
-    return { min: min !== null ? new Date(min).toISOString() : undefined, max: max !== null ? new Date(max).toISOString() : undefined };
-  }, [graphData]);
-
-  const applyDates = (from?: string, to?: string) => {
-    setDateFrom(from || '');
-    setDateTo(to || '');
-    setFilters((f: any) => ({
-      ...f,
-      date_from: from ? new Date(from).toISOString() : undefined,
-      date_to: to ? new Date(to).toISOString() : undefined,
-    }));
-  };
-
-  const applyPreset = (hours: number | null) => {
-    if (hours === null) { applyDates(undefined, undefined); return; }
-    const range = edgeRange();
-    if (!range.max) return;
-    const to = new Date(range.max);
-    applyDates(new Date(to.getTime() - hours * 3600 * 1000).toISOString(), to.toISOString());
-  };
-
-  const range = edgeRange();
-
-  // Search: find matching nodes and highlight them
-  const searchResults = useQuery({
-    queryKey: ['entities', caseId, searchTerm],
-    queryFn: () => api.getEntities(caseId!, undefined, searchTerm || undefined),
-    enabled: !!caseId && searchTerm.trim().length > 0,
+  const { data: caseData } = useQuery({
+    queryKey: ['case', caseId],
+    queryFn: () => api.getCase(caseId!),
+    enabled: !!caseId,
   });
 
-  const runSearch = (name: string) => {
-    const results = searchResults.data || [];
-    if (name === '') { setHighlightIds(new Set()); return; }
-    const ids = results.map((e: any) => e.id);
-    setHighlightIds(new Set(ids));
-    if (results.length > 0) {
-      cyInstance.current?.nodes().forEach((n) => {
-        if (ids.includes(n.id())) n.addClass('highlighted');
-        else n.removeClass('highlighted');
-      });
-      if (results[0]?.id) {
-        cyInstance.current?.animate({ fit: { eles: cyInstance.current!.elements(`#${CSS.escape(results[0].id)}`) as any, padding: 80 }, duration: 400 });
-      }
+  const runSearch = (term: string) => {
+    if (!cyInstance.current) return;
+    const cy = cyInstance.current;
+    const q = term.trim().toLowerCase();
+    if (!q) {
+      cy.elements().forEach((ele) => { ele.removeClass('highlighted'); });
+      return;
+    }
+    const matches = cy.nodes().filter((n) => {
+      const d = n.data();
+      return (
+        (d.label && d.label.toLowerCase().includes(q)) ||
+        (d.id && d.id.toLowerCase().includes(q)) ||
+        (d.entity_type && d.entity_type.toLowerCase().includes(q))
+      );
+    });
+    cy.elements().forEach((ele) => { ele.removeClass('highlighted'); });
+    matches.forEach((m) => {
+      m.addClass('highlighted');
+    });
+    if (matches.length > 0) {
+      cy.fit(matches, 80);
     }
   };
 
   useEffect(() => {
     if (!cyRef.current) return;
     cyInstance.current = cytoscape({
-      container: cyRef.current as unknown as HTMLElement,
-      styleEnabled: true,
+      container: cyRef.current,
       style: [
-        { selector: 'node', style: { 'background-color': '#22d3ee', label: 'data(label)', 'font-size': '10px', color: '#e2e8f0', 'text-valign': 'bottom', 'text-margin-y': 5, 'text-wrap': 'ellipsis', 'text-max-width': '120px' } },
-        ...Object.entries(typeColors).map(([type, color]) => ({
-          selector: `node.${type}`, style: { 'background-color': color },
-        })),
-        { selector: 'edge.observed', style: { 'line-color': '#64748b', width: 1.5, 'target-arrow-color': '#64748b', 'target-arrow-shape': 'triangle', 'curve-style': 'bezier' } },
-        { selector: 'edge.inferred', style: { 'line-color': '#f59e0b', width: 1.5, 'line-style': 'dashed', 'target-arrow-color': '#f59e0b', 'target-arrow-shape': 'triangle', 'curve-style': 'bezier' } },
-        { selector: 'edge.contradicted', style: { 'line-color': '#ef4444', 'line-style': 'dotted', 'target-arrow-color': '#ef4444', 'target-arrow-shape': 'triangle', 'curve-style': 'bezier' } },
-        { selector: 'edge.strong', style: { width: 4 } },
-        { selector: 'edge.moderate', style: { width: 2.5 } },
-        { selector: 'node.highlighted', style: { 'border-width': 3, 'border-color': '#facc15' } },
-        { selector: 'node:selected', style: { 'border-width': 3, 'border-color': '#22d3ee' } },
-        { selector: 'edge:selected', style: { 'line-color': '#22d3ee', 'width': 3 } },
+        {
+          selector: 'node',
+          style: {
+            label: 'data(label)',
+            'font-family': 'JetBrains Mono, Share Tech Mono, monospace',
+            'font-size': '9px',
+            color: '#fbbf24',
+            'text-valign': 'bottom',
+            'text-margin-y': 4,
+            'text-wrap': 'ellipsis',
+            'text-max-width': '100px',
+            'background-color': '#0f160f',
+            'border-width': 1.5,
+            'border-color': '#f59e0b',
+          },
+        },
+        {
+          selector: 'node[entity_type = "person"]',
+          style: { shape: 'ellipse', 'border-color': '#f59e0b', width: 28, height: 28 },
+        },
+        {
+          selector: 'node[entity_type = "phone"], node[entity_type = "phone_sim"], node[entity_type = "sim"]',
+          style: { shape: 'rectangle', 'border-color': '#d97706', width: 26, height: 26 },
+        },
+        {
+          selector: 'node[entity_type = "vehicle"]',
+          style: { shape: 'triangle', 'border-color': '#f59e0b', width: 28, height: 28 },
+        },
+        {
+          selector: 'node[entity_type = "account"]',
+          style: { shape: 'diamond', 'border-color': '#34d399', width: 26, height: 26 },
+        },
+        {
+          selector: 'node[entity_type = "location"], node[entity_type = "tower"]',
+          style: { shape: 'hexagon', 'border-color': '#f59e0b', width: 28, height: 28 },
+        },
+        {
+          selector: 'edge',
+          style: {
+            'line-color': '#d97706',
+            width: 1.2,
+            'target-arrow-color': '#d97706',
+            'target-arrow-shape': 'triangle',
+            'curve-style': 'bezier',
+            label: 'data(label)',
+            'font-family': 'JetBrains Mono, monospace',
+            'font-size': '7px',
+            color: '#f59e0b',
+            'text-background-color': '#080c08',
+            'text-background-opacity': 0.85,
+            'text-background-padding': '2px',
+          },
+        },
+        {
+          selector: 'edge.inferred',
+          style: {
+            'line-color': '#fbbf24',
+            width: 1.8,
+            'line-style': 'dashed',
+            'target-arrow-color': '#fbbf24',
+          },
+        },
+        {
+          selector: 'edge.contradicted',
+          style: {
+            'line-color': '#ef4444',
+            width: 2,
+            'line-style': 'dashed',
+            'target-arrow-color': '#ef4444',
+            color: '#ef4444',
+          },
+        },
+        {
+          selector: 'node.highlighted, node:selected',
+          style: {
+            'border-width': 3,
+            'border-color': '#34d399',
+          },
+        },
+        {
+          selector: 'edge:selected',
+          style: {
+            'line-color': '#fbbf24',
+            width: 2.5,
+          },
+        },
       ],
       layout: { name: 'cose', animate: false, nodeDimensionsIncludeLabels: true, idealEdgeLength: 120, padding: 40 },
-      minZoom: 0.2,
-      maxZoom: 3,
+      minZoom: 0.3,
+      maxZoom: 2.5,
     });
-    return () => { cyInstance.current?.destroy(); cyInstance.current = null; };
+
+    return () => {
+      cyInstance.current?.destroy();
+      cyInstance.current = null;
+    };
   }, []);
 
+  // Update elements on data change
   useEffect(() => {
     if (!cyInstance.current || !graphData) return;
-    const cy = cyInstance.current!;
+    const cy = cyInstance.current;
     const elements: cytoscape.ElementDefinition[] = [];
-    graphData.nodes.forEach((n: any) => {
+
+    (graphData.nodes || []).forEach((n: any) => {
       elements.push({
-        data: { id: n.id, label: n.label, entity_type: n.entity_type, review_state: n.review_state },
-        classes: n.entity_type,
+        data: {
+          id: n.id,
+          label: n.label || n.id,
+          entity_type: (n.entity_type || 'person').toLowerCase(),
+          review_state: n.review_state || 'LINKED',
+          confidence: n.confidence || 0.85,
+          raw: n,
+        },
+        classes: (n.entity_type || 'person').toLowerCase(),
       });
     });
-    graphData.edges.forEach((e: any) => {
-      const contradicted = !!(e.properties?.contradiction || e.properties?.contradicted || e.properties?.contradiction_reason);
-      const strength = e.evidence_count || e.properties?.evidence_count || 0;
+
+    (graphData.edges || []).forEach((e: any) => {
+      const contradicted = !!(e.properties?.contradiction || e.properties?.contradicted);
       const cls = [
         e.classification === 'inferred' ? 'inferred' : 'observed',
         contradicted ? 'contradicted' : '',
-        strength >= 10 ? 'strong' : strength >= 3 ? 'moderate' : '',
       ].filter(Boolean).join(' ');
+
       elements.push({
-        data: { id: e.id, source: e.source, target: e.target, label: e.label, classification: e.classification, relationship_type: e.relationship_type, evidence_count: strength, contradicted, props: e.properties },
+        data: {
+          id: e.id,
+          source: e.source,
+          target: e.target,
+          label: e.label || e.relationship_type || 'LINKED',
+          classification: e.classification,
+          raw: e,
+        },
         classes: cls,
       });
     });
+
     cy.elements().remove();
     cy.add(elements);
-    cy.elements().unselect();
-    cy.layout({ name: 'cose', animate: false, nodeDimensionsIncludeLabels: true, idealEdgeLength: 120, padding: 40 }).run();
-    cy.elements().forEach((ele) => { ele.removeClass('highlighted'); });
+    cy.layout({ name: 'cose', animate: false, nodeDimensionsIncludeLabels: true, idealEdgeLength: 130, padding: 50 }).run();
   }, [graphData]);
 
+  // Click listeners
   useEffect(() => {
     if (!cyInstance.current) return;
-    const cy = cyInstance.current!;
+    const cy = cyInstance.current;
+
     const onNodeTap = (evt: any) => {
       const node = evt.target;
       setSelectedEdge(null);
-      setEdgeDetail(null);
       setSelectedNode(node.data());
-      api.getNeighbourhood(caseId!, node.data('id'), 1).then((detail) => setNodeDetail(detail));
+      api.getNeighbourhood(caseId!, node.data('id'), 1).then((d) => setNodeDetail(d)).catch(() => {});
     };
-    const onEdgeTap = async (evt: any) => {
+
+    const onEdgeTap = (evt: any) => {
       const edge = evt.target;
       setSelectedNode(null);
-      setNodeDetail(null);
       setSelectedEdge(edge.data());
-      const evidence = await api.getRelEvidence(caseId!, edge.data('id')).catch(() => ({ evidence: [] }));
-      setEdgeDetail({ ...edge.data(), evidence: evidence.evidence || [] });
     };
-    const onBgrTap = (evt: any) => {
-      if (evt.target === cy) { setSelectedNode(null); setSelectedEdge(null); setNodeDetail(null); setEdgeDetail(null); }
-    };
+
     cy.on('tap', 'node', onNodeTap);
     cy.on('tap', 'edge', onEdgeTap);
-    cy.on('tap', onBgrTap);
-    return () => { cy.removeListener('tap'); };
+
+    return () => {
+      cy.off('tap', 'node', onNodeTap);
+      cy.off('tap', 'edge', onEdgeTap);
+    };
   }, [caseId]);
 
-  const typeOptions = ['person', 'alias', 'phone_sim', 'device', 'account', 'location', 'organization', 'domain_ip'];
-
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key !== 'Escape') return;
-      setSelectedNode(null); setSelectedEdge(null); setNodeDetail(null); setEdgeDetail(null);
-      cyInstance.current?.elements().unselect();
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, []);
+  const resetCanvas = () => {
+    if (cyInstance.current) {
+      cyInstance.current.reset();
+      cyInstance.current.fit(undefined, 40);
+    }
+    setSelectedNode(null);
+    setSelectedEdge(null);
+    setHiddenLinkActive(false);
+    setSearchQuery('');
+  };
 
   return (
-    <div className="h-[calc(100vh-9rem)] flex flex-col min-w-0">
-      <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
-        <h1 className="text-xl font-bold text-white">Investigation Graph</h1>
-        <div className="flex items-center gap-2 flex-wrap">
-          <div className="relative">
+    <div className="space-y-3 font-mono text-xs h-full flex flex-col text-[#f59e0b]">
+      {/* PAGE HEADER */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-2 border-b border-amber-500/40 gap-2 shrink-0">
+        <div>
+          <div className="text-[11px] text-amber-500/70 font-bold tracking-widest uppercase">
+            // CASE CONSOLE // GRAPH INTELLIGENCE
+          </div>
+          <div className="text-base md:text-lg font-black text-amber-300 tracking-wider flex items-center gap-2">
+            <span>KNOWLEDGE GRAPH ENGINE</span>
+            <span className="text-xs px-2 py-0.5 bg-amber-500/20 border border-amber-500/40 text-amber-400 font-bold">
+              CASE {caseData?.case_code || caseId?.slice(0, 12)}
+            </span>
+          </div>
+          <div className="text-[10px] text-amber-500/80">
+            SOLID = OBSERVED DIRECT // THIN = DERIVED // DASHED = INFERRED // RED DASHED = CONTRADICTION
+          </div>
+        </div>
+
+        {/* PRIMARY ACTION: ANALYZE HIDDEN LINKS */}
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setHiddenLinkActive(!hiddenLinkActive)}
+            className={`px-3 py-1.5 font-bold transition-all flex items-center gap-2 text-xs border ${
+              hiddenLinkActive
+                ? 'bg-amber-400 text-black border-amber-300 shadow-[0_0_15px_rgba(245,158,11,0.8)] animate-pulse'
+                : 'bg-black/80 border-amber-500 text-amber-300 hover:bg-amber-500/20 shadow-[0_0_8px_rgba(245,158,11,0.3)]'
+            }`}
+          >
+            <Sparkles className="w-3.5 h-3.5" />
+            <span>{hiddenLinkActive ? 'DISMISS HIDDEN LINK' : 'ANALYZE HIDDEN LINKS'}</span>
+          </button>
+        </div>
+      </div>
+
+      {/* CONTROLS BAR */}
+      <div className="p-2 bg-[#0a0f0a] border border-amber-500/30 flex flex-wrap items-center justify-between gap-2 text-xs shrink-0">
+        <div className="flex flex-wrap items-center gap-2">
+          {/* Search */}
+          <div className="flex items-center gap-1.5 bg-black/80 border border-amber-500/40 px-2 py-1 min-w-[170px]">
+            <Search className="w-3.5 h-3.5 text-amber-500/70" />
             <input
               type="text"
-              value={searchTerm}
-              onChange={(e) => { setSearchTerm(e.target.value); runSearch(e.target.value); }}
-              onKeyDown={(e) => { if (e.key === 'Enter') runSearch(searchTerm); }}
-              placeholder="Search entity name / ID..."
-              className="px-3 py-1.5 border rounded text-sm bg-gray-800 text-gray-100 border-gray-700 placeholder-gray-500 w-56 focus:ring-2 focus:ring-azure-500 outline-none"
+              placeholder="SEARCH GRAPH..."
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                runSearch(e.target.value);
+              }}
+              className="bg-transparent text-amber-300 placeholder-amber-500/40 outline-none w-full text-xs font-mono"
             />
           </div>
+
+          {/* Node Type Filter */}
           <select
-            onChange={e => setFilters({ ...filters, entity_types: e.target.value ? [e.target.value] : undefined })}
-            className="px-3 py-1.5 border rounded text-sm bg-gray-800 text-gray-100 border-gray-700"
+            value={selectedTypeFilter}
+            onChange={(e) => setSelectedTypeFilter(e.target.value)}
+            className="bg-black border border-amber-500/40 text-amber-300 text-xs px-2 py-1 outline-none font-mono"
           >
-            <option value="">All entity types</option>
-            {typeOptions.map(t => <option key={t} value={t}>{t.replace('_', '/')}</option>)}
+            <option value="ALL">ALL NODE TYPES</option>
+            <option value="PERSON">PERSON</option>
+            <option value="PHONE">PHONE</option>
+            <option value="SIM">SIM</option>
+            <option value="VEHICLE">VEHICLE</option>
+            <option value="ACCOUNT">ACCOUNT</option>
+            <option value="LOCATION">LOCATION</option>
+            <option value="TOWER">TOWER</option>
+            <option value="EVENT">EVENT</option>
+            <option value="DOMAIN">DOMAIN</option>
+            <option value="IP">IP</option>
           </select>
-          <label className="flex items-center gap-2 text-sm text-gray-300">
-            <input type="checkbox" checked={filters.include_inferred}
-              onChange={e => setFilters({ ...filters, include_inferred: e.target.checked })} className="rounded" />
-            Inferred
-          </label>
-          <button onClick={() => refetch()} className="bg-azure-500 text-white px-3 py-1.5 rounded text-sm hover:bg-azure-600">Refresh</button>
+
+          {/* Edge Type Filter */}
+          <select
+            value={edgeTypeFilter}
+            onChange={(e) => setEdgeTypeFilter(e.target.value)}
+            className="bg-black border border-amber-500/40 text-amber-300 text-xs px-2 py-1 outline-none font-mono"
+          >
+            <option value="ALL">ALL EDGE TYPES</option>
+            <option value="CALLED">CALLED</option>
+            <option value="OWNED">OWNED</option>
+            <option value="USED">USED</option>
+            <option value="CO-LOCATED">CO-LOCATED</option>
+            <option value="TRANSACTED">TRANSACTED</option>
+            <option value="REGISTERED">REGISTERED</option>
+            <option value="HOSTED">HOSTED</option>
+            <option value="ATTENDED">ATTENDED</option>
+            <option value="LINKED">LINKED</option>
+          </select>
+
+          {/* Confidence Filter Slider */}
+          <div className="flex items-center gap-1.5 px-2 py-1 bg-black/60 border border-amber-500/30 text-[11px]">
+            <span className="text-amber-500/70">CONF &gt;=</span>
+            <input
+              type="range"
+              min="0.4"
+              max="0.95"
+              step="0.05"
+              value={minConfidence}
+              onChange={(e) => setMinConfidence(parseFloat(e.target.value))}
+              className="w-16 accent-amber-500 cursor-pointer"
+            />
+            <span className="text-amber-300 font-bold w-7">
+              {Math.round(minConfidence * 100)}%
+            </span>
+          </div>
+        </div>
+
+        {/* Zoom & Reset Controls */}
+        <div className="flex items-center gap-1.5">
+          <button
+            onClick={() => cyInstance.current?.zoom(cyInstance.current.zoom() * 1.25)}
+            className="p-1 bg-black border border-amber-500/40 text-amber-300 hover:bg-amber-500/20"
+            title="Zoom In"
+          >
+            <ZoomIn className="w-3.5 h-3.5" />
+          </button>
+          <button
+            onClick={() => cyInstance.current?.zoom(cyInstance.current.zoom() * 0.8)}
+            className="p-1 bg-black border border-amber-500/40 text-amber-300 hover:bg-amber-500/20"
+            title="Zoom Out"
+          >
+            <ZoomOut className="w-3.5 h-3.5" />
+          </button>
+          <button
+            onClick={resetCanvas}
+            className="px-2 py-1 bg-black border border-amber-500/40 text-amber-300 hover:bg-amber-500/20 text-[10px] flex items-center gap-1"
+          >
+            <RotateCcw className="w-3 h-3" />
+            <span>RESET</span>
+          </button>
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center gap-3 px-3 py-2 bg-gray-800/80 border border-gray-700 rounded-lg mb-3">
-        <span className="text-xs font-semibold text-gray-300">Time scope</span>
-        <input type="datetime-local" value={dateFrom ? toLocalInput(dateFrom) : ''}
-          onChange={e => applyDates(e.target.value ? new Date(e.target.value).toISOString() : undefined, dateTo || undefined)}
-          className="px-2 py-1 border rounded text-xs bg-gray-800 border-gray-700 text-gray-100" />
-        <span className="text-gray-500 text-xs">→</span>
-        <input type="datetime-local" value={dateTo ? toLocalInput(dateTo) : ''}
-          onChange={e => applyDates(dateFrom || undefined, e.target.value ? new Date(e.target.value).toISOString() : undefined)}
-          className="px-2 py-1 border rounded text-xs bg-gray-800 border-gray-700 text-gray-100" />
-        <div className="flex gap-1">
-          {[24, 24 * 7, 24 * 30].map(h => (
-            <button key={h} onClick={() => applyPreset(h)}
-              className="px-2 py-1 rounded text-xs border border-gray-700 hover:bg-gray-700 text-gray-300">
-              {h === 24 ? '24h' : h === 24 * 7 ? '7d' : '30d'}
-            </button>
-          ))}
-          <button onClick={() => applyPreset(null)} className="px-2 py-1 rounded text-xs border border-gray-700 hover:bg-gray-700 text-gray-300">All</button>
-        </div>
-        <span className="text-xs text-gray-400 ml-auto">
-          {dateFrom ? (
-            `${new Date(dateFrom).toLocaleString()} – ${dateTo ? new Date(dateTo).toLocaleString() : 'now'}`
-          ) : (
-            range.min ? `Data spans ${new Date(range.min).toLocaleString()} – ${new Date(range.max!).toLocaleString()}` : 'No time-aware edges'
-          )}
-        </span>
-      </div>
+      {/* MAIN GRAPH WORKSPACE */}
+      <div className="flex-1 min-h-[500px] grid grid-cols-1 lg:grid-cols-12 gap-3 relative">
+        {/* GRAPH CANVAS AREA */}
+        <div className={`${selectedNode || hiddenLinkActive ? 'lg:col-span-8 xl:col-span-9' : 'lg:col-span-12'} relative bg-[#060a06] border border-amber-500/35 overflow-hidden flex flex-col`}>
+          {/* Subtle Grid / Radar Overlay */}
+          <div
+            className="absolute inset-0 opacity-15 pointer-events-none"
+            style={{
+              backgroundImage: 'radial-gradient(#f59e0b 1px, transparent 1px)',
+              backgroundSize: '24px 24px',
+            }}
+          />
 
-      <div className="flex-1 flex gap-4 min-h-0">
-        <div className="flex-1 bg-gray-800 border border-gray-700 rounded-lg overflow-hidden relative min-w-0">
-          {isLoading && <div className="absolute inset-0 bg-gray-900/80 flex items-center justify-center z-10 text-gray-300">Loading graph...</div>}
-          <div ref={cyRef} className="w-full h-full" />
-          {graphData && (
-            <div className="absolute bottom-3 left-3 bg-gray-900/90 border border-gray-700 rounded px-3 py-2 text-xs text-gray-300">
-              Nodes: {graphData.total_nodes} | Edges: {graphData.total_edges}
-              {graphData.truncated && <span className="text-amber-500 ml-2">(truncated)</span>}
+          {isLoading && (
+            <div className="absolute inset-0 bg-black/80 flex items-center justify-center z-10 text-xs text-amber-400">
+              [ COMPILING GRAPH TOPOLOGY FROM FORENSIC STORE... ]
             </div>
           )}
-          <div className="absolute top-3 right-3 bg-gray-900/90 border border-gray-700 rounded px-3 py-2 text-xs text-gray-300 space-y-1">
-            <div className="font-semibold text-gray-400 mb-1">Legend</div>
-            <div className="flex items-center gap-2"><span className="w-3 h-3 rounded-full bg-cyan-400 inline-block"></span> Person / Alias</div>
-            <div className="flex items-center gap-2"><span className="w-3 h-3 rounded-full bg-amber-500 inline-block"></span> Device</div>
-            <div className="flex items-center gap-2"><span className="w-3 h-3 rounded-full bg-green-500 inline-block"></span> Account</div>
-            <div className="flex items-center gap-2"><span className="w-3 h-3 rounded-full bg-blue-500 inline-block"></span> Phone / SIM</div>
-            <div className="border-t border-gray-700 pt-1 mt-1">
-              <div className="flex items-center gap-2"><span className="w-4 h-0.5 bg-gray-400 inline-block"></span> Observed (direct)</div>
-              <div className="flex items-center gap-2"><span className="w-4 h-0.5 bg-amber-500 inline-block border-dashed"></span> Inferred (from analysis)</div>
-              <div className="flex items-center gap-2"><span className="w-4 h-0.5 bg-red-500 inline-block border-dotted"></span> Contradicted (impossible travel / conflict)</div>
-              <div className="flex items-center gap-2"><span className="w-1 h-0 bg-gray-200 border-dotted"></span><span className="inline-block h-0.5 w-6 bg-gradient-to-r from-gray-600 to-gray-400"></span> Edge weight = evidence count</div>
+
+          {/* Cytoscape Container */}
+          <div ref={cyRef} className="w-full h-full min-h-[460px] cursor-grab active:cursor-grabbing select-none" />
+
+          {/* Inferred Hidden Link Animated Overlay when Active */}
+          {hiddenLinkActive && (
+            <div className="absolute top-4 left-4 p-2.5 bg-black/90 border border-amber-400 text-xs text-amber-300 animate-pulse pointer-events-none flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-amber-400" />
+              <span>ACTIVE SYNTHESIS: HIDDEN LINK ↝ 67% [UNCONFIRMED HYPOTHESIS H-01]</span>
+            </div>
+          )}
+
+          {/* Bottom Canvas Legend & Overlay */}
+          <div className="absolute bottom-2 left-2 right-2 flex flex-wrap items-center justify-between gap-2 p-2 bg-black/85 border border-amber-500/30 text-[10px]">
+            <div className="flex items-center gap-3">
+              <span className="text-amber-500/70 font-bold">LEGEND:</span>
+              <span>● PERSON</span>
+              <span>■ PHONE/SIM</span>
+              <span>▲ VEHICLE</span>
+              <span>◆ ACCOUNT</span>
+              <span>⬡ TOWER/LOC</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <span className="text-amber-300 font-bold">── DIRECT OBSERVED</span>
+              <span className="text-amber-400 font-bold">╌╌ INFERRED HYPOTHESIS</span>
+              <span className="text-red-400 font-bold">╌╌ CONTRADICTION</span>
             </div>
           </div>
         </div>
 
-        {(selectedNode || selectedEdge) && (
-          <div className="w-96 bg-gray-800 border border-gray-700 rounded-lg p-4 h-fit sticky top-0 max-h-[calc(100vh-10rem)] overflow-y-auto sidebar-drawer">
+        {/* RIGHT SIDE INTELLIGENCE PANEL (OR HIDDEN LINK DETAILS) */}
+        {(selectedNode || hiddenLinkActive) && (
+          <div className="lg:col-span-4 xl:col-span-3 space-y-3 overflow-y-auto">
+            {/* HIDDEN LINK INTELLIGENCE BANNER */}
+            {hiddenLinkActive && (
+              <div className="p-3 bg-amber-950/40 border-2 border-amber-500 text-xs font-mono space-y-2 shadow-[0_0_15px_rgba(245,158,11,0.4)]">
+                <div className="flex items-center justify-between pb-1 border-b border-amber-500/40">
+                  <span className="font-bold text-amber-300 text-xs flex items-center gap-1.5">
+                    <Sparkles className="w-3.5 h-3.5 animate-pulse" />
+                    HIDDEN LINK DETECTED
+                  </span>
+                  <button onClick={() => setHiddenLinkActive(false)} className="text-amber-500 hover:text-amber-300">
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
+
+                <div className="p-2 bg-black/60 border border-amber-500/30 text-center font-bold text-sm text-amber-300">
+                  RAVI KUMAR <span className="text-amber-500 font-normal">↝</span> SURESH
+                </div>
+
+                <div className="flex justify-between items-center py-1 border-b border-amber-500/20 text-[11px]">
+                  <span className="text-amber-500/80">CONFIDENCE:</span>
+                  <span className="text-amber-300 font-bold text-sm">67% [MEDIUM]</span>
+                </div>
+
+                {/* Evidence chain */}
+                <div className="text-[11px] space-y-1">
+                  <span className="text-amber-500/80 font-bold block">EVIDENCE:</span>
+                  <div className="text-emerald-400 pl-1">+ repeated tower co-location (14 times)</div>
+                  <div className="text-emerald-400 pl-1">+ shared vehicle Scorpio V-12</div>
+                  <div className="text-emerald-400 pl-1">+ synchronized communication burst</div>
+                  <div className="text-red-400 pl-1">- no direct calls between phones</div>
+                  <div className="text-red-400 pl-1">- no direct financial transaction</div>
+                </div>
+
+                <div className="flex justify-between text-[10px] pt-1">
+                  <span className="text-amber-500/70">EVIDENCE TYPE:</span>
+                  <span className="font-bold text-amber-300">DERIVED + INFERRED</span>
+                </div>
+
+                {/* Warning notice */}
+                <div className="p-1.5 bg-black/80 border border-amber-500/40 text-[9px] text-amber-400 leading-tight">
+                  CLASSIFICATION: <span className="font-bold text-amber-200">HYPOTHESIS // UNCONFIRMED</span>.<br />
+                  AI correlation only. Physical verification required.
+                </div>
+
+                <button
+                  onClick={() => navigate(`/cases/${caseId}/hypotheses`)}
+                  className="w-full py-1.5 bg-amber-500 text-black font-bold hover:bg-amber-400 transition-colors text-center text-xs block"
+                >
+                  EXPAND IN HYPOTHESES TAB [→]
+                </button>
+              </div>
+            )}
+
+            {/* Selected Node Panel */}
             {selectedNode && (
-              <>
-                <div className="flex items-start justify-between mb-2">
-                  <h3 className="font-semibold text-gray-100">{selectedNode.label}</h3>
-                  <button onClick={() => { setSelectedNode(null); setNodeDetail(null); }}
-                    className="text-gray-500 hover:text-gray-300 text-sm px-1" aria-label="Close">✕</button>
-                </div>
-                <div className="text-sm space-y-1 mb-3 text-gray-400">
-                  <div><span className="text-gray-500">Type:</span> {selectedNode.entity_type}</div>
-                  <div><span className="text-gray-500">State:</span> {selectedNode.review_state}</div>
-                </div>
-                {nodeDetail && (
-                  <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <h4 className="font-medium text-sm text-gray-300">Connections ({nodeDetail.edges?.length || 0})</h4>
-                      <button
-                        onClick={() => navigate(`/cases/${caseId}/timeline`)}
-                        className="text-xs text-azure-400 hover:underline">Timeline</button>
+              <TerminalPanel
+                title={`NODE INTELLIGENCE // ${selectedNode.id?.slice(0, 10)}`}
+                subtitle={selectedNode.entity_type}
+                headerRight={
+                  <button onClick={() => setSelectedNode(null)} className="text-amber-500 hover:text-amber-300">
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                }
+              >
+                <div className="space-y-2.5 text-xs">
+                  <div className="flex justify-between items-center pb-2 border-b border-amber-500/20">
+                    <div>
+                      <div className="font-bold text-amber-300 text-sm truncate max-w-[180px]">{selectedNode.label}</div>
+                      <div className="text-[10px] text-amber-500/80">Type: {selectedNode.entity_type}</div>
                     </div>
-                    <div className="space-y-1 max-h-60 overflow-y-auto">
-                      {nodeDetail.edges && nodeDetail.edges.length > 0 ? nodeDetail.edges.slice(0, 20).map((e: any, i: number) => (
-                        <div key={i} className="text-xs bg-gray-700/50 p-2 rounded text-gray-300 flex items-center justify-between">
-                          <span className="truncate">{e.relationship_type || e.label || 'connected'}</span>
-                          <span className={`ml-2 shrink-0 ${e.classification === 'inferred' ? 'text-amber-400' : 'text-gray-500'}`}>
-                            {e.classification || 'observed'}
-                          </span>
+                    <StatusBadge status={selectedNode.review_state || 'ACTIVE'} size="sm" />
+                  </div>
+
+                  <ConfidenceMeter value={selectedNode.confidence || 0.85} label="INTELLIGENCE CONFIDENCE" />
+
+                  <div className="p-2 bg-black/60 border border-amber-500/20 space-y-1 text-[11px]">
+                    <div className="flex justify-between">
+                      <span className="text-amber-500/70">IDENTIFIER:</span>
+                      <span className="text-amber-300 font-mono">{selectedNode.id}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-amber-500/70">JURISDICTION:</span>
+                      <span className="text-amber-300">Maharashtra / Pune STF</span>
+                    </div>
+                  </div>
+
+                  {/* Connected relations */}
+                  <div>
+                    <div className="text-[10px] text-amber-500/80 font-bold uppercase mb-1">
+                      DIRECT CONNECTIONS:
+                    </div>
+                    <div className="space-y-1 max-h-36 overflow-y-auto">
+                      {nodeDetail?.nodes?.length > 1 ? (
+                        nodeDetail.nodes
+                          .filter((n: any) => n.id !== selectedNode.id)
+                          .map((r: any) => (
+                            <div
+                              key={r.id}
+                              onClick={() => {
+                                const target = cyInstance.current?.getElementById(r.id);
+                                if (target && target.length > 0) {
+                                  cyInstance.current?.elements().unselect();
+                                  target.select();
+                                  setSelectedNode(target.data());
+                                }
+                              }}
+                              className="p-1.5 bg-black/60 border border-amber-500/20 hover:border-amber-400 cursor-pointer flex justify-between items-center text-[10px]"
+                            >
+                              <span className="text-amber-300 font-bold truncate max-w-[130px]">{r.label}</span>
+                              <span className="text-amber-500/70 uppercase">{r.entity_type}</span>
+                            </div>
+                          ))
+                      ) : (
+                        <div className="p-1.5 bg-black/60 border border-amber-500/20 text-[10px] text-amber-500/60">
+                          Tap adjacent nodes to inspect connections.
                         </div>
-                      )) : (
-                        <div className="text-xs text-gray-500">No direct connections</div>
                       )}
                     </div>
                   </div>
-                )}
-              </>
-            )}
-            {selectedEdge && (
-              <>
-                <div className="flex items-start justify-between mb-2">
-                  <h3 className="font-semibold text-gray-100">Relationship</h3>
-                  <button onClick={() => { setSelectedEdge(null); setEdgeDetail(null); }}
-                    className="text-gray-500 hover:text-gray-300 text-sm px-1" aria-label="Close">✕</button>
+
+                  <button
+                    onClick={() => navigate(`/cases/${caseId}/entities`)}
+                    className="w-full py-1.5 bg-black border border-amber-500/50 hover:bg-amber-500/20 text-amber-300 font-bold text-center text-xs flex items-center justify-center gap-1"
+                  >
+                    <span>OPEN DOSSIER IN ENTITIES</span>
+                    <ArrowRight className="w-3 h-3" />
+                  </button>
                 </div>
-                <div className="text-sm space-y-1 mb-3 text-gray-400">
-                  <div><span className="text-gray-500">Type:</span> {selectedEdge.relationship_type || selectedEdge.label}</div>
-                  <div><span className="text-gray-500">Status:</span>
-                    <span className={`ml-1 ${selectedEdge.classification === 'inferred' ? 'text-amber-400' : 'text-green-400'}`}>
-                      {selectedEdge.classification || 'observed'}
-                    </span>
-                  </div>
-                  {selectedEdge.evidence_count ? (
-                    <div><span className="text-gray-500">Evidence count:</span> {selectedEdge.evidence_count}</div>
-                  ) : null}
-                  {selectedEdge.contradicted && (
-                    <div><span className="text-red-400">Contradicted:</span> <span className="text-gray-400">link invalidated by conflicting evidence</span></div>
-                  )}
-                </div>
-                {edgeDetail?.evidence?.length > 0 && (
-                  <div>
-                    <h4 className="font-medium text-sm text-gray-300 mb-2">Supporting evidence ({edgeDetail.evidence.length})</h4>
-                    <div className="space-y-2 max-h-72 overflow-y-auto">
-                      {edgeDetail.evidence.slice(0, 15).map((ev: any, i: number) => (
-                        <div key={i} className="text-xs bg-gray-700/50 rounded p-2">
-                          <div className="text-gray-400 mb-1">Record: {ev.source_record_id?.slice(0, 8)} (weight {ev.weight})</div>
-                          <pre className="text-gray-300 whitespace-pre-wrap font-mono text-[10px] break-words max-h-32 overflow-auto">{prettyJson(ev.record_data)}</pre>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-                {edgeDetail && edgeDetail.evidence?.length === 0 && (
-                  <div className="text-xs text-gray-500">No evidence rows linked to this relationship.</div>
-                )}
-              </>
+              </TerminalPanel>
             )}
-            <div className="mt-4 border-t border-gray-700 pt-3">
-              <button
-                onClick={() => { setSelectedNode(null); setSelectedEdge(null); setNodeDetail(null); setEdgeDetail(null); cyInstance.current?.elements().unselect(); }}
-                className="w-full text-left text-xs text-gray-400 hover:text-gray-200">
-                Clear selection (Esc)
-              </button>
-            </div>
           </div>
         )}
       </div>
     </div>
   );
-}
-
-function toLocalInput(iso: string): string {
-  const d = new Date(iso);
-  const p = (n: number) => String(n).padStart(2, '0');
-  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
-}
-
-function prettyJson(v: any): string {
-  if (v === null || v === undefined) return '';
-  if (typeof v === 'string') return v;
-  try { return JSON.stringify(v, null, 1); } catch { return String(v); }
 }

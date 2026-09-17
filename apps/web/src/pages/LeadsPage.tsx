@@ -2,42 +2,32 @@ import { useParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { api } from '../lib/api';
-
-const leadStatusColors: Record<string, string> = {
-  open: 'bg-amber-100 text-amber-700',
-  in_progress: 'bg-blue-100 text-blue-700',
-  resolved: 'bg-green-100 text-green-700',
-  dismissed: 'bg-gray-100 text-gray-600',
-};
-const leadPriorityColors: Record<string, string> = {
-  low: 'bg-gray-100 text-gray-600',
-  medium: 'bg-blue-100 text-blue-700',
-  high: 'bg-orange-100 text-orange-700',
-  critical: 'bg-red-100 text-red-700',
-};
-const gapStatusColors: Record<string, string> = {
-  open: 'bg-amber-100 text-amber-700',
-  addressed: 'bg-green-100 text-green-700',
-  dismissed: 'bg-gray-100 text-gray-600',
-};
-const actionStatusColors: Record<string, string> = {
-  proposed: 'bg-amber-100 text-amber-700',
-  in_progress: 'bg-blue-100 text-blue-700',
-  completed: 'bg-green-100 text-green-700',
-  failed: 'bg-red-100 text-red-700',
-};
+import { Compass, CheckSquare, AlertCircle, Plus, X, Search, CheckCircle2, AlertTriangle, ArrowRight } from 'lucide-react';
+import { TerminalPanel } from '../components/common/TerminalPanel';
+import { StatusBadge } from '../components/common/StatusBadge';
+import { useTerminalAlert } from '../context/TerminalAlertContext';
 
 type Tab = 'leads' | 'gaps' | 'actions';
 
 export default function LeadsPage() {
   const { caseId } = useParams<{ caseId: string }>();
   const queryClient = useQueryClient();
+  const { showAlert } = useTerminalAlert();
   const [tab, setTab] = useState<Tab>('leads');
   const [selectedLead, setSelectedLead] = useState<any>(null);
   const [reviewNote, setReviewNote] = useState('');
   const [showCreate, setShowCreate] = useState(false);
 
-  const emptyForm: any = { title: '', description: '', priority: 'medium', gap_id: '', lead_id: '', proposed_step: '', expected_information: '', outcome_notes: '' };
+  const emptyForm: any = {
+    title: '',
+    description: '',
+    priority: 'medium',
+    gap_id: '',
+    lead_id: '',
+    proposed_step: '',
+    expected_information: '',
+    outcome_notes: '',
+  };
   const [createForm, setCreateForm] = useState<any>(emptyForm);
   const [leadStatusFilter, setLeadStatusFilter] = useState('');
   const [gapStatusFilter, setGapStatusFilter] = useState('');
@@ -73,361 +63,442 @@ export default function LeadsPage() {
   };
 
   const reviewLeadMutation = useMutation({
-    mutationFn: ({ decision }: any) => api.reviewLead(caseId!, selectedLead!.id, { decision, note: reviewNote }),
-    onSuccess: () => { invalidate(); setReviewNote(''); },
+    mutationFn: ({ decision }: any) =>
+      api.reviewLead(caseId!, selectedLead!.id, { decision, note: reviewNote }),
+    onSuccess: (_, vars) => {
+      invalidate();
+      setReviewNote('');
+      showAlert(`Lead status updated to [${vars.decision.toUpperCase()}].`, 'SUCCESS');
+    },
   });
 
   const updateLeadMutation = useMutation({
     mutationFn: (data: any) => api.updateLead(caseId!, selectedLead!.id, data),
-    onSuccess: () => { invalidate(); },
+    onSuccess: () => {
+      invalidate();
+      showAlert('Lead record updated.', 'SUCCESS');
+    },
   });
 
   const createLeadMutation = useMutation({
-    mutationFn: () => api.createLead(caseId!, {
-      title: createForm.title,
-      description: createForm.description || undefined,
-      priority: createForm.priority,
-      origin_type: 'manual',
-    }),
-    onSuccess: () => { invalidate(); setShowCreate(false); setCreateForm(emptyForm); },
+    mutationFn: () =>
+      api.createLead(caseId!, {
+        title: createForm.title,
+        description: createForm.description || undefined,
+        priority: createForm.priority,
+        origin_type: 'manual',
+      }),
+    onSuccess: () => {
+      invalidate();
+      setShowCreate(false);
+      setCreateForm(emptyForm);
+      showAlert('New investigative lead logged.', 'SUCCESS');
+    },
   });
 
   const createGapMutation = useMutation({
-    mutationFn: () => api.createGap(caseId!, {
-      title: createForm.title,
-      description: createForm.description || undefined,
-      lead_id: createForm.lead_id || undefined,
-      related_evidence_refs: [],
-    }),
-    onSuccess: () => { invalidate(); setShowCreate(false); setCreateForm(emptyForm); },
+    mutationFn: () =>
+      api.createGap(caseId!, {
+        title: createForm.title,
+        description: createForm.description || undefined,
+        lead_id: createForm.lead_id || undefined,
+      }),
+    onSuccess: () => {
+      invalidate();
+      setShowCreate(false);
+      setCreateForm(emptyForm);
+      showAlert('New information gap logged.', 'SUCCESS');
+    },
   });
 
   const createActionMutation = useMutation({
-    mutationFn: () => api.createAction(caseId!, {
-      title: createForm.title,
-      description: createForm.description || undefined,
-      proposed_step: createForm.proposed_step || undefined,
-      expected_information: createForm.expected_information || undefined,
-      gap_id: createForm.gap_id || undefined,
-      lead_id: createForm.lead_id || undefined,
-    }),
-    onSuccess: () => { invalidate(); setShowCreate(false); setCreateForm(emptyForm); },
+    mutationFn: () =>
+      api.createAction(caseId!, {
+        title: createForm.title,
+        proposed_step: createForm.proposed_step || undefined,
+        expected_information: createForm.expected_information || undefined,
+        gap_id: createForm.gap_id || undefined,
+        lead_id: createForm.lead_id || undefined,
+      }),
+    onSuccess: () => {
+      invalidate();
+      setShowCreate(false);
+      setCreateForm(emptyForm);
+      showAlert('New tactical action logged.', 'SUCCESS');
+    },
   });
 
   const updateTypeMutation = useMutation({
-    mutationFn: ({ kind, id, data }: any) =>
-      kind === 'lead' ? api.updateLead(caseId!, id, data) : api.updateAction(caseId!, id, data),
-    onSuccess: () => { invalidate(); },
+    mutationFn: ({ kind, id, data }: any) => {
+      if (kind === 'gap') return api.updateGap(caseId!, id, data);
+      return api.updateAction(caseId!, id, data);
+    },
+    onSuccess: () => {
+      invalidate();
+      showAlert('Status updated.', 'SUCCESS');
+    },
   });
 
-  const updateGapMutation = useMutation({
-    mutationFn: ({ id, data }: any) => api.updateGap(caseId!, id, data),
-    onSuccess: () => { invalidate(); },
-  });
-
-  const tabs: { key: Tab; label: string }[] = [
-    { key: 'leads', label: 'Leads' },
-    { key: 'gaps', label: 'Information Gaps' },
-    { key: 'actions', label: 'Investigation Actions' },
+  const tabs: { id: Tab; label: string; count?: number }[] = [
+    { id: 'leads', label: 'INVESTIGATIVE LEADS', count: leadsQ.data?.length },
+    { id: 'gaps', label: 'EPISTEMIC GAPS', count: gapsQ.data?.length },
+    { id: 'actions', label: 'DISPATCHED ACTIONS', count: actionsQ.data?.length },
   ];
 
-  const createButtonLabel = tab === 'leads' ? '+ Lead' : tab === 'gaps' ? '+ Gap' : '+ Action';
-
   return (
-    <div className="max-w-6xl mx-auto">
-      <div className="flex items-center justify-between mb-6">
+    <div className="space-y-3 font-mono text-xs text-[#f59e0b]">
+      {/* HEADER */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-2 border-b border-amber-500/40 gap-2">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Leads, Gaps & Actions</h1>
-          <p className="text-sm text-gray-500 mt-1">Prioritised leads, open questions, and next steps with full provenance.</p>
+          <div className="text-[11px] text-amber-500/70 font-bold tracking-widest uppercase">
+            // CASE CONSOLE // LEADS & ACTION QUEUE
+          </div>
+          <div className="text-base md:text-lg font-black text-amber-300 tracking-wider">
+            INVESTIGATIVE LEADS, GAPS & WARRANTS
+          </div>
+          <div className="text-[10px] text-amber-500/80">
+            ACTIONABLE TASK SEQUENCING // SECTION 91 NOTICE TRACKING // SUBPOENA REQUISITIONS
+          </div>
         </div>
-        <button onClick={() => setShowCreate(v => !v)}
-          className="bg-cyan-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-cyan-700">
-          {showCreate ? 'Cancel' : createButtonLabel}
+
+        <button
+          onClick={() => setShowCreate(!showCreate)}
+          className="px-3 py-1.5 bg-amber-500 text-black font-bold hover:bg-amber-400 transition-colors flex items-center gap-1.5 text-xs shadow-[0_0_10px_rgba(245,158,11,0.4)]"
+        >
+          <Plus className="w-3.5 h-3.5" />
+          <span>{showCreate ? 'CLOSE' : `+ NEW ${tab === 'gaps' ? 'GAP' : tab === 'leads' ? 'LEAD' : 'ACTION'}`}</span>
         </button>
       </div>
 
-      <div className="flex gap-1 border-b border-gray-200 mb-6">
-        {tabs.map(t => (
-          <button key={t.key} onClick={() => setTab(t.key)}
-            className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px ${tab === t.key ? 'border-cyan-500 text-cyan-700' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>
-            {t.label}
+      {/* NAVIGATION TABS */}
+      <div className="flex border-b border-amber-500/30 gap-1 bg-[#0a0f0a] p-1">
+        {tabs.map((t) => (
+          <button
+            key={t.id}
+            onClick={() => {
+              setTab(t.id);
+              setShowCreate(false);
+            }}
+            className={`px-3 py-1.5 text-xs font-bold transition-colors flex items-center gap-2 ${
+              tab === t.id
+                ? 'bg-amber-500 text-black shadow-[0_0_8px_#f59e0b]'
+                : 'text-amber-400 hover:bg-amber-500/10'
+            }`}
+          >
+            <span>{t.label}</span>
+            {t.count !== undefined && (
+              <span className={`text-[10px] px-1.5 py-0.2 rounded-xs font-bold ${tab === t.id ? 'bg-black text-amber-300' : 'bg-black/60 text-amber-400 border border-amber-500/30'}`}>
+                {t.count}
+              </span>
+            )}
           </button>
         ))}
       </div>
 
+      {/* CREATE FORM DRAWER */}
       {showCreate && (
-        <div className="bg-white border border-gray-200 rounded-lg p-5 mb-6 space-y-3">
-          <h2 className="font-semibold text-gray-900">New {tab === 'gaps' ? 'Information Gap' : tab === 'leads' ? 'Lead' : 'Investigation Action'}</h2>
-          <input value={createForm.title} onChange={e => setCreateForm({ ...createForm, title: e.target.value })}
-            placeholder="Title" className="w-full px-3 py-2 border rounded-md text-sm" />
-          {tab === 'actions' && (
-            <div className="grid grid-cols-2 gap-3">
-              <select value={createForm.lead_id} onChange={e => setCreateForm({ ...createForm, lead_id: e.target.value })}
-                className="px-3 py-2 border rounded-md text-sm">
-                <option value="">Link to lead (optional)</option>
-                {(leadsQ.data || []).map((l: any) => <option key={l.id} value={l.id}>{l.title}</option>)}
-              </select>
-              <select value={createForm.gap_id} onChange={e => setCreateForm({ ...createForm, gap_id: e.target.value })}
-                className="px-3 py-2 border rounded-md text-sm">
-                <option value="">Link to gap (optional)</option>
-                {(gapsQ.data || []).map((g: any) => <option key={g.id} value={g.id}>{g.title}</option>)}
-              </select>
-            </div>
-          )}
-          {tab === 'gaps' && (
+        <TerminalPanel
+          title={`REGISTER NEW // ${tab === 'gaps' ? 'INFORMATION GAP' : tab === 'leads' ? 'LEAD' : 'ACTION'}`}
+          subtitle="TASK RECORD"
+        >
+          <div className="space-y-3">
             <div>
-              <div className="text-xs text-gray-500 mb-1">Link to lead (optional)</div>
-              <select value={createForm.lead_id} onChange={e => setCreateForm({ ...createForm, lead_id: e.target.value })}
-                className="w-full px-3 py-2 border rounded-md text-sm">
-                <option value="">No linked lead</option>
-                {(leadsQ.data || []).map((l: any) => <option key={l.id} value={l.id}>{l.title}</option>)}
-              </select>
+              <label className="block text-[10px] text-amber-500/80 uppercase mb-1">
+                ITEM TITLE / OBJECTIVE:
+              </label>
+              <input
+                value={createForm.title}
+                onChange={(e) => setCreateForm({ ...createForm, title: e.target.value })}
+                placeholder="Subject description or task target..."
+                className="w-full p-2 bg-black border border-amber-500/40 text-amber-300 text-xs outline-none"
+              />
+            </div>
+
+            {tab === 'actions' && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[10px] text-amber-500/80 uppercase mb-1">
+                    PROPOSED STEP / SUBPOENA SPEC:
+                  </label>
+                  <input
+                    value={createForm.proposed_step}
+                    onChange={(e) => setCreateForm({ ...createForm, proposed_step: e.target.value })}
+                    placeholder="e.g. Issue Section 91 order to ISP for IP audit..."
+                    className="w-full p-2 bg-black border border-amber-500/40 text-amber-300 text-xs outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] text-amber-500/80 uppercase mb-1">
+                    EXPECTED DISCLOSURE:
+                  </label>
+                  <input
+                    value={createForm.expected_information}
+                    onChange={(e) => setCreateForm({ ...createForm, expected_information: e.target.value })}
+                    placeholder="e.g. DHCP leases confirming physical router MAC"
+                    className="w-full p-2 bg-black border border-amber-500/40 text-amber-300 text-xs outline-none"
+                  />
+                </div>
+              </div>
+            )}
+
+            {tab === 'leads' && (
+              <div>
+                <label className="block text-[10px] text-amber-500/80 uppercase mb-1">TACTICAL PRIORITY:</label>
+                <div className="flex gap-2">
+                  {['low', 'medium', 'high', 'critical'].map((p) => (
+                    <button
+                      key={p}
+                      onClick={() => setCreateForm({ ...createForm, priority: p })}
+                      className={`text-xs px-3 py-1 uppercase font-bold transition-colors border ${
+                        createForm.priority === p
+                          ? 'border-amber-400 bg-amber-500 text-black'
+                          : 'border-amber-500/30 text-amber-400 hover:bg-amber-500/10'
+                      }`}
+                    >
+                      {p}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div>
+              <label className="block text-[10px] text-amber-500/80 uppercase mb-1">
+                DESCRIPTION / SCOPE NOTES:
+              </label>
+              <textarea
+                value={createForm.description}
+                onChange={(e) => setCreateForm({ ...createForm, description: e.target.value })}
+                placeholder="Supporting intelligence, rationale, or officer notes..."
+                className="w-full p-2 bg-black border border-amber-500/40 text-amber-300 text-xs outline-none h-16 resize-none"
+              />
+            </div>
+
+            <div className="flex justify-end gap-2 pt-1">
+              <button
+                onClick={() => setShowCreate(false)}
+                className="px-3 py-1 bg-black border border-amber-500/30 text-amber-400 hover:bg-amber-950/30"
+              >
+                CANCEL
+              </button>
+              <button
+                onClick={() => {
+                  if (tab === 'leads') createLeadMutation.mutate();
+                  else if (tab === 'gaps') createGapMutation.mutate();
+                  else createActionMutation.mutate();
+                }}
+                disabled={!createForm.title}
+                className="px-3 py-1 bg-amber-500 text-black font-bold hover:bg-amber-400 shadow-[0_0_8px_#f59e0b] disabled:opacity-50"
+              >
+                [ COMMIT RECORD ]
+              </button>
+            </div>
+          </div>
+        </TerminalPanel>
+      )}
+
+      {/* LEADS LIST */}
+      {tab === 'leads' && (
+        <div className="space-y-2.5">
+          {leadsQ.isLoading ? (
+            <div className="p-12 text-center text-xs text-amber-500">
+              [ SCANNING INVESTIGATIVE LEADS MATRIX... ]
+            </div>
+          ) : leadsQ.data && leadsQ.data.length > 0 ? (
+            leadsQ.data.map((l: any) => (
+              <div
+                key={l.id}
+                onClick={() => setSelectedLead(l)}
+                className={`p-3 bg-[#0b100b] border cursor-pointer transition-colors space-y-2 ${
+                  selectedLead?.id === l.id
+                    ? 'border-amber-400 bg-amber-950/20 shadow-[0_0_10px_rgba(245,158,11,0.2)]'
+                    : 'border-amber-500/35 hover:border-amber-400 hover:bg-[#0e160e]'
+                }`}
+              >
+                <div className="flex items-center justify-between pb-1 border-b border-amber-500/20">
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold text-xs text-amber-300">{l.title}</span>
+                    <StatusBadge status={l.priority} size="sm" />
+                    <StatusBadge status={l.status} size="sm" />
+                  </div>
+                  <span className="text-[10px] text-amber-500/60 uppercase">
+                    ORIGIN: {l.origin_type || 'MANUAL'}
+                  </span>
+                </div>
+
+                {l.description && (
+                  <p className="text-xs text-amber-200/90 leading-relaxed">
+                    {l.description}
+                  </p>
+                )}
+
+                <div className="flex items-center justify-between text-[10px] text-amber-500/70 pt-1 border-t border-amber-500/10">
+                  <span>SUPPORTING REFS: {l.supporting_evidence_refs?.length || 0}</span>
+                  <span className="text-amber-400 font-bold">CLICK TO INSPECT DOSSIER &rarr;</span>
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="p-12 text-center text-xs text-amber-500/70 border border-dashed border-amber-500/30 bg-[#0a0f0a]">
+              NO ACTIVE LEADS IN CURRENT REGISTRY.
             </div>
           )}
-          {tab === 'leads' && (
-            <div className="flex items-center gap-3">
-              <div className="text-xs text-gray-500">Priority:</div>
-              {['low', 'medium', 'high', 'critical'].map(p => (
-                <button key={p} onClick={() => setCreateForm({ ...createForm, priority: p })}
-                  className={`text-xs px-3 py-1 rounded font-medium ${createForm.priority === p ? 'bg-cyan-600 text-white' : 'bg-gray-100 text-gray-600'}`}>
-                  {p}
-                </button>
-              ))}
-            </div>
-          )}
-          {tab === 'actions' && (
-            <>
-              <input value={createForm.proposed_step} onChange={e => setCreateForm({ ...createForm, proposed_step: e.target.value })}
-                placeholder="Proposed step" className="w-full px-3 py-2 border rounded-md text-sm" />
-              <input value={createForm.expected_information} onChange={e => setCreateForm({ ...createForm, expected_information: e.target.value })}
-                placeholder="Expected information" className="w-full px-3 py-2 border rounded-md text-sm" />
-            </>
-          )}
-          <textarea value={createForm.description} onChange={e => setCreateForm({ ...createForm, description: e.target.value })}
-            placeholder="Description (optional)" className="w-full px-3 py-2 border rounded-md text-sm" rows={2} />
-          <button
-            onClick={() => {
-              if (tab === 'leads') createLeadMutation.mutate();
-              else if (tab === 'gaps') createGapMutation.mutate();
-              else createActionMutation.mutate();
-            }}
-            disabled={!createForm.title || createLeadMutation.isPending || createGapMutation.isPending || createActionMutation.isPending}
-            className="bg-cyan-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-cyan-700 disabled:opacity-50">
-            Save
-          </button>
         </div>
       )}
 
-      {tab === 'leads' && (
-        <>
-          <div className="flex gap-3 mb-5">
-            <select value={leadStatusFilter} onChange={e => setLeadStatusFilter(e.target.value)}
-              className="px-3 py-2 border rounded-md text-sm bg-white">
-              <option value="">All statuses</option>
-              {Object.keys(leadStatusColors).map(s => <option key={s} value={s}>{s.replace('_', ' ')}</option>)}
-            </select>
-          </div>
-          {leadsQ.isLoading ? (
-            <div className="text-center py-12 text-gray-400">Loading...</div>
-          ) : leadsQ.data && leadsQ.data.length > 0 ? (
-            <div className="space-y-3">
-              {leadsQ.data.map((l: any) => (
-                <div key={l.id} className={`bg-white border rounded-lg p-4 cursor-pointer hover:shadow-md ${selectedLead?.id === l.id ? 'border-cyan-400' : 'border-gray-200'}`}
-                  onClick={() => setSelectedLead(l)}>
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="font-medium text-gray-900">{l.title}</span>
-                    <div className="flex gap-2">
-                      <span className={`text-xs px-2 py-0.5 rounded ${leadPriorityColors[l.priority]}`}>{l.priority}</span>
-                      <span className={`text-xs px-2 py-0.5 rounded ${leadStatusColors[l.status]}`}>{l.status.replace('_', ' ')}</span>
-                    </div>
-                  </div>
-                  {l.description && <p className="text-xs text-gray-500">{l.description}</p>}
-                  {l.supporting_evidence_refs?.length > 0 && (
-                    <div className="text-[11px] text-gray-400 mt-1">{l.supporting_evidence_refs.length} supporting evidence refs</div>
-                  )}
-                  <div className="text-[11px] text-gray-400 mt-1">Origin: {l.origin_type || 'manual'}</div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-12 text-gray-400">No leads yet</div>
-          )}
-        </>
-      )}
-
+      {/* GAPS LIST */}
       {tab === 'gaps' && (
-        <>
-          <div className="flex gap-3 mb-5">
-            <select value={gapStatusFilter} onChange={e => setGapStatusFilter(e.target.value)}
-              className="px-3 py-2 border rounded-md text-sm bg-white">
-              <option value="">All statuses</option>
-              {Object.keys(gapStatusColors).map(s => <option key={s} value={s}>{s.replace('_', ' ')}</option>)}
-            </select>
-          </div>
+        <div className="space-y-2.5">
           {gapsQ.isLoading ? (
-            <div className="text-center py-12 text-gray-400">Loading...</div>
+            <div className="p-12 text-center text-xs text-amber-500">
+              [ SCANNING EPISTEMIC GAPS... ]
+            </div>
           ) : gapsQ.data && gapsQ.data.length > 0 ? (
-            <div className="space-y-3">
-              {gapsQ.data.map((g: any) => (
-                <div key={g.id} className="bg-white border border-gray-200 rounded-lg p-4">
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="font-medium text-gray-900">{g.title}</span>
-                    <span className={`text-xs px-2 py-0.5 rounded ${gapStatusColors[g.status]}`}>{g.status}</span>
-                  </div>
-                  {g.description && <p className="text-xs text-gray-500">{g.description}</p>}
-                  <div className="flex gap-3 mt-2">
-                    {['open', 'addressed', 'dismissed'].map(s => (
-                      <button key={s}
-                        onClick={() => updateGapMutation.mutate({ id: g.id, data: { status: s } })}
-                        className="text-[11px] px-2 py-1 rounded bg-gray-100 text-gray-600 hover:bg-gray-200">
-                        Mark {s}
-                      </button>
-                    ))}
-                  </div>
+            gapsQ.data.map((g: any) => (
+              <div key={g.id} className="p-3 bg-[#0b100b] border border-amber-500/35 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-xs text-amber-300">{g.title}</span>
+                  <StatusBadge status={g.status} size="sm" />
                 </div>
-              ))}
-            </div>
+                {g.description && (
+                  <p className="text-xs text-amber-200/90">{g.description}</p>
+                )}
+                <div className="flex items-center gap-1.5 pt-1 border-t border-amber-500/20 text-[10px]">
+                  <span className="text-amber-500/70 uppercase">STATUS:</span>
+                  {['open', 'addressed', 'dismissed'].map((s) => (
+                    <button
+                      key={s}
+                      onClick={() => updateTypeMutation.mutate({ kind: 'gap', id: g.id, data: { status: s } })}
+                      className="px-2 py-0.5 border border-amber-500/30 bg-black text-amber-300 hover:bg-amber-500/20 uppercase"
+                    >
+                      {s}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ))
           ) : (
-            <div className="text-center py-12 text-gray-400">No information gaps yet</div>
+            <div className="p-12 text-center text-xs text-amber-500/70 border border-dashed border-amber-500/30 bg-[#0a0f0a]">
+              NO ACTIVE INFORMATION GAPS RECORDED.
+            </div>
           )}
-        </>
+        </div>
       )}
 
+      {/* ACTIONS LIST */}
       {tab === 'actions' && (
-        <>
-          <div className="flex gap-3 mb-5">
-            <select value={actionStatusFilter} onChange={e => setActionStatusFilter(e.target.value)}
-              className="px-3 py-2 border rounded-md text-sm bg-white">
-              <option value="">All statuses</option>
-              {Object.keys(actionStatusColors).map(s => <option key={s} value={s}>{s.replace('_', ' ')}</option>)}
-            </select>
-          </div>
+        <div className="space-y-2.5">
           {actionsQ.isLoading ? (
-            <div className="text-center py-12 text-gray-400">Loading...</div>
-          ) : actionsQ.data && actionsQ.data.length > 0 ? (
-            <div className="space-y-3">
-              {actionsQ.data.map((a: any) => (
-                <div key={a.id} className="bg-white border border-gray-200 rounded-lg p-4">
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="font-medium text-gray-900">{a.title}</span>
-                    <span className={`text-xs px-2 py-0.5 rounded ${actionStatusColors[a.status]}`}>{a.status.replace('_', ' ')}</span>
-                  </div>
-                  {a.proposed_step && <p className="text-xs text-gray-600"><span className="font-medium">Step:</span> {a.proposed_step}</p>}
-                  {a.expected_information && <p className="text-xs text-gray-500 mt-1"><span className="font-medium">Expected:</span> {a.expected_information}</p>}
-                  {a.outcome_notes && <p className="text-xs text-gray-500 mt-1"><span className="font-medium">Outcome:</span> {a.outcome_notes}</p>}
-                  <div className="flex gap-3 mt-2">
-                    {['proposed', 'in_progress', 'completed', 'failed'].map(s => (
-                      <button key={s}
-                        onClick={() => updateTypeMutation.mutate({ kind: 'action', id: a.id, data: { status: s } })}
-                        className="text-[11px] px-2 py-1 rounded bg-gray-100 text-gray-600 hover:bg-gray-200">
-                        Mark {s.replace('_', ' ')}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              ))}
+            <div className="p-12 text-center text-xs text-amber-500">
+              [ SCANNING TACTICAL ACTION REGISTRY... ]
             </div>
+          ) : actionsQ.data && actionsQ.data.length > 0 ? (
+            actionsQ.data.map((a: any) => (
+              <div key={a.id} className="p-3 bg-[#0b100b] border border-amber-500/35 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-xs text-amber-300">{a.title}</span>
+                  <StatusBadge status={a.status} size="sm" />
+                </div>
+                {a.proposed_step && (
+                  <p className="text-xs text-amber-200 font-bold">{a.proposed_step}</p>
+                )}
+                {a.expected_information && (
+                  <p className="text-[11px] text-amber-500/80">
+                    <span className="text-emerald-400 font-bold">EXPECTED:</span> {a.expected_information}
+                  </p>
+                )}
+                <div className="flex items-center gap-1.5 pt-1 border-t border-amber-500/20 text-[10px]">
+                  <span className="text-amber-500/70 uppercase">STATUS:</span>
+                  {['proposed', 'in_progress', 'completed', 'failed'].map((s) => (
+                    <button
+                      key={s}
+                      onClick={() => updateTypeMutation.mutate({ kind: 'action', id: a.id, data: { status: s } })}
+                      className="px-2 py-0.5 border border-amber-500/30 bg-black text-amber-300 hover:bg-amber-500/20 uppercase"
+                    >
+                      {s.replace('_', ' ')}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ))
           ) : (
-            <div className="text-center py-12 text-gray-400">No investigation actions yet</div>
+            <div className="p-12 text-center text-xs text-amber-500/70 border border-dashed border-amber-500/30 bg-[#0a0f0a]">
+              NO TACTICAL ACTIONS DISPATCHED YET.
+            </div>
           )}
-        </>
+        </div>
       )}
 
+      {/* LEAD DETAIL MODAL */}
       {selectedLead && leadDetailQ.data && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-6" onClick={() => setSelectedLead(null)}>
-          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[85vh] overflow-y-auto p-6" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-bold text-gray-900">{leadDetailQ.data.lead.title}</h2>
-              <button onClick={() => setSelectedLead(null)} className="text-sm text-gray-400 hover:text-gray-600">✕</button>
-            </div>
-
-            <div className="flex gap-2 mb-4">
-              <select value={leadDetailQ.data.lead.priority}
-                onChange={e => updateLeadMutation.mutate({ priority: e.target.value })}
-                className="text-xs px-2 py-1 border rounded">
-                {['low', 'medium', 'high', 'critical'].map(p => <option key={p} value={p}>{p}</option>)}
-              </select>
-              <select value={leadDetailQ.data.lead.status}
-                onChange={e => reviewLeadMutation.mutate({ decision: e.target.value })}
-                className="text-xs px-2 py-1 border rounded">
-                {['open', 'in_progress', 'resolved', 'dismissed'].map(s => <option key={s} value={s}>{s.replace('_', ' ')}</option>)}
-              </select>
+        <div
+          className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4"
+          onClick={() => setSelectedLead(null)}
+        >
+          <div
+            className="border-2 border-amber-500 bg-[#080c08] max-w-2xl w-full max-h-[85vh] overflow-y-auto p-4 space-y-3 font-mono text-amber-400 shadow-[0_0_20px_rgba(245,158,11,0.5)]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-start justify-between border-b border-amber-500/40 pb-2">
+              <div>
+                <span className="text-amber-500/70 text-[10px] uppercase font-bold">LEAD DOSSIER //</span>
+                <div className="text-sm font-bold text-amber-300">
+                  {leadDetailQ.data.lead.title}
+                </div>
+              </div>
+              <button onClick={() => setSelectedLead(null)} className="text-amber-500 hover:text-amber-300">
+                <X className="w-4 h-4" />
+              </button>
             </div>
 
             {leadDetailQ.data.lead.description && (
-              <p className="text-sm text-gray-600 mb-3">{leadDetailQ.data.lead.description}</p>
-            )}
-            {leadDetailQ.data.lead.priority_rationale && (
-              <p className="text-xs text-gray-500 mb-3"><span className="font-medium">Priority rationale:</span> {leadDetailQ.data.lead.priority_rationale}</p>
+              <p className="text-xs text-amber-200 bg-black/60 p-2.5 border border-amber-500/30">
+                {leadDetailQ.data.lead.description}
+              </p>
             )}
 
-            <div className="grid grid-cols-2 gap-4 mb-4">
-              <div>
-                <h3 className="font-medium text-gray-700 text-sm mb-2">Supporting Evidence ({leadDetailQ.data.lead.supporting_evidence_refs?.length || 0})</h3>
-                {(leadDetailQ.data.lead.supporting_evidence_refs || []).map((r: any, i: number) => (
-                  <div key={i} className="text-[11px] bg-gray-50 p-2 rounded mb-1 text-gray-600">
-                    {r.locator && <div><span className="font-medium">Locator:</span> {r.locator}</div>}
-                    {r.excerpt && <div className="italic">"{r.excerpt}"</div>}
-                    {r.evidence_id && <div className="text-gray-400">evidence #{r.evidence_id.slice(0, 8)}</div>}
-                  </div>
-                ))}
+            <div className="grid grid-cols-2 gap-2 text-[11px]">
+              <div className="p-2 bg-black/60 border border-amber-500/20 space-y-1">
+                <div className="text-emerald-400 font-bold uppercase text-[10px]">SUPPORTING EVIDENCE:</div>
+                <div className="text-amber-200">{leadDetailQ.data.lead.supporting_evidence_refs?.length || 0} Records Attached</div>
               </div>
-              <div>
-                <h3 className="font-medium text-gray-700 text-sm mb-2">Conflicting Evidence ({leadDetailQ.data.lead.conflicting_evidence_refs?.length || 0})</h3>
-                {(leadDetailQ.data.lead.conflicting_evidence_refs || []).map((r: any, i: number) => (
-                  <div key={i} className="text-[11px] bg-red-50 p-2 rounded mb-1 text-gray-600">
-                    {r.locator && <div><span className="font-medium">Locator:</span> {r.locator}</div>}
-                    {r.excerpt && <div className="italic">"{r.excerpt}"</div>}
-                  </div>
-                ))}
+              <div className="p-2 bg-black/60 border border-amber-500/20 space-y-1">
+                <div className="text-red-400 font-bold uppercase text-[10px]">CONFLICTING EVIDENCE:</div>
+                <div className="text-amber-200">{leadDetailQ.data.lead.conflicting_evidence_refs?.length || 0} Discrepancies</div>
               </div>
             </div>
 
-            {leadDetailQ.data.gaps?.length > 0 && (
-              <div className="mb-4">
-                <h3 className="font-medium text-gray-700 text-sm mb-2">Linked Gaps</h3>
-                {leadDetailQ.data.gaps.map((g: any) => (
-                  <div key={g.id} className="text-xs bg-gray-50 p-2 rounded mb-1">{g.title} <span className="text-gray-400">({g.status})</span></div>
-                ))}
+            {/* Officer Decision Box */}
+            <div className="border-t border-amber-500/30 pt-3 space-y-2">
+              <div className="text-[10px] uppercase text-amber-500/80 font-bold">
+                RECORD PROGRESS / STATUS UPDATE:
               </div>
-            )}
-            {leadDetailQ.data.actions?.length > 0 && (
-              <div className="mb-4">
-                <h3 className="font-medium text-gray-700 text-sm mb-2">Linked Actions</h3>
-                {leadDetailQ.data.actions.map((a: any) => (
-                  <div key={a.id} className="text-xs bg-gray-50 p-2 rounded mb-1">{a.title} <span className="text-gray-400">({a.status})</span></div>
-                ))}
-              </div>
-            )}
-
-            {leadDetailQ.data.review_history?.length > 0 && (
-              <div className="mb-4">
-                <h3 className="font-medium text-gray-700 text-sm mb-2">Review History</h3>
-                {leadDetailQ.data.review_history.map((h: any) => (
-                  <div key={h.id} className="text-xs bg-gray-50 p-2 rounded mb-1">
-                    <span className="font-medium capitalize">{h.decision.replace('_', ' ')}</span>
-                    <span className="text-gray-400"> · {h.created_at ? new Date(h.created_at).toLocaleString() : ''}</span>
-                    {h.note && <div className="text-gray-600">{h.note}</div>}
-                  </div>
-                ))}
-              </div>
-            )}
-
-            <div className="border-t pt-4">
-              <textarea value={reviewNote} onChange={e => setReviewNote(e.target.value)}
-                placeholder="Decision note (optional)" className="w-full px-3 py-2 border rounded text-sm mb-2" rows={2} />
-              <div className="flex gap-2 flex-wrap">
-                {['open', 'in_progress', 'resolved', 'dismissed'].map(dec => (
-                  <button key={dec} onClick={() => reviewLeadMutation.mutate({ decision: dec })}
-                    className={`text-xs px-3 py-1.5 rounded font-medium ${
-                      dec === 'resolved' ? 'bg-green-500 text-white hover:bg-green-600' :
-                      dec === 'dismissed' ? 'bg-gray-400 text-white hover:bg-gray-500' :
-                      dec === 'in_progress' ? 'bg-blue-500 text-white hover:bg-blue-600' :
-                      'bg-amber-500 text-white hover:bg-amber-600'
-                    }`}>
-                    {dec[0].toUpperCase() + dec.slice(1).replace('_', ' ')}
-                  </button>
-                ))}
+              <input
+                type="text"
+                value={reviewNote}
+                onChange={(e) => setReviewNote(e.target.value)}
+                placeholder="Analyst progress report or case clearance notes..."
+                className="w-full p-2 bg-black border border-amber-500/40 text-amber-300 text-xs outline-none"
+              />
+              <div className="flex gap-2">
+                <button
+                  onClick={() => reviewLeadMutation.mutate({ decision: 'resolved' })}
+                  className="px-3 py-1 bg-emerald-500 text-black font-bold text-[10px] uppercase hover:bg-emerald-400"
+                >
+                  [ RESOLVED ]
+                </button>
+                <button
+                  onClick={() => reviewLeadMutation.mutate({ decision: 'in_progress' })}
+                  className="px-3 py-1 bg-amber-500 text-black font-bold text-[10px] uppercase hover:bg-amber-400"
+                >
+                  [ IN PROGRESS ]
+                </button>
+                <button
+                  onClick={() => reviewLeadMutation.mutate({ decision: 'dismissed' })}
+                  className="px-3 py-1 bg-red-500 text-black font-bold text-[10px] uppercase hover:bg-red-400"
+                >
+                  [ DISMISS ]
+                </button>
               </div>
             </div>
           </div>

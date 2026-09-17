@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../lib/api';
+import { TerminalPanel } from '../components/common/TerminalPanel';
+import { Shield, Key, UserCheck, AlertTriangle } from 'lucide-react';
 
 export default function Login() {
   const [username, setUsername] = useState('');
@@ -19,53 +21,122 @@ export default function Login() {
       localStorage.setItem('spydee_user', JSON.stringify(res.user));
       navigate('/');
     } catch (err: any) {
-      setError(err.message || 'Login failed');
+      setError(err?.response?.data?.detail || err?.message || 'AUTHENTICATION REJECTED // INVALID CREDENTIALS');
     } finally {
       setLoading(false);
     }
   };
 
+  const setCredentials = (u: string, p: string) => {
+    setUsername(u);
+    setPassword(p);
+  };
+
   return (
-    <div className="min-h-screen bg-navy-800 flex items-center justify-center p-4">
-      <div className="bg-white rounded-lg shadow-xl p-8 w-full max-w-md">
-        <div className="text-center mb-8">
-          <div className="flex justify-center mb-3">
-            <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
-              <circle cx="16" cy="24" r="6" stroke="#0f3460" strokeWidth="2.5" fill="none" />
-              <circle cx="32" cy="16" r="5" stroke="#007bff" strokeWidth="2.5" fill="none" />
-              <circle cx="34" cy="32" r="5" stroke="#06b6d4" strokeWidth="2.5" fill="none" />
-              <line x1="21" y1="21" x2="28" y2="17" stroke="#0f3460" strokeWidth="2" />
-              <line x1="21" y1="27" x2="29" y2="31" stroke="#0f3460" strokeWidth="2" />
-              <line x1="32" y1="21" x2="33" y2="27" stroke="#007bff" strokeWidth="2" />
-            </svg>
+    <div className="min-h-screen bg-[#080c08] flex items-center justify-center p-4 font-mono text-[#f59e0b] relative select-none">
+      {/* CRT scanlines effect overlay */}
+      <div className="absolute inset-0 scanlines pointer-events-none opacity-40 z-10" />
+
+      <div className="w-full max-w-md space-y-4 relative z-20">
+        {/* Terminal Header Banner */}
+        <div className="text-center space-y-1">
+          <div className="inline-flex items-center gap-2 px-2.5 py-1 border border-amber-500/40 bg-[#0a0f0a] text-[11px] text-amber-500 rounded-xs uppercase tracking-wider mb-2">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            SECURE INTELLIGENCE GATEWAY // PORT 3000
           </div>
-          <h1 className="text-3xl font-bold text-navy-700">SPYDEE</h1>
-          <p className="text-navy-400 text-sm mt-1">Investigative Intelligence Workspace</p>
+          <h1 className="text-3xl font-black tracking-widest text-amber-300 flex items-center justify-center gap-2 font-chakra amber-glow">
+            <span>◈</span> SPYDEE OS
+          </h1>
+          <p className="text-xs text-amber-500/80 uppercase tracking-widest">
+            Criminal Network Analysis & Intelligence Terminal
+          </p>
         </div>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-navy-600 mb-1">Username</label>
-            <input type="text" value={username} onChange={e => setUsername(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-azure-500 focus:border-azure-500 outline-none"
-              placeholder="Enter username" required />
+
+        {/* Authentication Panel */}
+        <TerminalPanel title="SECURE ACCESS // CREDENTIAL CHALLENGE" subtitle="SECURITY ENCLAVE" glow>
+          <form onSubmit={handleSubmit} className="space-y-3.5 pt-1">
+            <div>
+              <label className="block text-[10px] uppercase tracking-wider text-amber-500/80 mb-1">
+                OPERATOR IDENTIFIER [USERNAME]:
+              </label>
+              <input
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                className="w-full px-3 py-2 bg-black border border-amber-500/40 text-amber-300 text-xs focus:border-amber-400 focus:outline-none placeholder-amber-500/30"
+                placeholder="e.g. investigator"
+                autoComplete="username"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-[10px] uppercase tracking-wider text-amber-500/80 mb-1">
+                SECURITY ACCESS KEY [PASSWORD]:
+              </label>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full px-3 py-2 bg-black border border-amber-500/40 text-amber-300 text-xs focus:border-amber-400 focus:outline-none placeholder-amber-500/30"
+                placeholder="••••••••••••"
+                autoComplete="current-password"
+                required
+              />
+            </div>
+
+            {error && (
+              <div className="p-2 border border-red-500/60 bg-red-950/30 text-red-400 text-xs flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 shrink-0 text-red-400" />
+                <span>{error}</span>
+              </div>
+            )}
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full py-2 bg-amber-500 text-black font-bold hover:bg-amber-400 transition-colors text-xs tracking-wider uppercase shadow-[0_0_10px_rgba(245,158,11,0.5)] disabled:opacity-50"
+            >
+              {loading ? 'VERIFYING SECURITY TOKENS...' : 'AUTHENTICATE SESSION ▶'}
+            </button>
+          </form>
+
+          {/* Quick Operator Profiles */}
+          <div className="mt-4 pt-3 border-t border-amber-500/20 text-xs">
+            <div className="text-[10px] text-amber-500/70 uppercase tracking-wider mb-2">
+              QUICK CREDENTIAL PRESETS:
+            </div>
+            <div className="grid grid-cols-3 gap-2">
+              <button
+                type="button"
+                onClick={() => setCredentials('investigator', 'invest123')}
+                className="p-1.5 border border-amber-500/30 bg-black hover:border-amber-400 text-[10px] text-left transition-colors"
+              >
+                <div className="text-amber-300 font-bold">INVESTIGATOR</div>
+                <div className="text-amber-500/60 text-[9px]">Field Level</div>
+              </button>
+              <button
+                type="button"
+                onClick={() => setCredentials('admin', 'admin123')}
+                className="p-1.5 border border-amber-500/30 bg-black hover:border-amber-400 text-[10px] text-left transition-colors"
+              >
+                <div className="text-emerald-400 font-bold">ADMIN</div>
+                <div className="text-amber-500/60 text-[9px]">Full Clearance</div>
+              </button>
+              <button
+                type="button"
+                onClick={() => setCredentials('supervisor', 'super123')}
+                className="p-1.5 border border-amber-500/30 bg-black hover:border-amber-400 text-[10px] text-left transition-colors"
+              >
+                <div className="text-amber-200 font-bold">SUPERVISOR</div>
+                <div className="text-amber-500/60 text-[9px]">Audit Authority</div>
+              </button>
+            </div>
           </div>
-          <div>
-            <label className="block text-sm font-medium text-navy-600 mb-1">Password</label>
-            <input type="password" value={password} onChange={e => setPassword(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-azure-500 focus:border-azure-500 outline-none"
-              placeholder="Enter password" required />
-          </div>
-          {error && <p className="text-danger-500 text-sm">{error}</p>}
-          <button type="submit" disabled={loading}
-            className="w-full bg-azure-500 text-white py-2.5 rounded-md font-medium hover:bg-azure-600 disabled:opacity-50 transition">
-            {loading ? 'Signing in...' : 'Sign In'}
-          </button>
-        </form>
-        <div className="mt-6 p-3 bg-gray-50 rounded-md text-xs text-navy-400">
-          <p className="font-medium mb-1">Demo Accounts:</p>
-          <p>admin / admin123</p>
-          <p>investigator / invest123</p>
-          <p>supervisor / super123</p>
+        </TerminalPanel>
+
+        <div className="text-center text-[10px] text-amber-500/60 tracking-wider uppercase">
+          PROTECTED UNDER CLASSIFIED INTELLIGENCE PROTOCOLS // RESTRICTED ACCESS
         </div>
       </div>
     </div>
