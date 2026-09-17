@@ -21,6 +21,7 @@ import {
 import { TerminalPanel } from '../components/common/TerminalPanel';
 import { StatusBadge } from '../components/common/StatusBadge';
 import { useTerminalAlert } from '../context/TerminalAlertContext';
+import { ColumnMapperModal } from '../components/modals/ColumnMapperModal';
 
 export default function EvidenceRoom() {
   const { caseId } = useParams<{ caseId: string }>();
@@ -38,6 +39,7 @@ export default function EvidenceRoom() {
   const [selectedUploadFile, setSelectedUploadFile] = useState<File | null>(null);
   const [newFileType, setNewFileType] = useState('CDR');
   const [importingId, setImportingId] = useState<string | null>(null);
+  const [mapperFile, setMapperFile] = useState<any>(null);
 
   const { data: rawFiles = [], isLoading } = useQuery({
     queryKey: ['files', caseId],
@@ -70,9 +72,9 @@ export default function EvidenceRoom() {
   });
 
   const importMutation = useMutation({
-    mutationFn: async (fileId: string) => {
-      setImportingId(fileId);
-      return api.importEvidence(caseId!, fileId);
+    mutationFn: async (data: { fileId: string; mapping?: Record<string, string> }) => {
+      setImportingId(data.fileId);
+      return api.importEvidence(caseId!, data.fileId, data.mapping);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['files', caseId] });
@@ -94,13 +96,13 @@ export default function EvidenceRoom() {
     type: (f.source_type || 'CDR').toUpperCase(),
     source: f.source || 'POLICE STF VAULT',
     ingested: f.created_at ? new Date(f.created_at).toLocaleDateString('en-GB') : '16 SEP 2026',
-    entitiesCount: f.entity_count ?? Math.floor(4 + ((idx * 3) % 8)),
+    entitiesCount: f.entity_count ?? 0,
     status: (f.status || 'PROCESSED').toUpperCase(),
     hash: f.sha256 ? `sha256:${f.sha256}` : `sha256:e8f1b290ac9471d4...${idx}f8`,
     provenanceId: f.provenance_id || `STF-PROV-${f.id?.slice(0, 8) || '042'}`,
-    summary: f.summary || `Forensic telecommunication and surveillance record ingested into Case ${caseId}. Extracted entities correlated across primary suspect nodes.`,
-    extractedEntities: f.extracted_entities || ['E-004', 'E-008', 'E-015'],
-    extractedRelationships: f.extracted_relationships || ['R-04', 'R-13'],
+    summary: f.summary || `Source record file ingested into Case ${caseId}.`,
+    extractedEntities: f.extracted_entities || [],
+    extractedRelationships: f.extracted_relationships || [],
     raw: f,
   }));
 
@@ -181,6 +183,7 @@ export default function EvidenceRoom() {
             <option value="CCTV">CCTV</option>
             <option value="CYBER_LOG">CYBER_LOG</option>
             <option value="VEHICLE_RTO">VEHICLE_RTO</option>
+            <option value="TOWER_MASTER">TOWER_MASTER</option>
             <option value="CSV">CSV</option>
             <option value="PDF">PDF</option>
           </select>
@@ -273,7 +276,7 @@ export default function EvidenceRoom() {
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
-                                importMutation.mutate(doc.raw.id);
+                                setMapperFile(doc.raw);
                               }}
                               disabled={importingId === doc.raw.id}
                               className="px-2 py-0.5 bg-amber-500 text-black font-bold text-[10px] hover:bg-amber-400"
@@ -442,6 +445,7 @@ export default function EvidenceRoom() {
                   <option value="CCTV">CCTV (Surveillance Metadata / OCR)</option>
                   <option value="CYBER_LOG">CYBER_LOG (DNS / WHOIS / IP Telemetry)</option>
                   <option value="VEHICLE_RTO">VEHICLE_RTO (ANPR / FASTag Logs)</option>
+                  <option value="TOWER_MASTER">TOWER_MASTER (Cell ID Geo Coordinates)</option>
                 </select>
               </div>
 
@@ -468,6 +472,20 @@ export default function EvidenceRoom() {
             </form>
           </div>
         </div>
+      )}
+
+      {mapperFile && (
+        <ColumnMapperModal
+          caseId={caseId!}
+          fileId={mapperFile.id}
+          fileName={mapperFile.original_filename || mapperFile.filename}
+          sourceType={mapperFile.source_type}
+          onClose={() => setMapperFile(null)}
+          onImport={(fileId, mapping) => {
+            setMapperFile(null);
+            importMutation.mutate({ fileId, mapping });
+          }}
+        />
       )}
     </div>
   );

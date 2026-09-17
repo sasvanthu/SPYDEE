@@ -16,6 +16,7 @@ async def generate_report(
     title: str,
     include_hypotheses: List[uuid.UUID] = None,
     include_unresolved: bool = True,
+    include_65b_certificate: bool = False,
     analysis_run_id: uuid.UUID = None,
     generated_by: uuid.UUID = None,
 ) -> dict:
@@ -89,6 +90,7 @@ async def generate_report(
         "generated_at": datetime.utcnow().isoformat(),
         "analysis_version": run.version if run else None,
         "analysis_run_id": str(selected_run_id) if selected_run_id else None,
+        "include_65b_certificate": include_65b_certificate,
         "summary": {
             "total_entities": len(entities),
             "total_relationships": len(relationships),

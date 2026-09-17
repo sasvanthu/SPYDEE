@@ -11,6 +11,7 @@ import os
 import json
 import hashlib
 import logging
+import re
 from datetime import datetime
 from typing import Iterator, Optional
 
@@ -19,7 +20,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
 from app.config import get_settings
-from app.models.models import EvidenceFile, Import, SourceRecord, DocumentChunk, JobStatus
+from app.models.models import EvidenceFile, Import, SourceRecord, DocumentChunk, JobStatus, Entity, Event, EventParticipant
 from app.services.entity_service import (
     normalize_identifier, canonical_hash, persist_derived_structure,
     _load_identifier_map,
@@ -107,11 +108,19 @@ DEVICE_FOLD = {
     "tower_id": "tower_id", "cell_id": "tower_id",
 }
 
+TOWER_MASTER_FOLD = {
+    "cell_id": "tower_id", "cgi": "tower_id", "tower": "tower_id", "tower_id": "tower_id",
+    "lat": "lat", "latitude": "lat",
+    "lon": "lon", "longitude": "lon", "lng": "lon",
+    "azimuth": "azimuth", "angle": "azimuth",
+    "carrier": "carrier", "operator": "carrier", "provider": "carrier"
+}
+
 FAMILY_FOR_SOURCE = {
     "cdr": "communication", "ipdr": "communication", "voice": "communication",
     "tower_dump": "spatial_temporal", "financial": "financial", "bank": "financial",
     "ledger": "financial", "chat": "writing_style", "messages": "writing_style",
-    "device_sim": "device_sim", "device": "device_sim",
+    "device_sim": "device_sim", "device": "device_sim", "tower_master": "spatial_temporal",
 }
 
 FOLD_MAP = {
@@ -119,6 +128,7 @@ FOLD_MAP = {
     "tower_dump": TOWER_FOLD, "financial": FIN_FOLD, "bank": FIN_FOLD,
     "ledger": FIN_FOLD, "chat": CHAT_FOLD, "messages": CHAT_FOLD,
     "device_sim": DEVICE_FOLD, "device": DEVICE_FOLD,
+    "tower_master": TOWER_MASTER_FOLD,
 }
 
 IDENTIFIER_KEYS = (
@@ -220,13 +230,19 @@ def iter_records(full_path: str, source_type: str) -> Iterator[tuple[dict, str]]
     """Yield (raw_record, row_locator) pairs for any supported file."""
     ext = full_path.rsplit(".", 1)[-1].lower() if "." in full_path else ""
 
-    if ext == "csv":
+    if ext in ("csv", "xlsx", "xls"):
         n = 0
-        seen_headers = False
-        for chunk in pd.read_csv(full_path, chunksize=5000, dtype=str,
+        if ext == "csv":
+            df_iter = pd.read_csv(full_path, chunksize=5000, dtype=str,
                                  keep_default_na=False, encoding="utf-8-sig",
-                                 on_bad_lines="warn"):
-            for _, row in chunk.iterrows():
+                                 on_bad_lines="warn")
+            for chunk in df_iter:
+                for _, row in chunk.iterrows():
+                    n += 1
+                    yield row.to_dict(), f"row:{n}"
+        else:
+            df = pd.read_excel(full_path, dtype=str, keep_default_na=False)
+            for _, row in df.iterrows():
                 n += 1
                 yield row.to_dict(), f"row:{n}"
         return
@@ -279,7 +295,7 @@ def _fold(record: dict, fold_map: dict) -> dict:
     return out
 
 
-def normalize_record(raw: dict, source_type: str) -> tuple[dict, dict]:
+def normalize_record(raw: dict, source_type: str, custom_mapping: dict = None) -> tuple[dict, dict]:
     """Canonicalize a raw row into the SPYDEE normalized schema.
 
     Returns (normalized_content, validation_flags). Raises ValueError for rows
@@ -287,7 +303,7 @@ def normalize_record(raw: dict, source_type: str) -> tuple[dict, dict]:
     """
     if not isinstance(raw, dict):
         raise ValueError("Row is not an object")
-    fold_map = FOLD_MAP.get(source_type, {})
+    fold_map = custom_mapping if custom_mapping else FOLD_MAP.get(source_type, {})
     folded = _fold(raw, fold_map)
     folded["record_kind"] = source_type
     folded["source_family"] = family_for_source(source_type)
@@ -367,7 +383,7 @@ def extract_document_text(storage_path: str, media_type: str = None) -> str:
     return ""
 
 
-def chunk_document_text(db: AsyncSession, case_id: uuid.UUID, evidence_file: EvidenceFile) -> int:
+async def chunk_document_text(db: AsyncSession, case_id: uuid.UUID, evidence_file: EvidenceFile) -> int:
     """Split extracted document text into searchable chunks (paragraph-aware).
 
     Uses the LLM-RAG style of chunking: window of ~1600 characters, split on
@@ -413,6 +429,11 @@ def chunk_document_text(db: AsyncSession, case_id: uuid.UUID, evidence_file: Evi
         if joined:
             chunks.append(joined)
 
+    import uuid
+    # Simple regex for Indian phone numbers and emails
+    phone_pattern = re.compile(r"\b(?:(?:\+91[-.\s]?)|(?:0[-.\s]?))?[6-9]\d{9}\b")
+    email_pattern = re.compile(r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,7}\b")
+
     for i, chunk_text in enumerate(chunks):
         if not chunk_text.strip():
             continue
@@ -423,14 +444,55 @@ def chunk_document_text(db: AsyncSession, case_id: uuid.UUID, evidence_file: Evi
                 page_number = int(first_line[6:-1])
             except ValueError:
                 page_number = None
-        db.add(DocumentChunk(
+                
+        chunk = DocumentChunk(
             case_id=case_id,
             evidence_file_id=evidence_file.id,
             page_number=page_number,
             line_start=None,
             line_end=None,
             text_content=chunk_text,
-        ))
+        )
+        db.add(chunk)
+        
+        # NER Extraction
+        extracted_entities = []
+        for match in phone_pattern.finditer(chunk_text):
+            extracted_entities.append(("phone", match.group()))
+        for match in email_pattern.finditer(chunk_text):
+            extracted_entities.append(("email", match.group()))
+            
+        if extracted_entities:
+            # Create a mention event
+            event = Event(
+                case_id=case_id,
+                event_type="mention",
+                original_timestamp=datetime.utcnow().isoformat(),
+                details={"chunk_text": chunk_text[:200]}
+            )
+            db.add(event)
+            
+            seen_entities = set()
+            for ent_type, raw_val in extracted_entities:
+                norm_val = normalize_identifier(ent_type, raw_val)
+                if not norm_val:
+                    continue
+                ent_hash = canonical_hash({"type": ent_type, "value": norm_val})
+                if ent_hash in seen_entities:
+                    continue
+                seen_entities.add(ent_hash)
+                
+                # Import resolve_identifier here to avoid circular imports if any, or it's already imported
+                from app.services.entity_service import resolve_identifier
+                ident, entity = await resolve_identifier(db, case_id, ent_type, raw_val, None)
+                
+                # Link the extracted entity to the mention event
+                db.add(EventParticipant(
+                    event_id=event.id,
+                    entity_id=entity.id,
+                    role="mentioned"
+                ))
+
     return len(chunks)
 
 
@@ -493,7 +555,7 @@ async def save_uploaded_file(
     db.add(ev)
     await db.flush()
     if extracted_text and ext.lower() in (".txt", ".pdf"):
-        chunk_count = chunk_document_text(db, case_id, ev)
+        chunk_count = await chunk_document_text(db, case_id, ev)
         if chunk_count:
             ev.status = "ready"
             ev.parser_version = f"text_extractor_v1/{chunk_count}chunks"
@@ -517,11 +579,15 @@ async def process_evidence_file(
     evidence_file.parser_version = parser_version
 
     import_obj.status = "running"
-    import_obj.import_config = {
+    current_config = import_obj.import_config or {}
+    field_mapping = current_config.get("field_mapping")
+    
+    current_config.update({
         "source_type": source_type,
         "parser_version": parser_version,
         "batch_size": batch_size,
-    }
+    })
+    import_obj.import_config = current_config
     await db.flush()
 
     existing = await db.execute(
@@ -538,7 +604,7 @@ async def process_evidence_file(
 
     for raw, locator in iter_records(full_path, source_type):
         try:
-            normalized, flags = normalize_record(raw, source_type)
+            normalized, flags = normalize_record(raw, source_type, custom_mapping=field_mapping)
             record_hash = compute_row_hash(normalized)
             is_dup = record_hash in seen_hashes
             seen_hashes.add(record_hash)
@@ -604,14 +670,14 @@ def _json_sane(value):
 
 
 async def create_import_job(
-    db: AsyncSession, case_id: uuid.UUID, evidence_file_id: uuid.UUID, user_id: uuid.UUID
+    db: AsyncSession, case_id: uuid.UUID, evidence_file_id: uuid.UUID, user_id: uuid.UUID, field_mapping: dict = None
 ) -> tuple[Import, "Job"]:
     from app.models.models import Job
     import_obj = Import(
         evidence_file_id=evidence_file_id,
         case_id=case_id,
         status=JobStatus.QUEUED,
-        import_config={"source_type": "auto"},
+        import_config={"source_type": "auto", "field_mapping": field_mapping or {}},
     )
     db.add(import_obj)
     await db.flush()

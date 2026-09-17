@@ -113,6 +113,8 @@ def e164_normalize(value: str) -> str:
         digits = digits[1:]
     elif len(digits) == 13 and digits.startswith("910"):
         digits = digits[3:]
+    if len(digits) < 10:
+        return ""
     return digits
 
 
@@ -199,7 +201,10 @@ def parse_datetime(value) -> Optional[datetime]:
     for fmt in ("%Y-%m-%dT%H:%M:%S%z", "%Y-%m-%d %H:%M:%S%z",
                 "%Y-%m-%dT%H:%M:%S", "%Y-%m-%d %H:%M:%S",
                 "%Y-%m-%dT%H:%M:%S.%f", "%Y-%m-%d %H:%M:%S.%f",
-                "%Y/%m/%d %H:%M:%S", "%d-%m-%Y %H:%M:%S"):
+                "%Y/%m/%d %H:%M:%S", "%d-%m-%Y %H:%M:%S",
+                "%d/%m/%Y %H:%M:%S", "%d/%m/%Y %I:%M:%S %p",
+                "%d-%m-%Y %I:%M:%S %p", "%Y-%m-%d %I:%M:%S %p",
+                "%d/%m/%Y", "%d-%m-%Y", "%Y-%m-%d"):
         try:
             return datetime.strptime(text, fmt)
         except ValueError:

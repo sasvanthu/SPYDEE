@@ -15,6 +15,10 @@ class TokenResponse(BaseModel):
     user: "UserResponse"
 
 
+class ImportRequest(BaseModel):
+    field_mapping: Optional[dict[str, str]] = Field(default_factory=dict)
+
+
 class UserResponse(BaseModel):
     id: UUID
     username: str
@@ -318,6 +322,7 @@ class ReportRequest(BaseModel):
     title: str
     include_hypotheses: List[UUID] = []
     include_unresolved: bool = True
+    include_65b_certificate: bool = False
     analysis_run_id: Optional[UUID] = None
 
 

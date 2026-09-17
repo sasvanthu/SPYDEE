@@ -8,7 +8,7 @@ from app.models.models import (
 )
 from app.auth.auth import get_current_user
 from app.schemas.schemas import (
-    EvidenceUploadResponse, ImportResponse, SourceRecordResponse, EvidenceDetailResponse
+    EvidenceUploadResponse, ImportResponse, SourceRecordResponse, EvidenceDetailResponse, ImportRequest
 )
 from app.services.case_service import check_case_membership, check_case_write_access, log_audit_event
 from app.services.evidence_service import (
@@ -34,7 +34,7 @@ async def upload_evidence(
         raise HTTPException(status_code=400, detail="No filename provided")
 
     ext = file.filename.rsplit(".", 1)[-1].lower() if "." in file.filename else ""
-    if ext not in ("csv", "json", "txt", "pdf"):
+    if ext not in ("csv", "json", "txt", "pdf", "xlsx", "xls"):
         raise HTTPException(status_code=400, detail=f"Unsupported file type: {ext}")
 
     try:
@@ -52,6 +52,7 @@ async def upload_evidence(
 async def import_evidence(
     case_id: uuid.UUID,
     file_id: uuid.UUID,
+    request: ImportRequest = None,
     sync: bool = None,
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
@@ -72,7 +73,7 @@ async def import_evidence(
         raise HTTPException(status_code=404, detail="Evidence file not found")
 
     ext = ev.original_filename.rsplit(".", 1)[-1].lower() if "." in ev.original_filename else ""
-    if ext not in ("csv", "json"):
+    if ext not in ("csv", "json", "xlsx", "xls"):
         raise HTTPException(status_code=400, detail=f"Import not supported for type: {ext}")
 
     if sync is None:
@@ -80,10 +81,11 @@ async def import_evidence(
 
     if sync:
         try:
-            if ext == "csv":
-                imp = await parse_and_import_csv(db, ev, case_id)
+            field_mapping = request.field_mapping if request else None
+            if ext in ("csv", "xlsx", "xls"):
+                imp = await parse_and_import_csv(db, ev, case_id, field_mapping=field_mapping)
             else:
-                imp = await parse_and_import_json(db, ev, case_id)
+                imp = await parse_and_import_json(db, ev, case_id, field_mapping=field_mapping)
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Import failed: {str(e)}")
 
@@ -92,7 +94,8 @@ async def import_evidence(
             "rejected": imp.rejected_count,
         })
     else:
-        imp, job = await create_import_job(db, case_id, file_id, user.id)
+        field_mapping = request.field_mapping if request else None
+        imp, job = await create_import_job(db, case_id, file_id, user.id, field_mapping=field_mapping)
         await log_audit_event(db, case_id, user.id, "evidence_import_queued", "import", imp.id, {
             "job_id": str(job.id),
         })
@@ -248,7 +251,7 @@ async def retry_extract(
         for old in chunk_result.scalars().all():
             await db.delete(old)
         await db.flush()
-        chunk_count = chunk_document_text(db, case_id, ev)
+        chunk_count = await chunk_document_text(db, case_id, ev)
         ev.parser_version = f"text_extractor_v1/{chunk_count}chunks"
     except ValueError as exc:
         ev.extraction_error = str(exc)
@@ -260,3 +263,39 @@ async def retry_extract(
                           {"retry_count": ev.retry_count})
     await db.commit()
     return await get_evidence_detail(case_id, file_id, db, user)
+
+
+@router.get("/{case_id}/files/{file_id}/preview")
+async def preview_evidence(
+    case_id: uuid.UUID,
+    file_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    """Preview the first 5 rows of an evidence file for column mapping."""
+    await check_case_membership(db, user.id, case_id)
+    result = await db.execute(
+        select(EvidenceFile).where(EvidenceFile.id == file_id, EvidenceFile.case_id == case_id)
+    )
+    ev = result.scalar_one_or_none()
+    if not ev:
+        raise HTTPException(status_code=404, detail="Evidence file not found")
+
+    from app.services.evidence_service import iter_records
+    import os
+    
+    settings = get_settings()
+    full_path = os.path.join(settings.UPLOAD_DIR, ev.storage_path)
+    if not os.path.exists(full_path):
+        raise HTTPException(status_code=404, detail="File content not found on disk")
+        
+    records = []
+    try:
+        for i, (raw, loc) in enumerate(iter_records(full_path, ev.source_type)):
+            if i >= 5:
+                break
+            records.append(raw)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Failed to preview file: {str(e)}")
+        
+    return {"records": records}

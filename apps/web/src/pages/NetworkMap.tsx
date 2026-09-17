@@ -114,14 +114,7 @@ export default function NetworkMap() {
       return lat != null && lon != null && !Number.isNaN(Number(lat)) && !Number.isNaN(Number(lon));
     });
 
-    // Fallback seed towers if case has no raw geo records yet
-    const displayTowers = realTowers.length > 0 ? realTowers : [
-      { id: 'TW-01', label: 'TOWER SHIVAJINAGAR 04', lat: 18.5314, lon: 73.8446, azimuth: 120, carrier: 'AIRTEL 4G', calls: 38 },
-      { id: 'TW-02', label: 'TOWER DECCAN GYMKHANA 09', lat: 18.5173, lon: 73.8418, azimuth: 45, carrier: 'JIO 5G', calls: 24 },
-      { id: 'TW-03', label: 'TOWER SWARGATE HUB 02', lat: 18.5018, lon: 73.8585, azimuth: 270, carrier: 'VODAFONE 4G', calls: 52 },
-      { id: 'TW-04', label: 'TOWER CAMP CANTONMENT 07', lat: 18.5132, lon: 73.8789, azimuth: 180, carrier: 'AIRTEL 4G', calls: 19 },
-      { id: 'TW-05', label: 'TOWER KOREGAON PARK 11', lat: 18.5362, lon: 73.8938, azimuth: 310, carrier: 'JIO 5G', calls: 64 },
-    ];
+    const displayTowers = realTowers;
 
     const bounds: number[][] = [];
 

@@ -2,12 +2,18 @@ import uuid
 from datetime import datetime
 from sqlalchemy import (
     Column, String, Text, Boolean, Integer, Float, DateTime, ForeignKey,
-    Enum as SAEnum, Index, UniqueConstraint, JSON, LargeBinary
+    Enum as _SAEnum, Index, UniqueConstraint, JSON, LargeBinary
 )
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from app.database import Base
 import enum
+
+
+def SAEnum(enum_cls, **kwargs):
+    if "values_callable" not in kwargs:
+        kwargs["values_callable"] = lambda x: [e.value for e in x]
+    return _SAEnum(enum_cls, **kwargs)
 
 
 def gen_uuid():

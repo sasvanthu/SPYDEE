@@ -15,6 +15,7 @@ export default function Reports() {
   const [generating, setGenerating] = useState(false);
   const [selectedReport, setSelectedReport] = useState<any>(null);
   const [analysisRunId, setAnalysisRunId] = useState('');
+  const [include65B, setInclude65B] = useState(false);
 
   const { data: reports = [], isLoading } = useQuery({
     queryKey: ['reports', caseId],
@@ -33,6 +34,7 @@ export default function Reports() {
       api.createReport(caseId!, {
         title: title || `CASE REPORT // ${new Date().toISOString().slice(0, 10)}`,
         include_unresolved: true,
+        include_65b_certificate: include65B,
         analysis_run_id: analysisRunId || undefined,
       }),
     onSuccess: (data) => {
@@ -110,6 +112,23 @@ export default function Reports() {
                     </select>
                   </div>
                 )}
+              </div>
+
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
+                <label className="flex items-center gap-2 cursor-pointer group">
+                  <div className={`w-4 h-4 border ${include65B ? 'bg-amber-500 border-amber-500' : 'bg-black border-amber-500/50'} flex items-center justify-center`}>
+                    {include65B && <CheckCircle2 className="w-3 h-3 text-black" />}
+                  </div>
+                  <span className="text-[10px] text-amber-500/80 uppercase group-hover:text-amber-400 transition-colors">
+                    Append Section 65B Electronic Evidence Certificate
+                  </span>
+                  <input
+                    type="checkbox"
+                    className="hidden"
+                    checked={include65B}
+                    onChange={(e) => setInclude65B(e.target.checked)}
+                  />
+                </label>
 
                 <div className="sm:self-end">
                   <button

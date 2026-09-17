@@ -8,4 +8,9 @@ if %ERRORLEVEL% NEQ 0 (
     echo.
     echo An error occurred while launching. Press any key to exit.
     pause >nul
+) else (
+    echo.
+    echo SPYDEE services are running in separate terminal windows.
+    echo Press any key to close this launcher window...
+    pause >nul
 )

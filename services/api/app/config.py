@@ -1,8 +1,20 @@
-from pydantic_settings import BaseSettings
+import os
+from pydantic_settings import BaseSettings, SettingsConfigDict
 from functools import lru_cache
+from dotenv import load_dotenv
+
+_REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
+_ROOT_ENV = os.path.join(_REPO_ROOT, ".env")
+load_dotenv(_ROOT_ENV)
 
 
 class Settings(BaseSettings):
+    model_config = SettingsConfigDict(
+        env_file=(_ROOT_ENV, ".env"),
+        env_file_encoding="utf-8",
+        extra="ignore",
+    )
+
     DATABASE_URL: str = "postgresql+asyncpg://spydee:spydee_dev_pass@localhost:5432/spydee"
     DATABASE_URL_SYNC: str = "postgresql://spydee:spydee_dev_pass@localhost:5432/spydee"
     SECRET_KEY: str = "prototype-dev-secret-key-do-not-use-in-production"
@@ -17,10 +29,9 @@ class Settings(BaseSettings):
     OLLAMA_BASE_URL: str = "http://localhost:11434"
     OLLAMA_MODEL: str = "llama3.1"
     LLM_API_KEY: str = ""
-
-    class Config:
-        env_file = ".env"
-        env_file_encoding = "utf-8"
+    SUPABASE_URL: str = ""
+    SUPABASE_ANON_KEY: str = ""
+    SUPABASE_SERVICE_ROLE_KEY: str = ""
 
 
 @lru_cache()

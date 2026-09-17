@@ -75,8 +75,13 @@ export const api = {
     form.append('source_type', sourceType);
     return request<any>(`/evidence/${caseId}/upload`, { method: 'POST', body: form, headers: {} });
   },
-  importEvidence: (caseId: string, fileId: string) =>
-    request<any>(`/evidence/${caseId}/upload/${fileId}/import`, { method: 'POST' }),
+  importEvidence: (caseId: string, fileId: string, fieldMapping?: Record<string, string>) =>
+    request<any>(`/evidence/${caseId}/upload/${fileId}/import`, { 
+        method: 'POST',
+        body: JSON.stringify({ field_mapping: fieldMapping || {} })
+    }),
+  previewEvidence: (caseId: string, fileId: string) =>
+    request<any>(`/evidence/${caseId}/files/${fileId}/preview`),
   getFiles: (caseId: string) => request<any[]>(`/evidence/${caseId}/files`),
   getEvidenceDetail: (caseId: string, fileId: string) => request<any>(`/evidence/${caseId}/files/${fileId}`),
   retryExtract: (caseId: string, fileId: string) =>

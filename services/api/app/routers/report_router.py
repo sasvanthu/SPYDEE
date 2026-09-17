@@ -31,6 +31,7 @@ async def create_report(
         db, case_id, req.title,
         include_hypotheses=req.include_hypotheses,
         include_unresolved=req.include_unresolved,
+        include_65b_certificate=req.include_65b_certificate,
         analysis_run_id=req.analysis_run_id,
         generated_by=user.id,
     )
@@ -202,6 +203,26 @@ th {{ background: #f0f0f0; }}
     for rd in content.get("review_decisions", []):
         html += f"<li>{_esc(rd.get('action', ''))}: {_esc(rd.get('note', ''))} ({_esc(rd.get('created_at', ''))})</li>"
     html += "</ul>"
+
+    if content.get("include_65b_certificate"):
+        html += "<hr style='margin-top:40px; border-top:2px solid #16213e;'/>"
+        html += "<h2>CERTIFICATE UNDER SECTION 65B OF THE INDIAN EVIDENCE ACT, 1872</h2>"
+        html += f"<p>I, the undersigned, acting in my official capacity as an authorized investigating officer in Case <strong>{_esc(content.get('case', {}).get('title', 'N/A'))} ({_esc(content.get('case', {}).get('code', ''))})</strong>, do hereby certify that the electronic records contained in this report were produced by a computer output during the ordinary course of lawful activities.</p>"
+        html += "<p>I further certify that:</p>"
+        html += "<ol>"
+        html += "<li>During the period over which the computer output was produced, the computer system was operating properly, and there were no operational defects that would affect the accuracy of the electronic records.</li>"
+        html += "<li>The data contained in the electronic records was entered into the system in the ordinary course of the stated activities.</li>"
+        html += "<li>The cryptographic SHA-256 hashes of the original source evidence files correspond exactly to the hashes verified during ingestion into this system, ensuring immutability and non-repudiation.</li>"
+        html += "</ol>"
+        html += "<p><strong>Evidence Hashes:</strong></p>"
+        html += "<ul>"
+        for e in content.get("evidence", []):
+            html += f"<li>{_esc(e.get('filename'))} - SHA-256: <code>{_esc(e.get('sha256', ''))}</code></li>"
+        html += "</ul>"
+        html += f"<br/><br/><p><strong>Date:</strong> {_esc(content.get('generated_at', ''))}</p>"
+        html += "<p><strong>Signature:</strong> ___________________________</p>"
+        html += "<p><strong>Name & Designation:</strong> ___________________________</p>"
+
     html += "</body></html>"
 
     return HTMLResponse(content=html)
