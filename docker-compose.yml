@@ -1,0 +1,79 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: spydee
+      POSTGRES_PASSWORD: spydee_dev_pass
+      POSTGRES_DB: spydee
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U spydee"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: .
+      dockerfile: services/api/Dockerfile
+    command: >
+      sh -c "alembic upgrade head &&
+             uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql+asyncpg://spydee:spydee_dev_pass@db:5432/spydee
+      DATABASE_URL_SYNC: postgresql://spydee:spydee_dev_pass@db:5432/spydee
+      SECRET_KEY: prototype-dev-secret-key-do-not-use-in-production
+      UPLOAD_DIR: /data/uploads
+      DEMO_MODE: "true"
+    volumes:
+      - uploaddata:/data/uploads
+      - ./:/app
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  worker:
+    build:
+      context: .
+      dockerfile: services/worker/Dockerfile
+    command: python -m app.main
+    environment:
+      DATABASE_URL: postgresql+asyncpg://spydee:spydee_dev_pass@db:5432/spydee
+      DATABASE_URL_SYNC: postgresql://spydee:spydee_dev_pass@db:5432/spydee
+      UPLOAD_DIR: /data/uploads
+    volumes:
+      - uploaddata:/data/uploads
+      - ./:/app
+    depends_on:
+      db:
+        condition: service_healthy
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    ports:
+      - "5173:5173"
+    environment:
+      VITE_API_URL: http://localhost:8000/api/v1
+    volumes:
+      - ./:/app
+      - /app/apps/web/node_modules
+    depends_on:
+      - api
+
+volumes:
+  pgdata:
+  uploaddata:

@@ -1,0 +1,6 @@
+{
+  "name": "SPYDEE // Criminal Network Analysis System",
+  "description": "Retro-futuristic government intelligence terminal and AI-powered criminal network analysis platform.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

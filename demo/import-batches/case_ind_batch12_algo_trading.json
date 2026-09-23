@@ -1,0 +1,142 @@
+[
+  {
+    "record_id": "ALGO-SCAM-001",
+    "syndicate_entity": "Apex Quant Wealth Advisory (Bogus Telegram Group)",
+    "from_vpa": "investor.sharma@okaxis",
+    "to_vpa": "quant.apex.invest@icici",
+    "from_account_id": "ACCT-AXIS-9112",
+    "to_account_id": "ACCT-SHELL-MUMBAI-03",
+    "amount": 250000.0,
+    "currency": "INR",
+    "timestamp": "2026-08-17T09:30:00",
+    "dataset_source": "UPI Payment Transactions India & IBM AML",
+    "description": "Bogus pre-IPO algorithmic allocation deposit; promised guaranteed 350% weekly return",
+    "sebi_registered": false
+  },
+  {
+    "record_id": "ALGO-SCAM-002",
+    "syndicate_entity": "Apex Quant Wealth Advisory",
+    "from_vpa": "dr.verma@okhdfcbank",
+    "to_vpa": "quant.apex.invest@icici",
+    "from_account_id": "ACCT-HDFC-5512",
+    "to_account_id": "ACCT-SHELL-MUMBAI-03",
+    "amount": 490000.0,
+    "currency": "INR",
+    "timestamp": "2026-08-17T10:15:00",
+    "dataset_source": "UPI Payment Transactions India & IBM AML",
+    "description": "Secondary victim transfer for VIP trading terminal credentials"
+  },
+  {
+    "record_id": "ALGO-SCAM-003",
+    "syndicate_entity": "Apex Quant Wealth Advisory",
+    "from_vpa": "kavita.singh@sbi",
+    "to_vpa": "quant.apex.invest@icici",
+    "from_account_id": "ACCT-SBI-3301",
+    "to_account_id": "ACCT-SHELL-MUMBAI-03",
+    "amount": 320000.0,
+    "currency": "INR",
+    "timestamp": "2026-08-17T10:45:00",
+    "dataset_source": "UPI Payment Transactions India & IBM AML",
+    "description": "Tertiary victim transfer into bogus algorithmic equity pool"
+  },
+  {
+    "record_id": "ALGO-STRUCT-004",
+    "from_account_id": "ACCT-SHELL-MUMBAI-03",
+    "to_account_id": "ACCT-LAYER-PUNE-01",
+    "from_upi": "quant.apex.invest@icici",
+    "to_upi": "layer.pune.traders@axis",
+    "amount": 185000.0,
+    "currency": "INR",
+    "timestamp": "2026-08-17T11:10:00",
+    "dataset_source": "IBM AML Benchmark & UPI Fraud Detection",
+    "structuring_indicator": "Smurfing transaction just below ₹2,00,000 threshold"
+  },
+  {
+    "record_id": "ALGO-STRUCT-005",
+    "from_account_id": "ACCT-SHELL-MUMBAI-03",
+    "to_account_id": "ACCT-LAYER-PUNE-01",
+    "from_upi": "quant.apex.invest@icici",
+    "to_upi": "layer.pune.traders@axis",
+    "amount": 192000.0,
+    "currency": "INR",
+    "timestamp": "2026-08-17T11:25:00",
+    "dataset_source": "IBM AML Benchmark & UPI Fraud Detection",
+    "structuring_indicator": "Second structuring tranche below reporting ceiling"
+  },
+  {
+    "record_id": "ALGO-STRUCT-006",
+    "from_account_id": "ACCT-SHELL-MUMBAI-03",
+    "to_account_id": "ACCT-LAYER-PUNE-01",
+    "from_upi": "quant.apex.invest@icici",
+    "to_upi": "layer.pune.traders@axis",
+    "amount": 198000.0,
+    "currency": "INR",
+    "timestamp": "2026-08-17T11:40:00",
+    "dataset_source": "IBM AML Benchmark & UPI Fraud Detection",
+    "structuring_indicator": "Third structuring tranche completing ₹5.75 Lakh hop"
+  },
+  {
+    "record_id": "ALGO-LOOP-007",
+    "from_account_id": "ACCT-LAYER-PUNE-01",
+    "to_account_id": "ACCT-LAYER-DELHI-02",
+    "from_upi": "layer.pune.traders@axis",
+    "to_upi": "delhi.consultancy@hdfc",
+    "amount": 250000.0,
+    "currency": "INR",
+    "timestamp": "2026-08-17T12:00:00",
+    "dataset_source": "IBM AML Graph & UPI Fraud Detection",
+    "pattern": "CIRCULAR_WASH_CYCLE_HOP_1"
+  },
+  {
+    "record_id": "ALGO-LOOP-008",
+    "from_account_id": "ACCT-LAYER-DELHI-02",
+    "to_account_id": "ACCT-SHELL-MUMBAI-03",
+    "from_upi": "delhi.consultancy@hdfc",
+    "to_upi": "quant.apex.invest@icici",
+    "amount": 248000.0,
+    "currency": "INR",
+    "timestamp": "2026-08-17T12:30:00",
+    "dataset_source": "IBM AML Graph & UPI Fraud Detection",
+    "pattern": "CIRCULAR_WASH_CYCLE_HOP_2_COMPLETED"
+  },
+  {
+    "record_id": "ALGO-CRYPTO-009",
+    "from_account_id": "ACCT-SHELL-MUMBAI-03",
+    "to_account_id": "WALLET-BTC-OTC-01",
+    "amount": 740000.0,
+    "currency": "INR",
+    "crypto_tx_hash": "7b9c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c",
+    "btc_address": "bc1q9x4h2kl8m3nv5pq7rs9tu1vw3xy5za7bc9de",
+    "timestamp": "2026-08-17T13:45:00",
+    "dataset_source": "Elliptic Bitcoin Dataset & IBM AML",
+    "laundering_stage": "INTEGRATION_EXIT",
+    "description": "Full liquidity drain converted to Tether/Bitcoin via OTC desk escrow within 2 hours"
+  },
+  {
+    "record_id": "ALGO-COMM-010",
+    "caller_id": "+919820088991",
+    "callee_id": "+919820088992",
+    "start_time": "2026-08-17T08:00:00",
+    "duration_seconds": 290,
+    "dataset_source": "TRAI Telecom Mobility & Naamapadam",
+    "summary": "Syndicate coordinator briefing Telegram channel admin on pre-IPO algorithm promotion script"
+  },
+  {
+    "record_id": "ALGO-COMM-011",
+    "caller_id": "+919820088991",
+    "callee_id": "+919820088992",
+    "start_time": "2026-08-17T09:10:00",
+    "duration_seconds": 310,
+    "dataset_source": "TRAI Telecom Mobility & Naamapadam",
+    "summary": "Verification of ₹10 Lakh retail inflows and instruction to initiate smurfing to Pune node"
+  },
+  {
+    "record_id": "ALGO-COMM-012",
+    "caller_id": "+919820088991",
+    "callee_id": "+919820088992",
+    "start_time": "2026-08-17T13:30:00",
+    "duration_seconds": 180,
+    "dataset_source": "TRAI Telecom Mobility & Naamapadam",
+    "summary": "Confirmation of OTC desk crypto escrow release and destruction of virtual server instance"
+  }
+]

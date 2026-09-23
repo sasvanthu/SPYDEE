@@ -1,0 +1,57 @@
+[
+  {
+    "record_id": "LEGAL-FIR-BLR-001",
+    "document_type": "FIRST_INFORMATION_REPORT",
+    "fir_number": "FIR/2026/0142",
+    "police_station": "Cyber Crime Police Station, Bengaluru City",
+    "jurisdiction_state": "Karnataka",
+    "date_filed": "2026-08-10T18:00:00",
+    "complainant": "HDFC Cyber Cell Risk Officer",
+    "primary_accused": "Vikram Malhotra",
+    "accused_alias": "Vicky Bangalore",
+    "aadhaar_masked": "XXXX-XXXX-8921",
+    "pan_card": "ABCDM1234F",
+    "co_accused": ["Rajesh Kumar", "Pawan Joshi"],
+    "shell_company": "Apex Digital Solutions Pvt Ltd",
+    "cin_number": "U72900KA2024PTC184920",
+    "legal_provisions": [
+      "IPC Section 420 (Cheating and dishonestly inducing delivery of property)",
+      "IPC Section 120B (Criminal Conspiracy)",
+      "Information Technology Act 2000 Section 66D (Cheating by personation by using computer resource)",
+      "Prevention of Money Laundering Act (PMLA) Section 3 & 4"
+    ],
+    "alleged_proceeds_inr": 4850000.0,
+    "summary": "Organized cyber syndicate operating fraudulent high-yield task investment portals, routing illicit deposits through multi-tier UPI mule accounts and converting into gold bullion and OTC cryptocurrency."
+  },
+  {
+    "record_id": "LEGAL-MSG-IN-002",
+    "sender_alias": "vicky.bangalore",
+    "recipient_alias": "mule.rajesh",
+    "timestamp": "2026-08-10T09:45:00",
+    "text": "Bhai listen, account me 2 lakh cross mat hone dena, samjhe na? Small small transactions karo yaar, 49k each, warna bank freeze marega pakka.",
+    "hinglish_markers": ["bhai", "yaar", "karo", "warna", "pakka", "samjhe"],
+    "analysis_tag": "STRUCTURING_INSTRUCTION"
+  },
+  {
+    "record_id": "LEGAL-MSG-IN-003",
+    "sender_alias": "mule.rajesh",
+    "recipient_alias": "vicky.bangalore",
+    "timestamp": "2026-08-10T10:00:00",
+    "text": "Haan bhai theek hai, YES bank me 1.95 lakh aate hi 95k Paytm wale wallet me dump kar diya. Commercial Street pe cash ready hai.",
+    "hinglish_markers": ["bhai", "theek", "hai", "pe"],
+    "analysis_tag": "MULE_CONFIRMATION"
+  },
+  {
+    "record_id": "LEGAL-BAIL-IN-004",
+    "document_type": "BAIL_ORDER_PRECEDENT",
+    "citation": "2026 SCC OnLine Kar 1842",
+    "court": "Hon'ble High Court of Karnataka at Bengaluru",
+    "judge": "Justice S. R. Hegde",
+    "crime_type": "Cyber Fraud / PMLA Money Mule Operation",
+    "bail_outcome": "DISMISSED",
+    "legal_principles": [
+      "Economic offenses form a distinct class affecting public finances",
+      "Digital trail of multi-layered UPI accounts establishes prima facie involvement in money laundering under Section 3 PMLA"
+    ]
+  }
+]

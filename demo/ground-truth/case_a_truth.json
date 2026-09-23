@@ -1,0 +1,86 @@
+{
+  "case": "Broken Chain",
+  "real_groups": [
+    {
+      "person": "Ravi Sharma",
+      "aliases": [
+        "Alias-01",
+        "Alias-02",
+        "Alias-03"
+      ],
+      "phones": [
+        "+918461364854",
+        "+918193448329",
+        "+917667779376"
+      ],
+      "devices": [
+        "DEV-C90FC81D",
+        "DEV-33FEC300"
+      ],
+      "sims": [
+        "SIM-BC9551FAEC23",
+        "SIM-F344B9F06515"
+      ]
+    },
+    {
+      "person": "Priya Patel",
+      "aliases": [
+        "Alias-04",
+        "Alias-05",
+        "Alias-06"
+      ],
+      "phones": [
+        "+917924765563",
+        "+918445662585",
+        "+917438989805"
+      ],
+      "devices": [
+        "DEV-70DFFDD0",
+        "DEV-C4F0E59D"
+      ],
+      "sims": [
+        "SIM-32C643888CF1",
+        "SIM-0CD7AF05502A"
+      ]
+    },
+    {
+      "person": "Amit Singh",
+      "aliases": [
+        "Alias-07",
+        "Alias-08"
+      ],
+      "phones": [
+        "+917398340369",
+        "+918631775357"
+      ],
+      "devices": [
+        "DEV-EDBC9E81",
+        "DEV-5156687D"
+      ],
+      "sims": [
+        "SIM-2DA2ABDBB5F9",
+        "SIM-23B587074076"
+      ]
+    }
+  ],
+  "alias_to_person": {
+    "Alias-01": "Ravi Sharma",
+    "Alias-02": "Ravi Sharma",
+    "Alias-03": "Ravi Sharma",
+    "Alias-04": "Priya Patel",
+    "Alias-05": "Priya Patel",
+    "Alias-06": "Priya Patel",
+    "Alias-07": "Amit Singh",
+    "Alias-08": "Amit Singh"
+  },
+  "device_assignments": {
+    "DEV-C90FC81D": "Ravi Sharma",
+    "DEV-33FEC300": "Ravi Sharma",
+    "DEV-70DFFDD0": "Priya Patel",
+    "DEV-C4F0E59D": "Priya Patel",
+    "DEV-EDBC9E81": "Amit Singh",
+    "DEV-5156687D": "Amit Singh"
+  },
+  "control_users": [],
+  "total_records": 1169
+}

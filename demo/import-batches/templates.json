@@ -1,0 +1,90 @@
+{
+  "cdr": {
+    "fields": [
+      "record_id",
+      "caller_id",
+      "callee_id",
+      "start_time",
+      "duration_seconds",
+      "direction",
+      "caller_device_id",
+      "caller_tower_id"
+    ],
+    "required": [
+      "record_id",
+      "caller_id",
+      "callee_id",
+      "start_time"
+    ],
+    "optional": [
+      "duration_seconds",
+      "direction",
+      "caller_device_id",
+      "caller_tower_id"
+    ]
+  },
+  "device_sim": {
+    "fields": [
+      "record_id",
+      "phone_id",
+      "sim_id",
+      "device_id",
+      "event_time",
+      "event_type",
+      "tower_id"
+    ],
+    "required": [
+      "record_id",
+      "device_id",
+      "event_time",
+      "event_type"
+    ],
+    "optional": [
+      "phone_id",
+      "sim_id",
+      "tower_id"
+    ]
+  },
+  "messages": {
+    "fields": [
+      "record_id",
+      "alias_id",
+      "conversation_id",
+      "timestamp",
+      "language",
+      "text"
+    ],
+    "required": [
+      "record_id",
+      "alias_id",
+      "timestamp",
+      "text"
+    ],
+    "optional": [
+      "conversation_id",
+      "language"
+    ]
+  },
+  "transactions": {
+    "fields": [
+      "record_id",
+      "from_account_id",
+      "to_account_id",
+      "timestamp",
+      "amount",
+      "currency",
+      "reference"
+    ],
+    "required": [
+      "record_id",
+      "from_account_id",
+      "to_account_id",
+      "timestamp",
+      "amount"
+    ],
+    "optional": [
+      "currency",
+      "reference"
+    ]
+  }
+}

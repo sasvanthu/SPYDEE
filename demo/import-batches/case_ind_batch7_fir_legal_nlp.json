@@ -1,0 +1,125 @@
+[
+  {
+    "record_id": "FIR-NCRB-MUMBAI-001",
+    "document_type": "FIRST_INFORMATION_REPORT",
+    "fir_number": "FIR/2026/0581",
+    "police_station": "Bandra Kurla Complex (BKC) Cyber Police Station, Mumbai",
+    "jurisdiction_state": "Maharashtra",
+    "date_filed": "2026-08-15T11:30:00",
+    "dataset_source": "InLegalNER (HuggingFace) & Naamapadam Multilingual Extraction",
+    "complainant": "SEBI Vigilance & Enforcement Cell",
+    "primary_accused": "Sanjay Deshmukh",
+    "accused_alias": "Sanju BKC",
+    "caller_id": "+919820011223",
+    "callee_id": "+919820044556",
+    "aadhaar_masked": "XXXX-XXXX-4412",
+    "pan_card": "AABCS9821L",
+    "co_accused": ["Vikram Malhotra", "Sunil Joshi"],
+    "legal_provisions": [
+      "IPC Section 420 (Cheating)",
+      "IPC Section 468 (Forgery for purpose of cheating)",
+      "IPC Section 120B (Criminal Conspiracy)",
+      "Information Technology Act Section 66C & 66D",
+      "PMLA 2002 Section 3 (Offence of money-laundering)"
+    ],
+    "ncrb_crime_head": "Cyber Financial Frauds (Category 11.2 - NCRB Crime in India)",
+    "ncrb_state_chargesheet_rate": 78.4,
+    "summary": "Multi-crore un-registered algorithmic trading syndicate defrauding victims across Maharashtra and Karnataka through bogus trading terminals and hawala cashouts."
+  },
+  {
+    "record_id": "FIR-NCRB-DELHI-002",
+    "document_type": "FIRST_INFORMATION_REPORT",
+    "fir_number": "FIR/2026/0209",
+    "police_station": "Special Cell (IFSO), Delhi Police, Dwarka",
+    "jurisdiction_state": "Delhi NCR",
+    "date_filed": "2026-08-16T14:00:00",
+    "dataset_source": "InLegalNER & IndianBailJudgments-1200",
+    "complainant": "Cyber Prevention Cell, Ministry of Home Affairs (I4C)",
+    "primary_accused": "Rajesh Kumar",
+    "accused_alias": "Chandni Rajesh",
+    "caller_id": "+919811440011",
+    "callee_id": "+919820011223",
+    "aadhaar_masked": "XXXX-XXXX-3319",
+    "pan_card": "XYZPK5678G",
+    "legal_provisions": [
+      "IPC Section 419 (Cheating by personation)",
+      "IPC Section 420 (Cheating)",
+      "IPC Section 201 (Causing disappearance of evidence)"
+    ],
+    "ncrb_crime_head": "Identity Theft & Mule Provisioning",
+    "ncrb_state_chargesheet_rate": 64.2,
+    "summary": "Bulk provisioning of SIM cards using forged Aadhaar cards and selling active mule bank accounts on Telegram channels to cyber syndicates."
+  },
+  {
+    "record_id": "LEGAL-CDR-CONSPIRACY-003",
+    "document_type": "TELECOM_INTERCEPT_TRANSCRIPT",
+    "caller_id": "+919820011223",
+    "callee_id": "+919820044556",
+    "start_time": "2026-08-16T23:15:00",
+    "duration_seconds": 340,
+    "tower_id": "TOWER-MH-MUMBAI-BKC-04",
+    "dataset_source": "InLegalNER Court Exhibit & TRAI Telecom Mobility",
+    "transcript": "Vikram, BKC Cyber cell ne notices issue kiye hain. Server hard drives ko format karke warehouse shift karo. Sunil advocate se bail application draft karvao.",
+    "detected_crime_links": ["IPC 201 (Destruction of Evidence)", "IPC 120B (Criminal Conspiracy)"]
+  },
+  {
+    "record_id": "LEGAL-CDR-CONSPIRACY-004",
+    "document_type": "TELECOM_INTERCEPT_TRANSCRIPT",
+    "caller_id": "+919820011223",
+    "callee_id": "+919820044556",
+    "start_time": "2026-08-17T01:30:00",
+    "duration_seconds": 420,
+    "tower_id": "TOWER-MH-MUMBAI-BKC-04",
+    "dataset_source": "InLegalNER Court Exhibit & TRAI Telecom Mobility",
+    "transcript": "Sunil advocate ne confirm kiya session court main transit anticipatory bail lagayenge. Cash proceeds Dubai USDT desk ko send ho chuka hai.",
+    "detected_crime_links": ["PMLA 2002 Section 3", "Flight Risk Planning"]
+  },
+  {
+    "record_id": "LEGAL-CHAT-CONSPIRACY-005",
+    "document_type": "FORENSIC_EXTRACTION_CHAT",
+    "alias_id": "sanju_bkc",
+    "sender_alias": "sanju_bkc",
+    "target_alias": "vicky_hawala",
+    "timestamp": "2026-08-17T02:10:00",
+    "text": "Bail petition draft ready hai. Kal subah 10 baje Bombay High Court registry mein file hoga under Section 438 CrPC.",
+    "dataset_source": "Naamapadam Multilingual Extraction & InLegalNER",
+    "sentiment": "URGENT_EVASION"
+  },
+  {
+    "record_id": "LEGAL-CHAT-CONSPIRACY-006",
+    "document_type": "FORENSIC_EXTRACTION_CHAT",
+    "alias_id": "vicky_hawala",
+    "sender_alias": "vicky_hawala",
+    "target_alias": "sanju_bkc",
+    "timestamp": "2026-08-17T02:14:00",
+    "text": "Noted bhai. Sabhi burner phones destroy kar diye hain. Hum Kempegowda airport corridor se exit plan ready rakh rahe hain.",
+    "dataset_source": "Naamapadam Multilingual Extraction & InLegalNER",
+    "sentiment": "URGENT_EVASION"
+  },
+  {
+    "record_id": "LEGAL-BAIL-ORDER-007",
+    "document_type": "BAIL_ORDER_PRECEDENT",
+    "citation": "2026 SCC OnLine Bom 2419",
+    "court": "High Court of Judicature at Bombay",
+    "judge": "Justice Ananya Kulkarni",
+    "petitioner": "Sanjay Deshmukh",
+    "respondent": "State of Maharashtra (BKC Cyber PS)",
+    "dataset_source": "IndianBailJudgments-1200 & LawSum",
+    "crime_type": "Organized Financial Crime & Cyber Mule Ring",
+    "bail_outcome": "REJECTED",
+    "legal_principles": [
+      "Gravity of economic offense undermines trust in electronic payment ecosystem",
+      "Cross-border digital trail and burner communication establishes flight risk and risk of tampering with digital evidence"
+    ]
+  },
+  {
+    "record_id": "LEGAL-FIN-RETAINER-008",
+    "from_account_id": "ACCT-DESHMUKH-01",
+    "to_account_id": "ACCT-MALHOTRA-02",
+    "amount": 450000.0,
+    "currency": "INR",
+    "timestamp": "2026-08-17T03:00:00",
+    "dataset_source": "InLegalNER Evidence Schedule & NPCI UPI",
+    "narration": "Conspiracy defense retainer and safehouse logistics payment"
+  }
+]

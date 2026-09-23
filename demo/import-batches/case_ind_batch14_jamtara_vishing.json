@@ -1,0 +1,130 @@
+[
+  {
+    "record_id": "VISH-CALL-001",
+    "caller_id": "+917012345678",
+    "callee_id": "+919876543219",
+    "start_time": "2026-08-19T10:30:00",
+    "duration_seconds": 185,
+    "tower_id": "TOWER-JH-JAMTARA-KARM-01",
+    "text": "Sir electricity bill pending hai power disconnect ho jayega abhi turant OTP batayein ya 10 rupay update karein.",
+    "dataset_source": "Naamapadam Multilingual Extraction & InLegalNER",
+    "stylometry_accent": "Bihari / Jharkhandi Dialectal Hinglish",
+    "impersonated_authority": "Bescom / State Electricity Board"
+  },
+  {
+    "record_id": "VISH-CALL-002",
+    "caller_id": "+917012345678",
+    "callee_id": "+919876543219",
+    "start_time": "2026-08-19T10:45:00",
+    "duration_seconds": 210,
+    "tower_id": "TOWER-JH-JAMTARA-KARM-01",
+    "text": "Aapka connection temporary hold par hai, phone pe jo link bheja hai uspar click karke UPI PIN enter karein.",
+    "dataset_source": "Naamapadam Multilingual Extraction & InLegalNER",
+    "stylometry_accent": "Bihari / Jharkhandi Dialectal Hinglish",
+    "impersonated_authority": "Bescom Electricity Grievance Officer"
+  },
+  {
+    "record_id": "VISH-CALL-003",
+    "caller_id": "+917012345678",
+    "callee_id": "+919844001122",
+    "start_time": "2026-08-19T11:00:00",
+    "duration_seconds": 140,
+    "tower_id": "TOWER-JH-JAMTARA-KARM-01",
+    "text": "Sir SBI bank KYC update pending hai credit card block ho gaya hai.",
+    "dataset_source": "Naamapadam & InLegalNER",
+    "impersonated_authority": "State Bank of India KYC Wing"
+  },
+  {
+    "record_id": "VISH-CALL-004",
+    "caller_id": "+917012345678",
+    "callee_id": "+919844001122",
+    "start_time": "2026-08-19T11:20:00",
+    "duration_seconds": 195,
+    "tower_id": "TOWER-JH-JAMTARA-KARM-01",
+    "text": "OTP confirm karein aapka account unblock ho jayega.",
+    "dataset_source": "Naamapadam & InLegalNER",
+    "impersonated_authority": "State Bank of India KYC Wing"
+  },
+  {
+    "record_id": "VISH-TXN-INFLOW-005",
+    "from_account_id": "ACCT-VICTIM-DEB-01",
+    "to_account_id": "ACCT-MULE-JAMTARA-00",
+    "from_upi": "deb.sengupta@okhdfcbank",
+    "to_upi": "bescom.billupdate@ybl",
+    "amount": 78000.0,
+    "currency": "INR",
+    "timestamp": "2026-08-19T11:25:00",
+    "dataset_source": "UPI Fraud Detection Dataset & IBM AML",
+    "description": "Compromised victim electricity bill fraudulent debit"
+  },
+  {
+    "record_id": "VISH-TXN-INFLOW-006",
+    "from_account_id": "ACCT-VICTIM-ANIL-02",
+    "to_account_id": "ACCT-MULE-JAMTARA-00",
+    "from_upi": "anil.mehta@okaxis",
+    "to_upi": "bescom.billupdate@ybl",
+    "amount": 49500.0,
+    "currency": "INR",
+    "timestamp": "2026-08-19T11:40:00",
+    "dataset_source": "UPI Fraud Detection Dataset & IBM AML",
+    "description": "Secondary victim electricity update phishing debit"
+  },
+  {
+    "record_id": "VISH-TXN-INFLOW-007",
+    "from_account_id": "ACCT-VICTIM-SURESH-03",
+    "to_account_id": "ACCT-MULE-JAMTARA-00",
+    "from_upi": "suresh.babu@sbi",
+    "to_upi": "bescom.billupdate@ybl",
+    "amount": 62000.0,
+    "currency": "INR",
+    "timestamp": "2026-08-19T11:55:00",
+    "dataset_source": "UPI Fraud Detection Dataset & IBM AML",
+    "description": "Tertiary victim KYC unblock fraud debit"
+  },
+  {
+    "record_id": "VISH-TXN-OUTFLOW-008",
+    "from_account_id": "ACCT-MULE-JAMTARA-00",
+    "to_account_id": "ACCT-MULE-RURAL-01",
+    "from_upi": "bescom.billupdate@ybl",
+    "to_upi": "mule.rural.01@sbi",
+    "amount": 63000.0,
+    "currency": "INR",
+    "timestamp": "2026-08-19T12:05:00",
+    "dataset_source": "IBM AML & UPI Fraud Detection",
+    "description": "Rapid fan-out smurfing tranche 1 to Deoghar rural account"
+  },
+  {
+    "record_id": "VISH-TXN-OUTFLOW-009",
+    "from_account_id": "ACCT-MULE-JAMTARA-00",
+    "to_account_id": "ACCT-MULE-RURAL-02",
+    "from_upi": "bescom.billupdate@ybl",
+    "to_upi": "mule.rural.02@pnb",
+    "amount": 63000.0,
+    "currency": "INR",
+    "timestamp": "2026-08-19T12:10:00",
+    "dataset_source": "IBM AML & UPI Fraud Detection",
+    "description": "Rapid fan-out smurfing tranche 2 to Nuh rural account"
+  },
+  {
+    "record_id": "VISH-TXN-OUTFLOW-010",
+    "from_account_id": "ACCT-MULE-JAMTARA-00",
+    "to_account_id": "ACCT-MULE-RURAL-03",
+    "from_upi": "bescom.billupdate@ybl",
+    "to_upi": "mule.rural.03@boi",
+    "amount": 63000.0,
+    "currency": "INR",
+    "timestamp": "2026-08-19T12:15:00",
+    "dataset_source": "IBM AML & UPI Fraud Detection",
+    "description": "Rapid fan-out smurfing tranche 3 to Giridih rural account"
+  },
+  {
+    "record_id": "VISH-ATM-WITHDRAWAL-011",
+    "from_account_id": "ACCT-MULE-RURAL-01",
+    "to_account_id": "ATM-RURAL-CASH-OUT-01",
+    "amount": 50000.0,
+    "currency": "INR",
+    "timestamp": "2026-08-19T12:45:00",
+    "dataset_source": "IBM AML & UPI Fraud Detection",
+    "description": "Final ATM cash extraction within 40 minutes of victim debit"
+  }
+]

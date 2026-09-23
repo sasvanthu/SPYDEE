@@ -1,0 +1,62 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+
+# Virtual Environments
+venv/
+.venv/
+env/
+ENV/
+services/**/venv/
+services/**/.venv/
+apps/**/venv/
+apps/**/.venv/
+
+# Node / Frontend
+node_modules/
+.vite/
+.output/
+.next/
+
+# Environment and secrets
+.env
+.env.prod
+.env.local
+.env.prod.local
+services/*/.env
+apps/*/.env
+
+# Keep examples
+!.env.example
+!.env.prod.example
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+
+# Unit test / coverage
+.coverage
+.coverage.*
+.pytest_cache/
+.mypy_cache/
+
+# OS noise
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# IDEs
+.idea/
+.vscode/
+*.swp
+*.swo

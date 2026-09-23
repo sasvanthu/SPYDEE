@@ -1,0 +1,20 @@
+{
+  "completed": [
+    "analysis_runs",
+    "case_memberships",
+    "cases",
+    "document_chunks",
+    "entities",
+    "entity_identifier_links",
+    "event_participants",
+    "events",
+    "evidence_files",
+    "identifiers",
+    "imports",
+    "relationship_evidence",
+    "relationships",
+    "sessions",
+    "source_records",
+    "users"
+  ]
+}

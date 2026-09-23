@@ -1,0 +1,31 @@
+# Keep Docker build contexts small and reproducible.
+.git
+.gitignore
+*.md
+!docs/DEPLOYMENT.md
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+
+# Node
+node_modules/
+apps/web/dist/
+apps/web/node_modules/
+
+# Local runtime data
+data/
+.pytest_cache/
+
+# Env files (secrets must not be baked into images)
+.env
+.env.prod
+.env.example
+services/api/.env
+
+# OS noise
+.DS_Store
+Thumbs.db

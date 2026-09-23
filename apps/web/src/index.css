@@ -1,0 +1,107 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --terminal-bg: #090e09;
+    --terminal-panel: #0d140d;
+    --terminal-amber: #f59e0b;
+    --terminal-amber-bright: #fbbf24;
+    --terminal-amber-dim: #92400e;
+    --terminal-green: #34d399;
+    --terminal-red: #ef4444;
+  }
+
+  body {
+    font-family: 'JetBrains Mono', 'Share Tech Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    background-color: #080c08;
+    color: #f59e0b;
+    margin: 0;
+    padding: 0;
+    height: 100vh;
+    width: 100vw;
+    overflow: hidden;
+  }
+}
+
+/* Authentic subtle scanlines (non-intrusive) */
+.scanlines {
+  background: linear-gradient(
+    rgba(18, 16, 16, 0) 50%, 
+    rgba(0, 0, 0, 0.28) 50%
+  ), 
+  linear-gradient(
+    90deg,
+    rgba(255, 140, 0, 0.02),
+    rgba(0, 255, 100, 0.01),
+    rgba(0, 100, 255, 0.01)
+  );
+  background-size: 100% 3px, 6px 100%;
+  pointer-events: none;
+}
+
+/* Subtle phosphor terminal glow */
+.amber-glow {
+  text-shadow: 0 0 5px rgba(245, 158, 11, 0.55), 0 0 10px rgba(245, 158, 11, 0.25);
+}
+
+.amber-box-glow {
+  box-shadow: 0 0 8px rgba(245, 158, 11, 0.2), inset 0 0 8px rgba(245, 158, 11, 0.05);
+}
+
+.amber-box-glow-strong {
+  box-shadow: 0 0 15px rgba(245, 158, 11, 0.4), inset 0 0 12px rgba(245, 158, 11, 0.15);
+}
+
+/* Subtle CRT corner curvature vignette (pure software, no hardware monitor) */
+.crt-vignette {
+  box-shadow: inset 0 0 100px rgba(0, 0, 0, 0.85);
+  pointer-events: none;
+}
+
+/* Custom terminal scrollbars */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+::-webkit-scrollbar-track {
+  background: #090e09;
+  border-left: 1px solid rgba(245, 158, 11, 0.2);
+}
+::-webkit-scrollbar-thumb {
+  background: #78350f;
+  border: 1px solid #d97706;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #b45309;
+}
+
+/* Technical pulse animations */
+@keyframes radar-sweep {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-radar {
+  animation: radar-sweep 6s linear infinite;
+}
+
+@keyframes terminal-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+.terminal-cursor {
+  display: inline-block;
+  width: 8px;
+  height: 14px;
+  background-color: #f59e0b;
+  animation: terminal-blink 1s step-end infinite;
+  vertical-align: middle;
+  margin-left: 2px;
+}

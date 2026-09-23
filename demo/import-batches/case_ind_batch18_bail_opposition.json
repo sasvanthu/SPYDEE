@@ -1,0 +1,111 @@
+[
+  {
+    "record_id": "BAIL-MEMO-OPPOSITION-001",
+    "court": "Hon'ble Special Court for PMLA / CBI, Bengaluru",
+    "accused_applicant": "Sanjay Deshmukh",
+    "accused_alias": "Sanju BKC",
+    "case_reference": "Special CC No. 412/2026",
+    "caller_id": "+919820011223",
+    "callee_id": "+919820077889",
+    "dataset_source": "IndianBailJudgments-1200 & InLegalBERT",
+    "prosecution_grounds": [
+      {
+        "ground": "FLIGHT_RISK",
+        "precedent": "2026 SCC OnLine Bom 2419",
+        "evidence": "Observed high-speed transit via Hebbal flyover to Kempegowda International Airport and possession of un-hosted foreign crypto wallets."
+      },
+      {
+        "ground": "TAMPERING_WITH_ELECTRONIC_EVIDENCE",
+        "precedent": "ILDC-SC-2020-0891",
+        "evidence": "Demonstrated use of burner SIM-boxes and remote encrypted wipe commands on seized mobile hardware."
+      },
+      {
+        "ground": "SYNDICATE_CONTINUITY",
+        "precedent": "NyayaAnumana Empirical Conviction Ratio (0.764)",
+        "evidence": "Ongoing structuring across 14 identified mule accounts requires custodial interrogation to seize proceeds of crime under Section 19 PMLA."
+      }
+    ],
+    "prosecutorial_recommendation": "REJECT_BAIL_APPLICATION_WITH_EXTENDED_POLICE_CUSTODY_REMAND"
+  },
+  {
+    "record_id": "BAIL-PRECEDENT-BOMBAY-002",
+    "document_type": "HIGH_COURT_BINDING_PRECEDENT",
+    "citation": "2026 SCC OnLine Bom 2419",
+    "court": "High Court of Judicature at Bombay",
+    "judge": "Justice Ananya Kulkarni",
+    "dataset_source": "IndianBailJudgments-1200 & LawSum",
+    "crime_type": "Organized Financial Crime & Cyber Mule Ring",
+    "bail_outcome": "REJECTED",
+    "legal_principles": [
+      "Gravity of economic offense undermines trust in electronic payment ecosystem",
+      "Cross-border digital trail and burner communication establishes flight risk and risk of tampering with digital evidence"
+    ]
+  },
+  {
+    "record_id": "BAIL-PRECEDENT-SC-003",
+    "document_type": "SUPREME_COURT_JUDGMENT_PREDICTION",
+    "citation": "2026 INSC 412",
+    "dataset_source": "ILDC (Indian Legal Documents Corpus) & InLegalBERT",
+    "court": "Supreme Court of India, New Delhi",
+    "petitioner": "Directorate of Enforcement (ED)",
+    "respondent": "Apex Global Traders & Sanjay Deshmukh",
+    "cjpe_prediction": "CONVICTION_UPHELD",
+    "confidence_score": 0.892,
+    "ratio_decidendi": "Electronic logs of UPI structuring corroborated by cell tower handoff timestamps provide admissible secondary evidence under Section 65B."
+  },
+  {
+    "record_id": "BAIL-EMPIRICAL-RISK-004",
+    "document_type": "EMPIRICAL_JUDGMENT_PREDICTION_PROCEEDING",
+    "dataset_source": "NyayaAnumana (Law-AI Lab, IIT Kharagpur)",
+    "case_category": "Organized Cybercrime & Syndicate Fraud",
+    "tribunal_court": "High Court of Karnataka, Principal Bench at Bengaluru",
+    "primary_accused": "Sanjay Deshmukh",
+    "co_accused": ["Vikram Malhotra"],
+    "empirical_metrics": {
+      "conviction_probability_prior": 0.764,
+      "median_chargesheet_filing_days": 68,
+      "similar_jurisprudential_cases_analyzed": 2282137,
+      "bail_grant_likelihood": 0.18
+    },
+    "risk_index": "HIGH_SEVERITY_ORGANIZED_SYNDICATE"
+  },
+  {
+    "record_id": "BAIL-SEC65B-CERT-005",
+    "document_type": "SECTION_65B_CERTIFICATE",
+    "certifying_officer": "Cyber Forensics Inspector, CID Bengaluru",
+    "dataset_source": "InLegalBERT & ILDC Corpus",
+    "target_fir": "Special CC No. 412/2026",
+    "certified_exhibits": ["Exhibit C-1: CDR of +919820011223", "Exhibit C-2: UPI transaction logs from NPCI", "Exhibit C-3: Server hard drive clone image"],
+    "admissibility_status": "FULLY_COMPLIANT_UNDER_INDIAN_EVIDENCE_ACT"
+  },
+  {
+    "record_id": "BAIL-COMM-INTERCEPT-006",
+    "caller_id": "+919820011223",
+    "callee_id": "+919820077889",
+    "start_time": "2026-08-22T14:30:00",
+    "duration_seconds": 260,
+    "tower_id": "TOWER-MH-MUMBAI-BKC-04",
+    "dataset_source": "TRAI Telecom Mobility & InLegalNER",
+    "summary": "Sanjay Deshmukh strategizing with advocate regarding urgent hearing before vacation bench"
+  },
+  {
+    "record_id": "BAIL-COMM-INTERCEPT-007",
+    "caller_id": "+919820011223",
+    "callee_id": "+919820077889",
+    "start_time": "2026-08-22T17:15:00",
+    "duration_seconds": 310,
+    "tower_id": "TOWER-MH-MUMBAI-BKC-04",
+    "dataset_source": "TRAI Telecom Mobility & InLegalNER",
+    "summary": "Advocate informing accused that Section 45 PMLA twin conditions pose strict statutory hurdle"
+  },
+  {
+    "record_id": "BAIL-LEGAL-FEE-TXN-008",
+    "from_account_id": "ACCT-DESHMUKH-01",
+    "to_account_id": "ACCT-LEGAL-RETAINER-01",
+    "amount": 500000.0,
+    "currency": "INR",
+    "timestamp": "2026-08-22T18:00:00",
+    "dataset_source": "UPI Payment Transactions India",
+    "narration": "Senior legal counsel retainer fee for High Court bail appeal"
+  }
+]

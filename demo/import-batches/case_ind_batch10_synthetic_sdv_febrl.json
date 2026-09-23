@@ -1,0 +1,63 @@
+[
+  {
+    "record_id": "FEBRL-RL-MATCH-001",
+    "entity_resolution_modality": "PROBABILISTIC_RECORD_LINKAGE",
+    "dataset_source": "FEBRL Record Linkage Datasets (ANU / Python recordlinkage)",
+    "algorithm": "Fellegi-Sunter EM Model with Jaro-Winkler Metric",
+    "record_a": {
+      "name": "Rajesh Kumar",
+      "father_name": "Satish Kumar",
+      "address": "42 Chandni Chowk, Central Delhi",
+      "phone": "+919876543210",
+      "aadhaar_masked": "XXXX-XXXX-3319"
+    },
+    "record_b": {
+      "name": "Chandni Rajesh",
+      "father_name": "S Kumar",
+      "address": "Shop 42, Chandni Chwk, Delhi - 110006",
+      "phone": "+919876543210",
+      "pan_card": "XYZPK5678G"
+    },
+    "probabilistic_weight": 0.978,
+    "jaro_winkler_name_similarity": 0.88,
+    "phone_exact_match": true,
+    "resolution_verdict": "CONFIRMED_SAME_ENTITY",
+    "deduplication_confidence": 0.98,
+    "action": "AUTOMATIC_GRAPH_NODE_MERGE"
+  },
+  {
+    "record_id": "FAKER-IN-PERSONA-002",
+    "generation_source": "Faker (Python 'Faker' library with locale='en_IN')",
+    "dataset_source": "Faker (with 'en_IN' / Indian locale)",
+    "full_name": "Sanjay Deshmukh",
+    "gender": "Male",
+    "date_of_birth": "1984-06-12",
+    "phone_primary": "+919845012345",
+    "phone_burner": "+919845098765",
+    "masked_aadhaar": "XXXX-XXXX-4412",
+    "pan_card": "AABCS9821L",
+    "residential_address": "Flat 402, Shanti Vihar, Koramangala 4th Block, Bengaluru - 560034",
+    "registered_company": "Apex Export and Trading Pvt Ltd, Bandra Kurla Complex, Mumbai",
+    "corporate_cin": "U74999MH2021PTC364128",
+    "bank_accounts": ["ACCT-HDFC-9841", "ACCT-SHELL-MUMBAI-03"]
+  },
+  {
+    "record_id": "SDV-SYNTH-RELATION-003",
+    "synthesis_engine": "Synthetic Data Vault (SDV) Gaussian Copula / CTGAN",
+    "dataset_source": "Synthetic Data Vault (SDV)",
+    "relational_covariance": {
+      "cdr_call_duration_mean_sec": 142.5,
+      "upi_smurfing_ticket_variance": 482.0,
+      "cell_tower_transit_velocity_correlation": 0.912,
+      "traffic_bottleneck_latency_factor": 1.48
+    },
+    "differential_privacy_epsilon": 0.5,
+    "synthesized_table_coverage": [
+      "telecom_cdr_stream",
+      "upi_interbank_transactions",
+      "safecity_cctv_sightings",
+      "police_fir_filings"
+    ],
+    "verification_status": "STATISTICALLY_IDENTICAL_TO_REAL_INDIAN_CRIME_PATTERNS"
+  }
+]
