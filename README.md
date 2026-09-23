@@ -162,8 +162,6 @@ Each engine processes specialized record types and outputs normalized signals (`
 ### 1. Communication Engine (`communication_engine.py`)
 - Analyzes pairwise call/message frequency, total duration, nocturnal activity ratio, and long-call persistence.
 - **Burner Lifecycle Detection:** Detects high-intensity communication bursts followed by sudden permanent radio silence.
-- **Score Formulation:**  
-  $$\text{Score} = 0.35 \cdot \min\left(\frac{N}{20}, 1\right) + 0.20 \cdot \min\left(\frac{T}{3600}, 1\right) + 0.20 \cdot \text{burst} + 0.15 \cdot \text{night\_ratio} + 0.10 \cdot \text{long\_call\_ratio}$$
 
 ### 2. Device & SIM Engine (`device_engine.py`)
 - Maps IMSI/MSISDN identity hopping across physical IMEI hardware.
@@ -177,7 +175,7 @@ Each engine processes specialized record types and outputs normalized signals (`
 
 ### 4. StyloLink Authorship Attribution (`stylo_engine.py`)
 - Deterministic character/word n-gram stylometry for threat notes, ransom demands, and SMS communications.
-- **Honest Abstention Threshold:** Refuses to emit signals for texts with $< 2$ messages or $< 60$ characters.
+- **Honest Abstention Threshold:** Refuses to emit signals for texts with fewer than 2 messages or fewer than 60 characters.
 - Surfaces lexical similarity, punctuation idiosyncrasies, and regional syntax patterns.
 
 ### 5. Financial & Money-Mule Engine (`financial_engine.py`)
@@ -431,9 +429,9 @@ pytest tests/unit/test_financial_engine.py -v
 ```
 
 ### Verified Benchmark Results
-- **Scenario 1 (Supported Connection):** Subversive activity hypothesis score $\approx 92/100$ with auto-promoted reviewable lead.
-- **Scenario 2 (Busy-Tower Misleading Overlap):** Background multiplier suppresses public tower coincidence to $\approx 0.18$; no spurious link generated.
-- **Scenario 3 (Conflicting & Negative Control):** Contradiction penalties drop scores $< 50$; system cleanly abstains.
+- **Scenario 1 (Supported Connection):** Subversive activity hypothesis score ~92/100 with auto-promoted reviewable lead.
+- **Scenario 2 (Busy-Tower Misleading Overlap):** Background multiplier suppresses public tower coincidence to ~0.18; no spurious link generated.
+- **Scenario 3 (Conflicting & Negative Control):** Contradiction penalties drop scores below 50; system cleanly abstains.
 
 ---
 
@@ -463,11 +461,10 @@ SPYDEE/
 │   ├── generator/               # Synthetic Data Generators & Database Seeders
 │   └── import-batches/          # Pre-Generated Multi-Modal Case Fixtures
 ├── docs/                        # Comprehensive Technical & SIH Documentation
-│   ├── ARCHITECTURE.md          # Multi-Tier System Architecture Deep-Dive
 │   ├── ALGORITHMS.md            # Engine Mathematics & Fusion Formulations
 │   ├── DEMO.md                  # Comprehensive Judge Demo Sequences
-│   ├── DEPLOYMENT.md            # Production Docker & Host Deployment
-│   └── SIH_SPECIFICATION.md     # Problem Statement 26189 Compliance Matrix
+│   ├── SIH_SPECIFICATION.md     # Problem Statement 26189 Compliance Matrix
+│   └── TESTING.md               # Automated Verification & Test Harness
 ├── run_spydee.bat               # Windows 1-Click Launch Wrapper
 ├── run_spydee.ps1               # Multi-Terminal PowerShell Launcher
 ├── seed_data.ps1                # Interactive Seeding & Diagnostic Pipeline
@@ -482,3 +479,18 @@ SPYDEE/
 - **Team Name:** `EXIT(0);`
 
 *Developed with pride for Indian Law Enforcement, Cybercrime Police Stations, and National Security Agencies.*
+
+---
+
+## 📜 License & Intellectual Property
+
+**PROPRIETARY & CONFIDENTIAL — NOT OPEN SOURCE**
+
+Copyright © 2026 **Team EXIT(0);**. All Rights Reserved.
+
+This software, codebase, architecture, intelligence engines, algorithms, and associated documentation are the proprietary intellectual property of **Team EXIT(0);**, developed for evaluation in the Smart India Hackathon (SIH 2026).
+
+- **Strictly Non-Open Source:** This project is **not** licensed under MIT, Apache, GPL, or any open-source license.
+- **Usage Restrictions:** Unauthorized copying, reproduction, distribution, sublicensing, decompilation, public display, commercial exploitation, or transfer of this codebase or any part thereof, through any digital or physical medium, is strictly prohibited.
+- **Authorized Scope:** Access is granted solely to designated SIH 2026 judges and evaluators for the official hackathon evaluation process. All rights reserved by **Team EXIT(0);**.
+

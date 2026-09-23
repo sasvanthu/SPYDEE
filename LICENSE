@@ -1,0 +1,46 @@
+PROPRIETARY AND CONFIDENTIAL SOFTWARE LICENSE AGREEMENT
+========================================================
+
+COPYRIGHT (C) 2026 TEAM EXIT(0);. ALL RIGHTS RESERVED.
+
+PROJECT: SPYDEE - INVESTIGATIVE INTELLIGENCE & CRIMINAL-NETWORK ANALYSIS SYSTEM
+IMPORTANT — READ CAREFULLY BEFORE ACCESSING, VIEWING, OR USING THIS REPOSITORY:
+
+1. PROPRIETARY AND NON-OPEN SOURCE:
+   This software, including but not limited to source code, algorithms, 
+   system architecture, database schemas, intelligence engine heuristics, 
+   UI/UX components, documentation, test suites, and data models, is 
+   the exclusive, confidential, and proprietary intellectual property 
+   of Team EXIT(0);. 
+   
+   THIS SOFTWARE IS NOT OPEN SOURCE. IT IS NOT LICENSED UNDER THE MIT, 
+   APACHE, GNU GENERAL PUBLIC LICENSE (GPL), BSD, OR ANY OTHER OPEN 
+   SOURCE OR CREATIVE COMMONS LICENSE.
+
+2. RESTRICTIONS ON USE:
+   - NO REDISTRIBUTION: You may not distribute, publish, share, mirror, 
+     host, or transfer this codebase, in whole or in part, to any third 
+     party, public repository, package manager, or storage medium.
+   - NO MODIFICATION OR FORKING: You may not modify, alter, adapt, 
+     merge, translate, or create derivative works based on this software.
+   - NO COMMERCIAL USE: Commercialization, sale, licensing, leasing, 
+     or embedding of any portion of this software into commercial products 
+     or services is strictly forbidden.
+   - NO REVERSE ENGINEERING: Decompiling, disassembling, or reverse 
+     engineering of any algorithms, scoring heuristics, or models in this 
+     repository is strictly prohibited.
+
+3. LIMITED EVALUATION LICENSE:
+   Access to and execution of this repository is granted strictly and 
+   solely to the designated judges, evaluators, mentors, and organizing 
+   committee of the Smart India Hackathon (SIH 2026) for the singular 
+   purpose of assessing and verifying the solution for Problem Statement 26189.
+
+4. RESERVATION OF RIGHTS:
+   Team EXIT(0); explicitly reserves all worldwide intellectual property 
+   rights, patent rights, copyright protections, trademark rights, and 
+   trade secret protections pertaining to SPYDEE.
+
+========================================================
+CONFIDENTIAL & PROPRIETARY — TEAM EXIT(0);
+========================================================
