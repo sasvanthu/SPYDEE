@@ -1,134 +1,141 @@
-# SPYDEE Algorithms
+# 🔬 SPYDEE Algorithmic Formulation & Intelligence Fusion Specification
 
-## Signal Families and Weights
+**Smart India Hackathon 2026 — Problem Statement ID: 26189**  
+**Component:** Multi-Modal Signal Extraction, Mathematical Scoring & Hypothesis Fusion  
+**Team:** `EXIT(0);`
 
-Base family weights used for fusion (`analysis/scoring/hypothesis_engine.py`):
+---
 
-| Family           | Weight | Engine                              | Output family   |
-|------------------|--------|-------------------------------------|-----------------|
-| Communication    | 0.20   | `analysis/engines/communication_engine` | communication |
-| Device/SIM       | 0.20   | `analysis/engines/device_engine`        | device_sim     |
-| Spatial/Temporal | 0.15   | `analysis/engines/infra_engine`         | spatial_temporal |
-| Writing Style    | 0.15   | `analysis/engines/stylo_engine`         | writing_style  |
-| Financial        | 0.10   | `analysis/engines/financial_engine`     | financial      |
-| Infrastructure   | 0.10   | `analysis/engines/infra_engine`         | infrastructure |
-| Network Topology | 0.10   | `analysis/engines/graph_engine`         | network_topology |
+## 1. Overview of Multi-Family Intelligence Fusion
 
-## Hypothesis types restrict which families are applicable
+SPYDEE transforms disparate raw evidence into structured intelligence using a two-stage pipeline:
+1. **Specialized Signal Extraction:** Independent domain engines evaluate pairwise entity interactions and produce a normalized `Signal`.
+2. **Multi-Family Weighted Fusion:** The `HypothesisEngine` evaluates the convergence of applicable signal families, applies contradiction penalties, and generates a composite **Evidence-Strength Index (0–100)**.
 
-| Hypothesis type   | Applicable families                          |
-|-------------------|----------------------------------------------|
-| subversive_activity | communication, network_topology, device_sim |
-| terror_link         | communication, network_topology, spatial_temporal |
-| social_network      | communication, network_topology, writing_style |
+> **CRITICAL JUDICIAL NOTICE:**  
+> In compliance with forensic evidence standards, SPYDEE's output is an **Evidence-Strength Index**, NOT a mathematical probability of criminal guilt. A score of 85 signifies that multiple independent evidence families strongly align; it is not a declaration of 85% guilt. Judicial verification by an authorized investigating officer is mandatory.
 
-## Strength Index Computation (fusion)
+---
 
-For each entity-pair hypothesis:
+## 2. Base Signal Family Weights & Applicability Matrix
 
-1. Group signals by entity pair and family.
-2. For each applicable family, take the best signal: `s_f = numeric_value`, `q_f = quality_factor`.
-3. Weighted mean over applicable families only:
-   `strength = 100 × (Σ w_f × s_f × q_f) / (Σ w_f)`.
-4. If any applicable family signal is flagged as a **contradiction**, apply
-   `strength = max(0, strength × (1 − 0.25))` and note the penalty in the notes.
-5. Round to 0.1. Strength bands: High Plausibility ≥ 80, Medium 50–79, Low < 50.
+### Family Weight Definitions
 
-The fused strength is disclosed in each hypothesis notes field exactly as it was
-computed, e.g. `Fusion: strength = weighted mean of family evidence scores using
-[communication (w=0.20), device_sim (w=0.20)]`. **Scores are uncalibrated
-evidence scores, not probabilities.** A score of 80 does not mean 80% probability;
-it means the available evidence families align. Verification by an investigator is
-required before a link is treated as possible; below 50 a hypothesis states it
-does not establish a link.
+| Signal Family | Default Weight ($w_f$) | Responsible Engine | Input Data Modality |
+|---|---|---|---|
+| **Communication** | $0.20$ | `communication_engine.py` | CDR, IPDR, SMS, Call logs |
+| **Device / SIM** | $0.20$ | `device_engine.py` | Handset IMEIs, IMSI swaps, SIM bindings |
+| **Spatial / Temporal** | $0.15$ | `infra_engine.py` | Cell tower pings, SafeCity CCTV observations |
+| **Writing Style** | $0.15$ | `stylo_engine.py` | Extortion notes, threat SMS, chat transcripts |
+| **Financial / Mule** | $0.10$ | `financial_engine.py` | NPCI UPI logs, Bank transfers, P2P Crypto |
+| **Infrastructure** | $0.10$ | `infra_engine.py` | Shared IP subnets, BGP routes, VPN gateways |
+| **Network Topology** | $0.10$ | `graph_engine.py` | Graph degree centrality, Betweenness, Triads |
 
-## Communication Engine (`communication_engine.py` v2.1)
+### Hypothesis Type Applicability Mask
+Different criminal allegations require different evidentiary modalities. The fusion engine restricts evaluation to applicable families:
 
-- Counts pairwise calls/messages; normalizes phone identifiers.
-- Score: `0.35·min(count/20,1) + 0.20·min(total_duration/3600,1) +
-  0.20·burst + 0.15·night_ratio + 0.10·long_call_ratio`.
-- Burst = max events in any 2-hour sliding window (max/6).
-- Burner lifecycle: short-lived burst (≤3 days) then ≥2 days silence, count ≥ 8 → +0.15.
-- Quality: `min(1.0, 0.5 + count × 0.05)`.
-- Minimum: 2 communications per pair to emit a signal.
+$$\mathcal{F}_{\text{applicable}} = \begin{cases}
+\{\text{comm}, \text{topo}, \text{device}\}, & \text{for } \texttt{subversive\_activity} \\
+\{\text{comm}, \text{topo}, \text{spatial}\}, & \text{for } \texttt{terror\_link} \\
+\{\text{comm}, \text{topo}, \text{writing}\}, & \text{for } \texttt{social\_network} \\
+\{\text{comm}, \text{device}, \text{financial}, \text{topo}\}, & \text{for } \texttt{financial\_fraud\_syndicate}
+\end{cases}$$
 
-## Device / SIM Engine (`device_engine.py` v2.1)
+---
 
-- Groups events by handset; binds SIM/phone identities to devices.
-- `sim_hop`: two or more distinct phone entities registered on one device →
-  `swap_kind="device_hop"`; score saturates toward 1 with more device events.
-- `co_travel`: distinct phones whose events are geo-co-located on the same handset.
-- Signature reuse: the same IMEI appearing across distinct handset entities is
-  surfaced as an `imei_reuse` signal (device-hopping indicator) rather than being
-  silently absorbed.
-- Fixes in v2.1: no duplicate record appends in bindings; binding exposes the
-  device's `imeis`.
+## 3. Mathematical Fusion Formulation
 
-## StyloLink (`stylo_engine.py` v2.1) — honest abstention
+For an entity pair $(A, B)$ under hypothesis type $H$:
 
-- Compares short-message corpora per author with deterministic feature hashing
-  (no external embeddings).
-- **Abstains** (no signal) unless an author has **≥ 2 messages** and
-  **≥ 60 total characters**. A single short message never produces an
-  authorship-link signal.
-- Every signal's feature_details and explanation state the limitation:
-  "likelihood heuristic, not authorship identification; uncalibrated".
+1. For each applicable family $f \in \mathcal{F}_{\text{applicable}}$, extract the highest-scoring signal:
+   $$s_f = \text{numeric\_value} \in [0, 100], \quad q_f = \text{quality\_factor} \in (0, 1]$$
 
-## GhostTower (`infra_engine.py` v2.2) — background normalization
+2. Calculate the base weighted evidence strength:
+   $$\text{Strength}_{\text{base}} = \frac{\sum_{f \in \mathcal{F}_{\text{applicable}}} w_f \cdot s_f \cdot q_f}{\sum_{f \in \mathcal{F}_{\text{applicable}}} w_f}$$
 
-- Co-location is computed for every tower from distinct identities, and signals
-  report `tower_busyness_max` (number of distinct entities at the busy tower).
-- Penalty for high-traffic towers: `background_multiplier = clamp(1.35 − 0.02 ×
-  busyness, 0, 1)`, applied to the raw co-location score. Towers with ≥ 20
-  distinct identities are flagged `busy_tower: true`.
-- A busy-tower co-location therefore scores low (≈0.18 at busyness 42) instead
-  of producing a strong "link" that is really just a coincidence of crowds.
-- Impossible travel: entity appears at two towers ≥ `ANTENNA_LIMIT_KM` apart in
-  less time than `SPEED_LIMIT_KMH` allows → contradiction signal
-  (`contradiction=true`, `pattern=impossible_travel`, score 0). The contradiction
-  is propagated onto affected co-location pair signals (which are re-flagged and
-  the fused hypothesis penalized).
-- Shared IP / subnet → `infrastructure` family signal.
+3. **Contradiction Penalty Application:**  
+   If any applicable family signal has the contradiction flag triggered ($\text{contradiction} = \text{True}$):
+   $$\text{Strength}_{\text{final}} = \max\left(0, \; \text{Strength}_{\text{base}} \times (1 - \mathcal{P}_{\text{contra}})\right), \quad \text{where } \mathcal{P}_{\text{contra}} = 0.25$$
 
-## Graph Structure Engine (`graph_engine.py`)
+4. **Plausibility Strength Bands:**
+   - **High Plausibility:** $\ge 80.0$ (Triggers automated Lead creation for investigator review)
+   - **Medium Plausibility:** $50.0 - 79.9$ (Active hypothesis requiring supplemental evidence)
+   - **Low Plausibility / Unproven:** $< 50.0$ (System explicitly states: *"Does not establish a credible link"* - Honest Abstention)
 
-- NetworkX directed graph from entities + relationships; degree and betweenness
-  centrality. Score `0.3·min(centrality×2,1) + 0.7·min(betweenness×5,1)`.
+---
 
-## Financial Engine (`financial_engine.py`)
+## 4. Individual Engine Algorithms
 
-- Fan-in/fan-out money-mule topology detection around accounts.
+### A. Communication Engine (`communication_engine.py`)
+Computes interaction intensity, temporal regularity, and clandestine operational patterns between phone entities.
 
-## Hypothesis Generation and prioritization
+$$\text{Score}_{\text{comm}} = 0.35 \cdot \min\left(\frac{N_{\text{events}}}{20}, 1\right) + 0.20 \cdot \min\left(\frac{T_{\text{duration}}}{3600}, 1\right) + 0.20 \cdot \mathcal{B} + 0.15 \cdot \mathcal{R}_{\text{night}} + 0.10 \cdot \mathcal{R}_{\text{long}}$$
 
-- Deterministic ids via uuid5 over `(case_id, sorted pair, hypothesis_type)`.
-- Reviews (needs_verification / supported_by_reviewer / rejected) are recorded
-  and preserved across re-analysis runs.
-- A re-run replaces derived outputs (signals, hypotheses, recommendations) but
-  keeps AnalysisRun rows with an incrementing version; workspace summary sets
-  `analysis_stale=true` when evidence arrives after the latest completed run so
-  investigators are prompted to re-analyze instead of trusting outdated findings.
+Where:
+- $\mathcal{B} = \frac{\text{Max events in any 2-hour sliding window}}{6}$ (Communication burst score)
+- $\mathcal{R}_{\text{night}} = \frac{\text{Calls between 23:00 and 05:00}}{\text{Total calls}}$
+- $\mathcal{R}_{\text{long}} = \frac{\text{Calls exceeding 15 minutes}}{\text{Total calls}}$
+- **Burner SIM Lifecycle Bonus:** If communication spans $\le 3$ days followed by $\ge 2$ days permanent silence with $\ge 8$ events, add $+0.15$.
 
-## Auto-provisioned workspace records
+---
 
-- **Contradiction records** are created from contradiction signals (keyed by
-  detection method + sorted entity pair; idempotent on re-run).
-- **Leads** are created for hypotheses with strength ≥ 80 (origin=analysis
-  hypothesis; upserted per hypothesis on re-run).
-- **Information gaps** are parsed from `Data gaps:` in hypothesis notes (upsert
-  on matching title). All are reviewable workspace records.
+### B. GhostTower Spatial-Temporal & CCTV Engine (`infra_engine.py`)
+Evaluates physical encounters at cell towers and SafeCity CCTV cameras while correcting for urban crowd density.
 
-## Limitations (Prototype)
+#### 1. Busy-Tower Background Normalization
+Metropolitan transit hubs connect thousands of innocent citizens. Co-location at busy towers must not imply a conspiracy:
+$$\mathcal{M}_{\text{background}} = \text{clamp}(1.35 - 0.02 \cdot \mathcal{C}_{\text{tower}}, \; 0, \; 1)$$
+Where $\mathcal{C}_{\text{tower}}$ is the count of distinct entities connected to the tower during the observation window. If $\mathcal{C}_{\text{tower}} \ge 20$, the tower is marked as `busy_tower: true`, suppressing false-positive scores down to benign values ($\approx 0.18$).
 
-- Weights are calibrated heuristics, not statistically validated.
-- Strength index is a relative evidence score, **not** a probability.
-- StyloLink is a stylistic heuristic; it never identifies an author.
-- GhostTower uses per-tower busyness only (no historical baseline); busyness is
-  computed within the imported evidence set.
-- No Neo4j/Qdrant present; PostgreSQL + NetworkX back the graph and analysis.
+#### 2. Impossible Travel (Speed-of-Light Contradiction)
+Let $d(T_1, T_2)$ be the Euclidean/Haversine distance between two towers, and $\Delta t = |t_2 - t_1|$ be the elapsed time:
+$$\text{Speed} = \frac{d(T_1, T_2)}{\Delta t}$$
+If $\text{Speed} > v_{\text{limit}}$ ($150\text{ km/h}$ for ground transit, $900\text{ km/h}$ for flight corridor):
+- Flag: $\text{contradiction} = \text{True}$
+- Pattern: $\texttt{impossible\_travel}$
+- Score: $0.0$
+- Propagates to all dependent co-location signals and penalizes composite hypothesis.
 
-## References
+---
 
-- NetworkX shortest path: networkx.org/documentation/stable/reference/algorithms/shortest_paths.html
-- Cytoscape.js: js.cytoscape.org
-- NIST SP 800-86 (forensic process context)
+### C. StyloLink Authorship Attribution (`stylo_engine.py`)
+Deterministic linguistic feature extraction comparing anonymous threats, extortion SMS, and court depositions:
+
+#### Honest Abstention Threshold:
+To prevent spurious authorship claims on single text fragments:
+$$\text{If } (N_{\text{messages}} < 2) \lor (\text{Total Characters} < 60) \implies \text{\textbf{ABSTAIN (No Signal Emitted)}}$$
+
+#### Feature Vector Formulation:
+- Average word length & sentence length variance
+- Punctuation frequency distribution (excessive commas, exclamation marks, ellipses)
+- Case-folding and character 3-gram term frequency hashing
+- Cosine similarity between normalized feature vectors:
+  $$\text{Sim}(v_A, v_B) = \frac{v_A \cdot v_B}{\|v_A\|_2 \|v_B\|_2}$$
+
+---
+
+### D. Financial & Money-Mule Structuring Engine (`financial_engine.py`)
+Detects Hawala, illegal loan app extortion, and UPI mule ring patterns:
+
+#### Fan-In / Fan-Out Topology Score:
+1. **Fan-In (Aggregation):** Rapid deposits from $\ge 5$ distinct accounts within $< 30$ minutes.
+2. **Fan-Out (Dispersal):** Immediate split payouts to multiple beneficiary accounts or ATM withdrawals below mandatory reporting thresholds ($< ₹50,000$).
+$$\text{Score}_{\text{mule}} = 0.50 \cdot \min\left(\frac{N_{\text{in}} + N_{\text{out}}}{10}, 1\right) + 0.30 \cdot \text{VelocityRatio} + 0.20 \cdot \text{RoundAmountRatio}$$
+
+---
+
+### E. Device & SIM Continuity Engine (`device_engine.py`)
+Tracks physical handset hopping and IMEI recycling:
+- **Device Hopping:** If 2 or more distinct phone numbers register on the same physical IMEI within 30 days:
+  $$\text{Score}_{\text{hop}} = \min\left(1.0, \; 0.40 + 0.15 \cdot N_{\text{SIMs}}\right)$$
+- **Co-Travel Corroboration:** Two SIMs whose events are consistently registered on the same handset hardware in moving transit corridors.
+
+---
+
+### F. Graph Structure & Topology Engine (`graph_engine.py`)
+Computes network metrics across the case-scoped directed graph $\mathcal{G} = (\mathcal{V}, \mathcal{E})$ using NetworkX:
+- **Degree Centrality:** $C_D(v) = \frac{\text{deg}(v)}{|\mathcal{V}| - 1}$
+- **Betweenness Centrality:** $C_B(v) = \sum_{s \neq v \neq t} \frac{\sigma_{st}(v)}{\sigma_{st}}$
+- **Composite Topology Score:**
+  $$\text{Score}_{\text{topo}} = 0.30 \cdot \min(C_D \cdot 2, 1) + 0.70 \cdot \min(C_B \cdot 5, 1)$$
+  Entities with high betweenness centrality are highlighted as **Critical Gatekeepers / Syndicate Brokers**.
