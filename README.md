@@ -10,8 +10,6 @@
 [![Cytoscape.js](https://img.shields.io/badge/Cytoscape.js-3.29-EA580C.svg?style=for-the-badge)](https://js.cytoscape.org)
 [![Leaflet](https://img.shields.io/badge/Leaflet-1.9-199900.svg?style=for-the-badge&logo=leaflet)](https://leafletjs.com)
 
-> **Smart India Hackathon 2026 — Problem Statement ID: 26189**  
-> **Domain:** Law Enforcement, Intelligence Agencies, Cybercrime Investigation & National Security  
 > **Team:** `EXIT(0);`  
 > **Repository:** [https://github.com/sasvanthu/SPYDEE](https://github.com/sasvanthu/SPYDEE.git)
 
